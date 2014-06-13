@@ -14,9 +14,72 @@ Javascript client library for [camunda BPM](https://github.com/camunda/camunda-b
 ### In browsers
 
 ```HTML
+
 <script type="text/javascript" src="dist/camunda-bpm-sdk.js"></script>
 <script type="text/javascript">
-  // TODO
+  var cam = new require('camunda-bpm-sdk-js')({
+    apiUri: '//localhost:8080/engine-rest',
+    engineName: 'default' // optional, default to "default",
+    // 
+    authentication: {
+      type: 'basic',
+      username: 'jonny1',
+      password: 'insecure'
+    }
+  });
+  
+  cam.processDefinition().list();
+  
+  var request = cam.task().create({
+    assignee: "jonny",
+    candidateUser: "mary"
+  });
+  
+  
+  var taskResource = cam.task("existingTaskId", true); // <
+  var taskResource = task.get();  // <
+  
+  var assignee =  taskResource.assignee;
+  
+  
+  var task = cam.task().get("existingTaskId");
+  task.delete();
+  task.update({
+    assignee: "foo"
+  });
+  
+  cam.task().delete({id: "existingTaskId"});
+  
+  cam.task().update("existingTaskId", {
+    
+  });
+  
+  
+  var taskResource = task.get();  // <
+  
+  var assignee =  taskResource.assignee;
+  
+  
+  
+  
+  
+  request.on().on();
+    
+  cam.task().create({
+    assignee: "jonny",
+    candidateUser: "mary"
+  }).on("success", function() {
+    
+  });
+  
+  cam.task().create({
+    assignee: "jonny",
+    candidateUser: "mary"
+  }, function(error, data) {
+    
+  });
+  
+  cam.task().
 </script>
 ```
 

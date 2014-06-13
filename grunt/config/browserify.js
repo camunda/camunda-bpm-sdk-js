@@ -6,14 +6,6 @@ module.exports = function(config) {
       livereload: false
     },
 
-    sources: {
-      files: [
-        'src/**/*.js'
-      ],
-      tasks: [
-        'newer:jshint',
-        'browserify'
-      ]
-    }
+    sources: {}
   };
 };
