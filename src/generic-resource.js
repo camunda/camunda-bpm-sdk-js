@@ -5,7 +5,7 @@ var HttpClient = require('./http-client');
 
 /**
  * Abstract class for resources
- * @exports cam.sdk.GenericResource
+ * @exports CamSDK.GenericResource
  * @constructor
  *
  * @example
@@ -30,13 +30,18 @@ var HttpClient = require('./http-client');
  * Model.list({ nameLike: '%call%' });
  *
  * // or alternatively by using a callback
- * Model.list({ nameLike: ''%call%' }, function(err, results) {
+ * Model.list({ nameLike: '%call%' }, function(err, results) {
  *   if (err) {
  *     throw err;
  *   }
  *
  *   var total = results.count;
  *   var instances = results.items;
+ * });
+ *
+ * var instance = new Model();
+ * instance.claim(function(err, result) {
+ *
  * });
  */
 function GenericResource() {
@@ -50,8 +55,8 @@ function GenericResource() {
  * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
  * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
  * @param  {?Object.<String, *>} protoProps   ...
- * @param  {Object.<String, *>=} staticProps  ...
- * @return {cam.sdk.GenericResource}          ...
+ * @param  {Object.<String, *>} [staticProps]  ...
+ * @return {CamSDK.GenericResource}          ...
  */
 GenericResource.extend = function(protoProps, staticProps) {
   protoProps = protoProps || {};
@@ -107,9 +112,8 @@ GenericResource.path = '';
  */
 GenericResource.prototype.initialize = function() {
   // do something to initialize the instance
-  this.http = new HttpClient({
-    resource: this
-  });
+  // like copying the Model http property to the "this" (instanciated)
+  this.http = this.constructor.http;
 };
 
 
@@ -128,7 +132,7 @@ GenericResource.http = {};
  * @abstract
  *
  * @param  {!Object|Object[]}  attributes        ...
- * @param  {requestCallback=}        done              ...
+ * @param  {requestCallback} [done]              ...
  */
 GenericResource.create = function(attributes, done) {};
 
@@ -139,9 +143,14 @@ GenericResource.create = function(attributes, done) {};
  * @abstract
  *
  * @param  {?Object.<String, String>}     where ...
- * @param  {requestCallback=}  done  ...
+ * @param  {requestCallback} [done]  ...
  */
-GenericResource.list = function(where, done) {};
+GenericResource.list = function(where, done) {
+  where = where || {};
+  this.http.get(where, {
+    done: done
+  });
+};
 
 
 
@@ -151,7 +160,7 @@ GenericResource.list = function(where, done) {};
  *
  * @param  {!String|String[]}     ids           ...
  * @param  {Object.<String, *>}   attributes    ...
- * @param  {requestCallback=}     done   ...
+ * @param  {requestCallback} [done]   ...
  */
 GenericResource.update = function(ids, attributes, done) {};
 
@@ -162,7 +171,7 @@ GenericResource.update = function(ids, attributes, done) {};
  * @abstract
  *
  * @param  {!String|String[]}  ids   ...
- * @param  {requestCallback=} done   ...
+ * @param  {requestCallback} [done]   ...
  */
 GenericResource.delete = function(ids, done) {};
 
@@ -173,7 +182,7 @@ GenericResource.delete = function(ids, done) {};
  * @abstract
  *
  * @param  {Object}   attributes    ...
- * @param  {requestCallback=} done  ...
+ * @param  {requestCallback} [done]  ...
  */
 GenericResource.prototype.update = function(attributes, done) {};
 
@@ -183,7 +192,7 @@ GenericResource.prototype.update = function(attributes, done) {};
  * Delete one or more instances
  * @abstract
  *
- * @param  {requestCallback=} done ...
+ * @param  {requestCallback} [done] ...
  */
 GenericResource.prototype.delete = function(done) {};
 

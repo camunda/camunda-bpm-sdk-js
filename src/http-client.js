@@ -12,9 +12,13 @@
 //     - superagent: https://github.com/visionmedia/superagent full-featured
 // - investigate mocking implementation
 
+
+var request = require('superagent');
+
+
 /**
  * HttpClient
- * @exports cam.sdk.HttpClient
+ * @exports CamSDK.HttpClient
  */
 
 /**
@@ -22,38 +26,61 @@
  * @class
  * @classdesc A HTTP request abstraction layer to be used in node.js / browsers environments.
  */
-var HttpClient = function(resource) {
-  this.instance = resource;
-  // this.request = require('superagent');
-};
+var HttpClient = function(config) {
+  config = config || {};
 
+  if (!config.baseUrl) {
+    throw new Error('HttpClient needs a `baseUrl` configuration property.');
+  }
+
+  this.config = config;
+};
 
 
 /**
  * Performs a POST HTTP request
  */
 HttpClient.prototype.post = function(data, options) {
-  var instance = this.instance;
   data = data || {};
   options = options || {};
-  // var req = request('/api/'+ );
+
+  var url = this.config.baseUrl + (options.path ? '/'+ options.path : '');
+  var req = request
+    .post(url);
+  req.send(data);
+  req.end(options.done);
 };
 
 
 
 /**
- * Performs a POST HTTP request
+ * Performs a GET HTTP request
  */
 HttpClient.prototype.get = function(data, options) {
   var instance = this.instance;
   data = data || {};
   options = options || {};
+  options.done = options.done || function() {};
+
+  var url = this.config.baseUrl + (options.path ? '/'+ options.path : '');
+  var req = request
+    .get(url);
+
+  req.end(function(err, response) {
+    if (err || !response.ok) {
+      // ...
+    }
+
+    console.info('response for '+ url, response.text);
+
+    options.done.apply(this, arguments);
+  });
 };
 
 
 
 /**
- * Performs a POST HTTP request
+ * Performs a PUT HTTP request
  */
 HttpClient.prototype.put = function(data, options) {
   var instance = this.instance;
@@ -64,7 +91,7 @@ HttpClient.prototype.put = function(data, options) {
 
 
 /**
- * Performs a POST HTTP request
+ * Performs a DELETE HTTP request
  */
 HttpClient.prototype.del = function(data, options) {
   var instance = this.instance;

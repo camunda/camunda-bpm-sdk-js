@@ -5,12 +5,12 @@ describe('The Task resource usage', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      Task = require('./../../src/resources/task');
+      Task = require('./../../../src/resources/task');
     }).not.toThrow();
   });
 
   it('has a `path` static property', function() {
-    expect(Task.path).toBe('/task');
+    expect(Task.path).toBe('task');
   });
 
   describe('instance', function() {

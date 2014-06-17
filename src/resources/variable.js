@@ -7,7 +7,7 @@ var GenericResource = require("./../generic-resource");
 
 /**
  * Variable resource
- * @exports cam.sdk.Variable
+ * @exports CamSDK.Variable
  *
  */
 
@@ -16,8 +16,8 @@ var GenericResource = require("./../generic-resource");
 /**
  * Variable
  * @class
- * @classdesc A process instance
- * @augments cam.sdk.GenericResource
+ * @classdesc A variable resource
+ * @augments CamSDK.GenericResource
  */
 var Variable = GenericResource.extend();
 

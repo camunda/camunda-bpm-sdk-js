@@ -15,6 +15,9 @@ module.exports = function() {
         consolidate: true
       }
     },
-    unit: ['test/jasmine_node/**/*Spec.js']
+
+    unit: [
+      process.env.JASMINE_TEST_ONLY ? 'test/jasmine_node/'+ process.env.JASMINE_TEST_ONLY +'Spec.js' : 'test/jasmine_node/**/*Spec.js'
+    ]
   };
 };

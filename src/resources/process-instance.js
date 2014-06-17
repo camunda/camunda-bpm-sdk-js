@@ -7,7 +7,7 @@ var GenericResource = require("./../generic-resource");
 
 /**
  * Process instance resource
- * @exports cam.sdk.ProcessInstance
+ * @exports CamSDK.ProcessInstance
  *
  */
 
@@ -16,8 +16,8 @@ var GenericResource = require("./../generic-resource");
 /**
  * ProcessInstance
  * @class
- * @classdesc A process instance
- * @augments cam.sdk.GenericResource
+ * @classdesc A process instance resource
+ * @augments CamSDK.GenericResource
  */
 var ProcessInstance = GenericResource.extend();
 
@@ -26,7 +26,7 @@ var ProcessInstance = GenericResource.extend();
  * API path for the process instance resource
  * @type {String}
  */
-ProcessInstance.path = '/process-instance';
+ProcessInstance.path = 'process-instance';
 
 
 
@@ -36,9 +36,9 @@ ProcessInstance.path = '/process-instance';
  * @param  {String}   [params.id]                   [description]
  * @param  {String}   [params.key]                  [description]
  * @param  {Object.<String, *>} [params.variables]  [description]
- * @param  {requestCallback=} done              [description]
+ * @param  {requestCallback} [done]                 [description]
  */
-ProcessInstance.prototype.create = function(params, done) {
+ProcessInstance.create = function(params, done) {
   return this.http.post(params, done);
 };
 
@@ -47,11 +47,12 @@ ProcessInstance.prototype.create = function(params, done) {
 /**
  * Get a list of process instances
  * @param  {Object}   params   [description]
- * @param  {requestCallback=} done [description]
+ * @param  {requestCallback} [done] [description]
  */
-ProcessInstance.prototype.list = function(params, done) {
+ProcessInstance.list = function(params, done) {
   return this.http.get("/", params, done);
 };
+
 
 module.exports = ProcessInstance;
 

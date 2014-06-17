@@ -5,12 +5,12 @@ describe('The ProcessInstance resource', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      ProcessInstance = require('./../../src/resources/process-instance');
+      ProcessInstance = require('./../../../src/resources/process-instance');
     }).not.toThrow();
   });
 
   it('has a `path` static property', function() {
-    expect(ProcessInstance.path).toBe('/process-instance');
+    expect(ProcessInstance.path).toBe('process-instance');
   });
 
   describe('instance', function() {

@@ -7,7 +7,7 @@ var GenericResource = require("./../generic-resource");
 
 /**
  * Task identity link resource
- * @exports cam.sdk.TaskIdentityLink
+ * @exports CamSDK.TaskIdentityLink
  *
  */
 
@@ -16,8 +16,8 @@ var GenericResource = require("./../generic-resource");
 /**
  * TaskIdentityLink
  * @class
- * @classdesc A process instance
- * @augments cam.sdk.GenericResource
+ * @classdesc A Task identity links resource
+ * @augments CamSDK.GenericResource
  */
 var TaskIdentityLink = GenericResource.extend();
 

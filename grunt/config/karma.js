@@ -10,7 +10,7 @@ module.exports = function() {
         'node_modules/karma-jasmine/lib/jasmine.js',
         'node_modules/karma-jasmine/lib/adapter.js',
 
-        {pattern: 'test/karma/**/*Spec.js', included: true},
+        {pattern: 'test/karma/**/*-spec.js', included: true},
         {pattern: 'dist/**/*.js', included: false},
 
         'test/karma/main.js'
