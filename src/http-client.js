@@ -1,12 +1,15 @@
 'use strict';
 
+
 // Notes:
 // - investigate possible use of XHR libraries
 //   - for node.js
 //     - https://github.com/mikeal/request
 //   - for browsers
 //     - rqst: https://github.com/voronianski/rqst very small
-//     - reqwest: https://github.com/ded/reqwest full-featured
+//     - reqwest: https://github.com/ded/reqwest lots of feature
+//   - both (node.js & browsers)
+//     - superagent: https://github.com/visionmedia/superagent full-featured
 // - investigate mocking implementation
 
 /**
@@ -21,6 +24,7 @@
  */
 var HttpClient = function(resource) {
   this.instance = resource;
+  // this.request = require('superagent');
 };
 
 
@@ -32,6 +36,7 @@ HttpClient.prototype.post = function(data, options) {
   var instance = this.instance;
   data = data || {};
   options = options || {};
+  // var req = request('/api/'+ );
 };
 
 

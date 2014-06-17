@@ -5,7 +5,7 @@ describe('The ProcessDefinition resource usage', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      ProcessDefinition = require('./../../src/process-definition');
+      ProcessDefinition = require('./../../src/resources/process-definition');
     }).not.toThrow();
   });
 

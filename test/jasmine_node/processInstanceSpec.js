@@ -5,7 +5,7 @@ describe('The ProcessInstance resource', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      ProcessInstance = require('./../../src/process-instance');
+      ProcessInstance = require('./../../src/resources/process-instance');
     }).not.toThrow();
   });
 
