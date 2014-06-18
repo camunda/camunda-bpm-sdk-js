@@ -20,6 +20,23 @@ function toArray(obj) {
   return arr;
 }
 
+/**
+ * Returns a function that will be executed
+ * at most one time, no matter how often you call it.
+ * @param  {Function} func ...
+ * @return {Function}      ...
+ */
+function once(func) {
+  var ran = false, memo;
+  return function() {
+    if (ran) return memo;
+    ran = true;
+    memo = func.apply(this, arguments);
+    func = null;
+    return memo;
+  };
+};
+
 
 /**
  * Ensure an object to have the needed _events property
@@ -65,9 +82,13 @@ Events.on = function(eventName, callback) {
  * @param  {Function} callback  ...
  */
 Events.once = function(eventName, callback) {
-  ensureEvents(this, eventName);
-
-  return this;
+  var self = this;
+  var cb = once(function() {
+    self.off(eventName, once);
+    callback.apply(this, arguments);
+  });
+  cb._callback = callback;
+  return this.on(eventName, cb);
 };
 
 
@@ -84,12 +105,13 @@ Events.off = function(eventName, callback) {
     return this;
   }
 
-  var e, ev;
+  var e, ev, arr = [];
   for (e in this._events[eventName]) {
-    if (this._events[eventName][e] === callback) {
-      delete this._events[eventName][e];
+    if (this._events[eventName][e] !== callback) {
+      arr.push(this._events[eventName][e]);
     }
   }
+  this._events[eventName] = arr;
 
   return this;
 };
@@ -100,9 +122,9 @@ Events.off = function(eventName, callback) {
  * @param  {String} eventName ...
  * @param {...*} [params]     ...
  */
-Events.trigger = function(eventName) {
+Events.trigger = function() {
   var args = toArray(arguments);
-  eventName = args.shift();
+  var eventName = args.shift();
   ensureEvents(this, eventName);
 
   var e, ev;
