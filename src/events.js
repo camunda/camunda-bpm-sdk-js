@@ -35,7 +35,7 @@ function once(func) {
     func = null;
     return memo;
   };
-};
+}
 
 
 /**
@@ -95,7 +95,7 @@ Events.once = function(eventName, callback) {
 /**
  * Unbind one or all callbacks originally bound to `eventName`
  * @param  {String}   eventName ...
- * @param  {Function} callback  ...
+ * @param  {Function} [callback]  ...
  */
 Events.off = function(eventName, callback) {
   ensureEvents(this, eventName);
