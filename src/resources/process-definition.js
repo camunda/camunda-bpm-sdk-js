@@ -2,20 +2,18 @@
 
 var GenericResource = require("./../generic-resource");
 
+/**
+ * No-Op callback
+ */
 function noop() {}
 
 /**
- * Process definition resource
- * @exports CamSDK.ProcessDefinition
- * @constructor
- */
-
-
-/**
- * ProcessDefinition
+ * Process Definition Resource
  * @class
  * @classdesc A process definition resource
  * @augments CamSDK.GenericResource
+ * @exports CamSDK.ProcessDefinition
+ * @constructor
  */
 var ProcessDefinition = GenericResource.extend();
 
@@ -26,45 +24,51 @@ var ProcessDefinition = GenericResource.extend();
  */
 ProcessDefinition.path = 'process-definition';
 
-
-
-// - name:                  Filter by process definition name.
-// - nameLike:              Filter by process definition names that the parameter is a substring of.
-// - deploymentId:          Filter by the deployment the id belongs to.
-// - key:                   Filter by process definition key, i.e. the id in the BPMN 2.0 XML. Exact match.
-// - keyLike:               Filter by process definition keys that the parameter is a substring of.
-// - category:              Filter by process definition category. Exact match.
-// - categoryLike:          Filter by process definition categories that the parameter is a substring of.
-// - ver:                   Filter by process definition version.
-// - latest:                Only include those process definitions that are latest versions. Values may be true or false.
-// - resourceName:          Filter by the name of the process definition resource. Exact match.
-// - resourceNameLike:      Filter by names of those process definition resources that the parameter is a substring of.
-// - startableBy:           Filter by a user name who is allowed to start the process.
-// - active:                Only include active process definitions. Values may be true or false.
-// - suspended:             Only include suspended process definitions. Values may be true or false.
-// - incidentId:            Filter by the incident id.
-// - incidentType:          Filter by the incident type.
-// - incidentMessage:       Filter by the incident message. Exact match.
-// - incidentMessageLike:   Filter by the incident message that the parameter is a substring of.
-//
-// - sortBy:                Sort the results lexicographically by a given criterion.
-//                          Valid values are category, key, id, name, version and deploymentId.
-//                          Must be used in conjunction with the sortOrder parameter.
-// - sortOrder:             Sort the results in a given order.
-//                          Values may be asc for ascending order or desc for descending order.
-//                          Must be used in conjunction with the sortBy parameter.
-//
-// - firstResult:           Pagination of results. Specifies the index of the first result to return.
-// - maxResults:            Pagination of results. Specifies the maximum number of results to return.
-//                          Will return less results, if there are no more results left.
-
 /**
  * Get a list of process definitions
- * @param  {Object}           [params] ...
- * @param  {requestCallback}  [done]   ...
+ * @param  {Object} [params]                      Query parameters as follow
+ * @param  {String} [params.name]                 Filter by name.
+ * @param  {String} [params.nameLike]             Filter by names that the parameter is a substring of.
+ * @param  {String} [params.deploymentId]         Filter by the deployment the id belongs to.
+ * @param  {String} [params.key]                  Filter by key, i.e. the id in the BPMN 2.0 XML. Exact match.
+ * @param  {String} [params.keyLike]              Filter by keys that the parameter is a substring of.
+ * @param  {String} [params.category]             Filter by category. Exact match.
+ * @param  {String} [params.categoryLike]         Filter by categories that the parameter is a substring of.
+ * @param  {String} [params.ver]                  Filter by version.
+ * @param  {String} [params.latest]               Only include those process definitions that are latest versions.
+ *                                                Values may be "true" or "false".
+ * @param  {String} [params.resourceName]         Filter by the name of the process definition resource. Exact match.
+ * @param  {String} [params.resourceNameLike]     Filter by names of those process definition resources that the parameter is a substring of.
+ * @param  {String} [params.startableBy]          Filter by a user name who is allowed to start the process.
+ * @param  {String} [params.active]               Only include active process definitions.
+ *                                                Values may be "true" or "false".
+ * @param  {String} [params.suspended]            Only include suspended process definitions.
+ *                                                Values may be "true" or "false".
+ * @param  {String} [params.incidentId]           Filter by the incident id.
+ * @param  {String} [params.incidentType]         Filter by the incident type.
+ * @param  {String} [params.incidentMessage]      Filter by the incident message. Exact match.
+ * @param  {String} [params.incidentMessageLike]  Filter by the incident message that the parameter is a substring of.
+ *
+ * @param  {String} [params.sortBy]               Sort the results lexicographically by a given criterion.
+ *                                                Valid values are category, "key", "id", "name", "version" and "deploymentId".
+ *                                                Must be used in conjunction with the "sortOrder" parameter.
+ *
+ * @param  {String} [params.sortOrder]            Sort the results in a given order.
+ *                                                Values may be asc for ascending "order" or "desc" for descending order.
+ *                                                Must be used in conjunction with the sortBy parameter.
+ *
+ * @param  {Integer} [params.firstResult]         Pagination of results. Specifies the index of the first result to return.
+ * @param  {Integer} [params.maxResults]          Pagination of results. Specifies the maximum number of results to return.
+ *                                                Will return less results, if there are no more results left.
+
+ * @param  {requestCallback} [done]       ...
  *
  * @example
- * // TODO
+ * CamSDK.resource('process-definition').list({
+ *   nameLike: 'Process'
+ * }, function(err, results) {
+ *   // ...
+ * });
  */
 ProcessDefinition.list = function(params, done) {
   // allows to pass only a callback
@@ -75,8 +79,53 @@ ProcessDefinition.list = function(params, done) {
   params = params || {};
   done = done || noop;
 
-  return this.http.get(this.path, {
-    done: done
+  var likeExp = /Like$/;
+  var self = this;
+  var results = {
+    count: 0,
+    items: []
+  };
+
+  var where = {};
+  var name, value;
+  for (name in params) {
+    value = params[name];
+
+    if (likeExp.test(name)) {
+      value = '%'+ value +'%';
+    }
+
+    where[name] = value;
+  }
+
+  console.info('where', where);
+
+  // until a new webservice is made available,
+  // we need to perform 2 requests
+  return this.http.get(this.path +'/count', {
+    data: where,
+    done: function(err, countRes) {
+      console.info('count response', err, countRes.body);
+      if (err) {
+        return done(err);
+      }
+
+      results.count = countRes.body.count;
+
+      self.http.get(self.path, {
+        data: where,
+        done: function(err, itemsRes) {
+          console.info('items response', err, itemsRes.body);
+          if (err) {
+            return done(err);
+          }
+
+          results.items = itemsRes.body;
+
+          done(err, results);
+        }
+      });
+    }
   });
 };
 

@@ -14,13 +14,13 @@
     "camunda-bpm",
     "sdk"
   ],
-  "author": "Daniel Meyer <daniel.meyer@camunda.com>",
+  "author": "Valentin Vago <valentin.vago@camunda.com>",
   "contributors": [
-    "Valentin Vago <valentin.vago@camunda.com>"
+    "Daniel Meyer <daniel.meyer@camunda.com>"
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/camunda/camunda-bpm-sdk-js/issues"
+    "url": "https://app.camunda.com/jira/browse/CAM/component/12351"
   },
   "homepage": "https://github.com/camunda/camunda-bpm-sdk-js",
   "dependencies": {
@@ -41,6 +41,8 @@
     "time-grunt": "~0.3.2",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-contrib-jshint": "~0.10.0",
-    "grunt-contrib-copy": "~0.5.0"
+    "grunt-contrib-copy": "~0.5.0",
+    "karma-phantomjs-launcher": "~0.1.4",
+    "grunt-contrib-uglify": "~0.5.0"
   }
 }

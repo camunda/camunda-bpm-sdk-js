@@ -1,7 +1,19 @@
 'use strict';
 
 /**
- * @exports Events
+ * Events handling utility who can be used on
+ * any kind of object to provide `on`, `once`, `off`
+ * and `trigger` functions.
+ *
+ * @exports CamSDK.Events
+ *
+ * @example
+ * var obj = {};
+ * Events.attach(obj);
+ *
+ * obj.on('event:name', function() {});
+ * obj.once('event:name', function() {});
+ * obj.trigger('event:name', data, moreData, evenMoreData);
  */
 
 var Events = {};

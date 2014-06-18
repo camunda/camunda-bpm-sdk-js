@@ -3,8 +3,12 @@
 var HttpClient = require('./http-client');
 
 /**
+ * @namespace CamSDK
+ */
+
+/**
  * Entry point of the module
- * @exports CamSDK
+ * @exports Cam
  * @constructor
  *
  * @param  {Object} config        used to provide necessary configuration
@@ -50,7 +54,7 @@ function Cam(config) {
 (function(proto){
   /**
    * configuration storage
-   * @memberOf CamSDK.prototype
+   * @memberOf Cam.prototype
    * @name  config
    * @type {Object}
    */
@@ -60,33 +64,29 @@ function Cam(config) {
 
   /**
    * Prepare the instance
-   * @memberOf CamSDK.prototype
+   * @memberOf Cam.prototype
    * @name  initialize
    */
   proto.initialize = function() {
-    var resource, Resource, name;
-    var resources = this.config.resources || [
-      'process-definition',
-      'process-instance',
-      'variable',
-      'task'
-    ];
+    var name;
 
-    for (resource in resources) {
-      name = resources[resource];
+    /* jshint sub: true */
+    _resources['process-definition']  = require('./resources/process-definition');
+    _resources['process-instance']    = require('./resources/process-instance');
+    _resources['task']                = require('./resources/task');
+    _resources['variable']            = require('./resources/variable');
+    /* jshint sub: false */
 
-      Resource = require('./resources/'+ name);
-      Resource.http = new HttpClient({
-        baseUrl: this.baseUrl +'/'+ Resource.path
+    for (name in _resources) {
+      _resources[name].http = new HttpClient({
+        baseUrl: this.baseUrl +'/'+ _resources[name].path
       });
-
-      _resources[name] = Resource;
     }
   };
 
   /**
    * Allows to get a resource from SDK by its name
-   * @memberOf CamSDK.prototype
+   * @memberOf Cam.prototype
    * @name resource
    *
    * @param  {String} name [description]
@@ -101,12 +101,10 @@ function Cam(config) {
 module.exports = Cam;
 
 
-
-
 /**
  * This callback is displayed as part of the Requester class.
  * @callback requestCallback
- * @param {Object} ?error
+ * @param {?Object} error
  * @param {CamSDK.GenericResource|CamSDK.GenericResource[]} [results]
  */
 

@@ -79,6 +79,10 @@ npm install
 grunt auto-build
 ```
 
+### Issues
+
+https://app.camunda.com/jira/browse/CAM/component/12351
+
 
 ## License
 

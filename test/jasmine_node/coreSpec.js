@@ -15,7 +15,7 @@ describe('The SDK core', function() {
         protocol: 'http',
         hostname: 'localhost',
         port: '8080',
-        appUri: 'camunda/api/engine/engine'
+        appUri: 'engine-rest/engine'
       });
     }).not.toThrow();
   });
@@ -34,16 +34,5 @@ describe('The SDK core', function() {
 
     expect(processDefinition.http).toBeDefined();
     expect(processDefinition.http).toBe(ProcessDefinition.http);
-  });
-
-
-  it('can list the process process definitions', function(done) {
-    ProcessDefinition.list({}, function(err, results) {
-      if (err) {
-        return done(err);
-      }
-
-      done();
-    });
   });
 });

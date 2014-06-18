@@ -6,18 +6,12 @@ var GenericResource = require("./../generic-resource");
 
 
 /**
- * Process instance resource
- * @exports CamSDK.ProcessInstance
- *
- */
-
-
-
-/**
- * ProcessInstance
+ * Process Instance Resource
  * @class
  * @classdesc A process instance resource
  * @augments CamSDK.GenericResource
+ * @exports CamSDK.ProcessInstance
+ * @constructor
  */
 var ProcessInstance = GenericResource.extend();
 

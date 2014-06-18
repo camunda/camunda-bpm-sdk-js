@@ -29,6 +29,8 @@ module.exports = function(grunt) {
     karma:            require('./grunt/config/karma')(config),
 
     watch:            require('./grunt/config/watch')(config),
+
+    uglify:           require('./grunt/config/uglify')(config),
   });
 
   grunt.registerTask('build', function(target) {
@@ -39,7 +41,8 @@ module.exports = function(grunt) {
       'clean',
       'jsdoc',
       'copy',
-      'browserify'
+      'browserify',
+      'uglify'
     ];
 
     grunt.task.run(tasks);

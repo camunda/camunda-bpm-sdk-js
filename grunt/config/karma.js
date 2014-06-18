@@ -7,23 +7,15 @@ module.exports = function() {
       frameworks: ['jasmine'],
 
       files: [
-        'node_modules/karma-jasmine/lib/jasmine.js',
-        'node_modules/karma-jasmine/lib/adapter.js',
+        {pattern: 'dist/camunda-bpm-sdk.min.js', included: true},
 
-        {pattern: 'test/karma/**/*-spec.js', included: true},
-        {pattern: 'dist/**/*.js', included: false},
-
-        'test/karma/main.js'
+        {pattern: 'test/karma/**/*Spec.js', included: true}
       ],
       browsers: [
-        // 'Chrome',
+        'Chrome',
         // 'Firefox',
         'PhantomJS'
       ]
-    },
-
-    integration: {
-      options: {}
     },
 
     dev: {

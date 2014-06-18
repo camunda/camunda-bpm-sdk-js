@@ -1,3 +1,4 @@
+'use strict';
 module.exports = function(config) {
   config = config || {};
 
@@ -6,6 +7,15 @@ module.exports = function(config) {
       livereload: false
     },
 
-    sources: {}
+    sources: {
+      options: {
+        bundleOptions: {
+          standalone: 'CamSDK'
+        }
+      },
+      files: {
+        'dist/camunda-bpm-sdk.js': ['./src/index.js']
+      }
+    }
   };
 };

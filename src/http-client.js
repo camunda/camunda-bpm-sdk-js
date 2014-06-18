@@ -7,10 +7,6 @@ var Events = require('./events');
 /**
  * HttpClient
  * @exports CamSDK.HttpClient
- */
-
-/**
- * HttpClient
  * @class
  * @classdesc A HTTP request abstraction layer to be used in node.js / browsers environments.
  */
@@ -46,26 +42,26 @@ HttpClient.prototype.post = function(data, options) {
 /**
  * Performs a GET HTTP request
  */
-HttpClient.prototype.get = function(data, options) {
-  data = data || {};
+HttpClient.prototype.get = function(path, options) {
   options = options || {};
-  options.done = options.done || function() {};
+  var done = options.done || function() {};
 
-  var url = this.config.baseUrl + (options.path ? '/'+ options.path : '');
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
-    .get(url);
+    .get(url)
+    .query(options.data || {});
 
   req.end(function(err, response) {
     if (err || !response.ok) {
-      // ...
+      return done(err || new Error('The request on '+ url +' failed'));
     }
 
-    console.info('response for '+ url, !!err, [[response]]);
+    console.info('response for '+ url, !!err, response);
     // if () {
 
     // }
 
-    options.done.apply(this, arguments);
+    done.apply(this, null, response);
   });
 };
 

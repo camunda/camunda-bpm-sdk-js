@@ -4,20 +4,13 @@ var GenericResource = require("./../generic-resource");
 
 
 
-
 /**
- * Task resource
- * @exports CamSDK.Task
- *
- */
-
-
-
-/**
- * Task
+ * Task Resource
  * @class
  * @classdesc A Task resource
  * @augments CamSDK.GenericResource
+ * @exports CamSDK.Task
+ * @constructor
  */
 var Task = GenericResource.extend();
 
