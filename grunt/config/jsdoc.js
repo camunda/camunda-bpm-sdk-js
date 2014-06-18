@@ -14,7 +14,7 @@ module.exports = function() {
       },
       src: [
         'README.md',
-        'src/**/*.js'
+        'lib/**/*.js'
       ]
     }
   };

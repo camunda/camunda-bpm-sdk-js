@@ -5,7 +5,7 @@ describe('The Task resource usage', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      Task = require('./../../../src/resources/task');
+      Task = require('./../../../lib/resources/task');
     }).not.toThrow();
   });
 

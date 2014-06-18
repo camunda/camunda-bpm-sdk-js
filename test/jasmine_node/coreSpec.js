@@ -5,7 +5,7 @@ describe('The SDK core', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      CamundaClient = require('./../../src/index');
+      CamundaClient = require('./../../lib/index');
     }).not.toThrow();
   });
 

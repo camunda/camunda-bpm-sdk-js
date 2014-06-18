@@ -1,4 +1,955 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CamSDK=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Events handling utility who can be used on
+ * any kind of object to provide `on`, `once`, `off`
+ * and `trigger` functions.
+ *
+ * @exports CamSDK.Events
+ *
+ * @example
+ * var obj = {};
+ * Events.attach(obj);
+ *
+ * obj.on('event:name', function() {});
+ * obj.once('event:name', function() {});
+ * obj.trigger('event:name', data, moreData, evenMoreData);
+ */
+
+var Events = {};
+
+
+/**
+ * Converts an object into array
+ * @param  {*} obj  ...
+ * @return {Array}  ...
+ */
+function toArray(obj) {
+  var a, arr = [];
+  for (a in obj) {
+    arr.push(obj[a]);
+  }
+  return arr;
+}
+
+/**
+ * Returns a function that will be executed
+ * at most one time, no matter how often you call it.
+ * @param  {Function} func ...
+ * @return {Function}      ...
+ */
+function once(func) {
+  var ran = false, memo;
+  return function() {
+    if (ran) return memo;
+    ran = true;
+    memo = func.apply(this, arguments);
+    func = null;
+    return memo;
+  };
+}
+
+
+/**
+ * Ensure an object to have the needed _events property
+ * @param  {*} obj        ...
+ * @param  {String} name  ...
+ */
+function ensureEvents(obj, name) {
+  obj._events = obj._events || {};
+  obj._events[name] = obj._events[name] || [];
+}
+
+
+/**
+ * Add the relevant Events methods to an object
+ * @param  {*} obj  ...
+ */
+Events.attach = function(obj) {
+  obj.on      = this.on;
+  obj.once    = this.once;
+  obj.off     = this.off;
+  obj.trigger = this.trigger;
+  obj._events = {};
+};
+
+
+/**
+ * Bind a callback to `eventName`
+ * @param  {String}   eventName ...
+ * @param  {Function} callback  ...
+ */
+Events.on = function(eventName, callback) {
+  ensureEvents(this, eventName);
+
+  this._events[eventName].push(callback);
+
+  return this;
+};
+
+
+/**
+ * Bind a callback who will only be called once to `eventName`
+ * @param  {String}   eventName ...
+ * @param  {Function} callback  ...
+ */
+Events.once = function(eventName, callback) {
+  var self = this;
+  var cb = once(function() {
+    self.off(eventName, once);
+    callback.apply(this, arguments);
+  });
+  cb._callback = callback;
+  return this.on(eventName, cb);
+};
+
+
+/**
+ * Unbind one or all callbacks originally bound to `eventName`
+ * @param  {String}   eventName ...
+ * @param  {Function} [callback]  ...
+ */
+Events.off = function(eventName, callback) {
+  ensureEvents(this, eventName);
+
+  if (!callback) {
+    delete this._events[eventName];
+    return this;
+  }
+
+  var e, ev, arr = [];
+  for (e in this._events[eventName]) {
+    if (this._events[eventName][e] !== callback) {
+      arr.push(this._events[eventName][e]);
+    }
+  }
+  this._events[eventName] = arr;
+
+  return this;
+};
+
+
+/**
+ * Call the functions bound to `eventName`
+ * @param  {String} eventName ...
+ * @param {...*} [params]     ...
+ */
+Events.trigger = function() {
+  var args = toArray(arguments);
+  var eventName = args.shift();
+  ensureEvents(this, eventName);
+
+  var e, ev;
+  for (e in this._events[eventName]) {
+    this._events[eventName][e](this, args);
+  }
+
+  return this;
+};
+
+
+module.exports = Events;
+
+},{}],2:[function(_dereq_,module,exports){
+'use strict';
+
+var HttpClient = _dereq_('./http-client');
+
+
+/**
+ * Abstract class for resources
+ * @exports CamSDK.GenericResource
+ * @constructor
+ *
+ * @example
+ *
+ * // create a resource Model
+ * var Model = GenericResource.extend({
+ *   appUri: 'path-to-the-endpoint'
+ *   doSomethingOnInstance: function() {
+ *     // ...
+ *   }
+ * }, {
+ *   somethingStatic: {}
+ * });
+ *
+ * // use the generated Model statically
+ * // with events
+ * Model.on('eventname', function(results) {
+ *   // You probably have something like
+ *   var total = results.count;
+ *   var instances = results.items;
+ * });
+ * Model.list({ nameLike: '%call%' });
+ *
+ * // or alternatively by using a callback
+ * Model.list({ nameLike: '%call%' }, function(err, results) {
+ *   if (err) {
+ *     throw err;
+ *   }
+ *
+ *   var total = results.count;
+ *   var instances = results.items;
+ * });
+ *
+ * var instance = new Model();
+ * instance.claim(function(err, result) {
+ *
+ * });
+ */
+function GenericResource() {
+  this.initialize();
+}
+
+
+
+
+/**
+ * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
+ * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
+ * @param  {?Object.<String, *>} protoProps   ...
+ * @param  {Object.<String, *>} [staticProps] ...
+ * @return {CamSDK.GenericResource}           ...
+ */
+GenericResource.extend = function(protoProps, staticProps) {
+  protoProps = protoProps || {};
+  staticProps = staticProps || {};
+
+  var parent = this;
+  var child, Surrogate, s, i;
+
+  if (protoProps && Object.hasOwnProperty.call(parent, 'constructor')) {
+    child = protoProps.constructor;
+  }
+  else {
+    child = function(){ return parent.apply(this, arguments); };
+  }
+
+  for (s in parent) {
+    child[s] = parent[s];
+  }
+  for (s in staticProps) {
+    child[s] = staticProps[s];
+  }
+
+  Surrogate = function(){ this.constructor = child; };
+  Surrogate.prototype = parent.prototype;
+  child.prototype = new Surrogate();
+
+  for (i in protoProps) {
+    child.prototype[i] = protoProps[i];
+  }
+
+  return child;
+};
+
+
+
+
+/**
+ * Path used by the resource to perform HTTP queries
+ * @abstract
+ *
+ * @type {String}
+ */
+GenericResource.path = '';
+
+
+
+/**
+ * Initializes a GenericResource instance
+ *
+ * This method is aimed to be overriden by other implementations
+ * of the GenericResource.
+ * @abstract
+ */
+GenericResource.prototype.initialize = function() {
+  // do something to initialize the instance
+  // like copying the Model http property to the "this" (instanciated)
+  this.http = this.constructor.http;
+};
+
+
+/**
+ * Object hosting the methods for HTTP queries.
+ * @abstract
+ *
+ * @type {HttpClient}
+ */
+GenericResource.http = {};
+
+
+
+/**
+ * Create an instance on the backend
+ * @abstract
+ *
+ * @param  {!Object|Object[]}  attributes        ...
+ * @param  {requestCallback} [done]              ...
+ */
+GenericResource.create = function(attributes, done) {};
+
+
+
+/**
+ * Fetch a list of instances
+ * @abstract
+ *
+ * @param  {?Object.<String, String>}     where ...
+ * @param  {requestCallback} [done]  ...
+ */
+GenericResource.list = function(where, done) {
+  where = where || {};
+  this.http.get(where, {
+    done: done
+  });
+};
+
+
+
+/**
+ * Update one or more instances
+ * @abstract
+ *
+ * @param  {!String|String[]}     ids           ...
+ * @param  {Object.<String, *>}   attributes    ...
+ * @param  {requestCallback} [done]   ...
+ */
+GenericResource.update = function(ids, attributes, done) {};
+
+
+
+/**
+ * Delete one or more instances
+ * @abstract
+ *
+ * @param  {!String|String[]}  ids   ...
+ * @param  {requestCallback} [done]   ...
+ */
+GenericResource.delete = function(ids, done) {};
+
+
+
+/**
+ * Update one or more instances.
+ * @abstract
+ *
+ * @param  {Object}   attributes    ...
+ * @param  {requestCallback} [done]  ...
+ */
+GenericResource.prototype.update = function(attributes, done) {};
+
+
+
+/**
+ * Delete one or more instances
+ * @abstract
+ *
+ * @param  {requestCallback} [done] ...
+ */
+GenericResource.prototype.delete = function(done) {};
+
+
+
+module.exports = GenericResource;
+
+},{"./http-client":3}],3:[function(_dereq_,module,exports){
+'use strict';
+
+var request = _dereq_('superagent');
+var Events = _dereq_('./events');
+
+
+/**
+ * HttpClient
+ * @exports CamSDK.HttpClient
+ * @class
+ * @classdesc A HTTP request abstraction layer to be used in node.js / browsers environments.
+ */
+var HttpClient = function(config) {
+  config = config || {};
+
+  if (!config.baseUrl) {
+    throw new Error('HttpClient needs a `baseUrl` configuration property.');
+  }
+
+  Events.attach(this);
+
+  this.config = config;
+};
+
+
+/**
+ * Performs a POST HTTP request
+ */
+HttpClient.prototype.post = function(data, options) {
+  data = data || {};
+  options = options || {};
+
+  var url = this.config.baseUrl + (options.path ? '/'+ options.path : '');
+  var req = request
+    .post(url);
+  req.send(data);
+  req.end(options.done);
+};
+
+
+
+/**
+ * Performs a GET HTTP request
+ */
+HttpClient.prototype.get = function(path, options) {
+  options = options || {};
+  var done = options.done || function() {};
+
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
+  var req = request
+    .get(url)
+    .query(options.data || {});
+
+  req.end(function(err, response) {
+    if (err || !response.ok) {
+      return done(err || new Error('The request on '+ url +' failed'));
+    }
+
+    console.info('response for '+ url, !!err, response);
+    // if () {
+
+    // }
+
+    done.apply(this, null, response);
+  });
+};
+
+
+
+/**
+ * Performs a PUT HTTP request
+ */
+HttpClient.prototype.put = function(data, options) {
+  data = data || {};
+  options = options || {};
+};
+
+
+
+/**
+ * Performs a DELETE HTTP request
+ */
+HttpClient.prototype.del = function(data, options) {
+  var instance = this.instance;
+  data = data || {};
+  options = options || {};
+};
+
+module.exports = HttpClient;
+
+},{"./events":1,"superagent":9}],4:[function(_dereq_,module,exports){
+'use strict';
+
+var HttpClient = _dereq_('./http-client');
+
+/**
+ * @namespace CamSDK
+ */
+
+/**
+ * Entry point of the module
+ * @exports Cam
+ * @constructor
+ *
+ * @param  {Object} config        used to provide necessary configuration
+ * @param  {String} [config.engine=default] ...
+ * @param  {String} config.appUri ...
+ *
+ * @return {Object}               ...
+ */
+function Cam(config) {
+  if (!config) {
+    throw new Error('Needs configuration');
+  }
+
+  if (!config.appUri) {
+    throw new Error('A appUri is required');
+  }
+
+  // http://localhost:8080/camunda/api/engine/engine/default/process-definition/statistics?incidents=true
+  config.hostname = config.hostname || false;
+
+  config.engine = config.engine || 'default';
+
+  this.baseUrl = '';
+  if (config.hostname) {
+    this.baseUrl = config.protocol +'://';
+    this.baseUrl += config.hostname;
+
+    if ((''+ config.port) !== '80' && config.port) {
+      this.baseUrl += ':'+ config.port;
+    }
+  }
+
+  this.baseUrl += '/'+ config.appUri;
+  this.baseUrl += '/'+ config.engine;
+
+  this.config = config;
+
+  this.initialize();
+}
+
+
+// provide an isolated scope
+(function(proto){
+  /**
+   * configuration storage
+   * @memberOf Cam.prototype
+   * @name  config
+   * @type {Object}
+   */
+  proto.config = {};
+
+  var _resources = {};
+
+  /**
+   * Prepare the instance
+   * @memberOf Cam.prototype
+   * @name  initialize
+   */
+  proto.initialize = function() {
+    var name;
+
+    /* jshint sub: true */
+    _resources['process-definition']  = _dereq_('./resources/process-definition');
+    _resources['process-instance']    = _dereq_('./resources/process-instance');
+    _resources['task']                = _dereq_('./resources/task');
+    _resources['variable']            = _dereq_('./resources/variable');
+    /* jshint sub: false */
+
+    for (name in _resources) {
+      _resources[name].http = new HttpClient({
+        baseUrl: this.baseUrl +'/'+ _resources[name].path
+      });
+    }
+  };
+
+  /**
+   * Allows to get a resource from SDK by its name
+   * @memberOf Cam.prototype
+   * @name resource
+   *
+   * @param  {String} name [description]
+   * @return {CamSDK.GenericResource}      [description]
+   */
+  proto.resource = function(name) {
+    return _resources[name];
+  };
+}(Cam.prototype));
+
+
+module.exports = Cam;
+
+
+/**
+ * This callback is displayed as part of the Requester class.
+ * @callback requestCallback
+ * @param {?Object} error
+ * @param {CamSDK.GenericResource|CamSDK.GenericResource[]} [results]
+ */
+
+
+/**
+ * Function who does not perform anything
+ * @callback noopCallback
+ */
+
+},{"./http-client":3,"./resources/process-definition":5,"./resources/process-instance":6,"./resources/task":7,"./resources/variable":8}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var GenericResource = _dereq_("./../generic-resource");
+
+/**
+ * No-Op callback
+ */
+function noop() {}
+
+/**
+ * Process Definition Resource
+ * @class
+ * @classdesc A process definition resource
+ * @augments CamSDK.GenericResource
+ * @exports CamSDK.ProcessDefinition
+ * @constructor
+ */
+var ProcessDefinition = GenericResource.extend();
+
+
+/**
+ * API path for the process definition resource
+ * @type {String}
+ */
+ProcessDefinition.path = 'process-definition';
+
+/**
+ * Get a list of process definitions
+ * @param  {Object} [params]                      Query parameters as follow
+ * @param  {String} [params.name]                 Filter by name.
+ * @param  {String} [params.nameLike]             Filter by names that the parameter is a substring of.
+ * @param  {String} [params.deploymentId]         Filter by the deployment the id belongs to.
+ * @param  {String} [params.key]                  Filter by key, i.e. the id in the BPMN 2.0 XML. Exact match.
+ * @param  {String} [params.keyLike]              Filter by keys that the parameter is a substring of.
+ * @param  {String} [params.category]             Filter by category. Exact match.
+ * @param  {String} [params.categoryLike]         Filter by categories that the parameter is a substring of.
+ * @param  {String} [params.ver]                  Filter by version.
+ * @param  {String} [params.latest]               Only include those process definitions that are latest versions.
+ *                                                Values may be "true" or "false".
+ * @param  {String} [params.resourceName]         Filter by the name of the process definition resource. Exact match.
+ * @param  {String} [params.resourceNameLike]     Filter by names of those process definition resources that the parameter is a substring of.
+ * @param  {String} [params.startableBy]          Filter by a user name who is allowed to start the process.
+ * @param  {String} [params.active]               Only include active process definitions.
+ *                                                Values may be "true" or "false".
+ * @param  {String} [params.suspended]            Only include suspended process definitions.
+ *                                                Values may be "true" or "false".
+ * @param  {String} [params.incidentId]           Filter by the incident id.
+ * @param  {String} [params.incidentType]         Filter by the incident type.
+ * @param  {String} [params.incidentMessage]      Filter by the incident message. Exact match.
+ * @param  {String} [params.incidentMessageLike]  Filter by the incident message that the parameter is a substring of.
+ *
+ * @param  {String} [params.sortBy]               Sort the results lexicographically by a given criterion.
+ *                                                Valid values are category, "key", "id", "name", "version" and "deploymentId".
+ *                                                Must be used in conjunction with the "sortOrder" parameter.
+ *
+ * @param  {String} [params.sortOrder]            Sort the results in a given order.
+ *                                                Values may be asc for ascending "order" or "desc" for descending order.
+ *                                                Must be used in conjunction with the sortBy parameter.
+ *
+ * @param  {Integer} [params.firstResult]         Pagination of results. Specifies the index of the first result to return.
+ * @param  {Integer} [params.maxResults]          Pagination of results. Specifies the maximum number of results to return.
+ *                                                Will return less results, if there are no more results left.
+
+ * @param  {requestCallback} [done]       ...
+ *
+ * @example
+ * CamSDK.resource('process-definition').list({
+ *   nameLike: 'Process'
+ * }, function(err, results) {
+ *   // ...
+ * });
+ */
+ProcessDefinition.list = function(params, done) {
+  // allows to pass only a callback
+  if (typeof params === 'function') {
+    done = params;
+    params = {};
+  }
+  params = params || {};
+  done = done || noop;
+
+  var likeExp = /Like$/;
+  var self = this;
+  var results = {
+    count: 0,
+    items: []
+  };
+
+  var where = {};
+  var name, value;
+  for (name in params) {
+    value = params[name];
+
+    if (likeExp.test(name)) {
+      value = '%'+ value +'%';
+    }
+
+    where[name] = value;
+  }
+
+  console.info('where', where);
+
+  // until a new webservice is made available,
+  // we need to perform 2 requests
+  return this.http.get(this.path +'/count', {
+    data: where,
+    done: function(err, countRes) {
+      console.info('count response', err, countRes.body);
+      if (err) {
+        return done(err);
+      }
+
+      results.count = countRes.body.count;
+
+      self.http.get(self.path, {
+        data: where,
+        done: function(err, itemsRes) {
+          console.info('items response', err, itemsRes.body);
+          if (err) {
+            return done(err);
+          }
+
+          results.items = itemsRes.body;
+
+          done(err, results);
+        }
+      });
+    }
+  });
+};
+
+
+
+/**
+ * Suspends the process definition instance
+ * @param  {Object.<String, *>} [params] ...
+ * @param  {requestCallback}    [done]   ...
+ */
+ProcessDefinition.prototype.suspend = function(params, done) {
+  // allows to pass only a callback
+  if (typeof params === 'function') {
+    done = params;
+    params = {};
+  }
+  params = params || {};
+  done = done || noop;
+
+  return this.http.post(this.path, {
+    done: done
+  });
+};
+
+
+
+/**
+ * Suspends one or more process definitions
+ * @param  {String|String[]}    ids      ...
+ * @param  {Object.<String, *>} [params] ...
+ * @param  {requestCallback}    [done]   ...
+ */
+ProcessDefinition.suspend = function(ids, params, done) {
+  // allows to pass only a callback
+  if (typeof params === 'function') {
+    done = params;
+    params = {};
+  }
+  params = params || {};
+  done = done || noop;
+  // allows to pass a single ID
+  ids = Array.isArray(ids) ? ids : [ids];
+
+  return this.http.post(this.path, {
+    done: done
+  });
+};
+
+/**
+ * Retrieves the statistics of a process definition.
+ * @param  {Function} [done]  ...
+ */
+ProcessDefinition.prototype.stats = function(done) {
+  return this.http.post(this.path, {
+    done: done || noop
+  });
+};
+
+/**
+ * Retrieves the BPMN 2.0 XML document of a process definition.
+ * @param  {Function} [done]  ...
+ */
+ProcessDefinition.prototype.xml = function(done) {
+  return this.http.post(this.path, {
+    done: done || noop
+  });
+};
+
+/**
+ * Retrieves the form of a process definition.
+ * @param  {Function} [done]  ...
+ */
+ProcessDefinition.prototype.form = function(done) {
+  return this.http.post(this.path, {
+    done: done || noop
+  });
+};
+
+/**
+ * Submits the form of a process definition.
+ * @param  {Object} [data]    ...
+ * @param  {Function} [done]  ...
+ */
+ProcessDefinition.prototype.submit = function(data, done) {
+  return this.http.post(this.path, {
+    data: {},
+    done: done
+  });
+};
+
+/**
+ * Starts a process instance from a process definition.
+ * @param  {Object} [varname]  ...
+ * @param  {Function} [done]   ...
+ */
+ProcessDefinition.prototype.start = function(done) {
+  return this.http.post(this.path, {
+    data: {},
+    done: done
+  });
+};
+
+
+module.exports = ProcessDefinition;
+
+
+},{"./../generic-resource":2}],6:[function(_dereq_,module,exports){
+'use strict';
+
+var GenericResource = _dereq_("./../generic-resource");
+
+
+
+
+/**
+ * Process Instance Resource
+ * @class
+ * @classdesc A process instance resource
+ * @augments CamSDK.GenericResource
+ * @exports CamSDK.ProcessInstance
+ * @constructor
+ */
+var ProcessInstance = GenericResource.extend();
+
+
+/**
+ * API path for the process instance resource
+ * @type {String}
+ */
+ProcessInstance.path = 'process-instance';
+
+
+
+/**
+ * Creates a process instance from a process definition
+ * @param  {Object}   params                        [description]
+ * @param  {String}   [params.id]                   [description]
+ * @param  {String}   [params.key]                  [description]
+ * @param  {Object.<String, *>} [params.variables]  [description]
+ * @param  {requestCallback} [done]                 [description]
+ */
+ProcessInstance.create = function(params, done) {
+  return this.http.post(params, done);
+};
+
+
+
+/**
+ * Get a list of process instances
+ * @param  {Object}   params   [description]
+ * @param  {requestCallback} [done] [description]
+ */
+ProcessInstance.list = function(params, done) {
+  return this.http.get("/", params, done);
+};
+
+
+module.exports = ProcessInstance;
+
+
+},{"./../generic-resource":2}],7:[function(_dereq_,module,exports){
+'use strict';
+
+var GenericResource = _dereq_("./../generic-resource");
+
+
+
+/**
+ * Task Resource
+ * @class
+ * @classdesc A Task resource
+ * @augments CamSDK.GenericResource
+ * @exports CamSDK.Task
+ * @constructor
+ */
+var Task = GenericResource.extend();
+
+/**
+ * Path used by the resource to perform HTTP queries
+ * @type {String}
+ */
+Task.path = 'task';
+
+
+/**
+ * Assign the task instance to a user
+ *
+ * @param {String} id [description]
+ * @param {requestCallback} [done]
+ */
+Task.prototype.assign = function(id, done) {};
+
+
+/**
+ * Delegate the task instance to a user
+ *
+ * @param {String} id [description]
+ * @param {requestCallback} [done]
+ */
+Task.prototype.delegate = function(done) {};
+
+
+/**
+ * Allow a user to claim (assign to hisself) a task instance
+ *
+ * @param {requestCallback} [done]
+ */
+Task.prototype.claim = function(done) {};
+
+
+/**
+ * Allow a user to unclaim (unassign to hisself) a task instance
+ *
+ * @param {requestCallback} [done]
+ */
+Task.prototype.unclaim = function(done) {};
+
+
+/**
+ * Set a task instance as resolved
+ *
+ * @param {requestCallback} [done]
+ */
+Task.prototype.resolve = function(done) {};
+
+
+/**
+ * Set a task instance as completed
+ *
+ * @param {requestCallback} [done]
+ */
+Task.prototype.complete = function(done) {};
+
+
+
+module.exports = Task;
+
+
+},{"./../generic-resource":2}],8:[function(_dereq_,module,exports){
+'use strict';
+
+var GenericResource = _dereq_("./../generic-resource");
+
+
+
+/**
+ * Variable Resource
+ * @class
+ * @classdesc A variable resource
+ * @augments CamSDK.GenericResource
+ * @exports CamSDK.Variable
+ * @constructor
+ */
+var Variable = GenericResource.extend();
+
+module.exports = Variable;
+
+
+},{"./../generic-resource":2}],9:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -1049,7 +2000,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":2,"reduce":3}],2:[function(_dereq_,module,exports){
+},{"emitter":10,"reduce":11}],10:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -1215,7 +2166,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -1240,957 +2191,6 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],4:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * Events handling utility who can be used on
- * any kind of object to provide `on`, `once`, `off`
- * and `trigger` functions.
- *
- * @exports CamSDK.Events
- *
- * @example
- * var obj = {};
- * Events.attach(obj);
- *
- * obj.on('event:name', function() {});
- * obj.once('event:name', function() {});
- * obj.trigger('event:name', data, moreData, evenMoreData);
- */
-
-var Events = {};
-
-
-/**
- * Converts an object into array
- * @param  {*} obj  ...
- * @return {Array}  ...
- */
-function toArray(obj) {
-  var a, arr = [];
-  for (a in obj) {
-    arr.push(obj[a]);
-  }
-  return arr;
-}
-
-/**
- * Returns a function that will be executed
- * at most one time, no matter how often you call it.
- * @param  {Function} func ...
- * @return {Function}      ...
- */
-function once(func) {
-  var ran = false, memo;
-  return function() {
-    if (ran) return memo;
-    ran = true;
-    memo = func.apply(this, arguments);
-    func = null;
-    return memo;
-  };
-}
-
-
-/**
- * Ensure an object to have the needed _events property
- * @param  {*} obj        ...
- * @param  {String} name  ...
- */
-function ensureEvents(obj, name) {
-  obj._events = obj._events || {};
-  obj._events[name] = obj._events[name] || [];
-}
-
-
-/**
- * Add the relevant Events methods to an object
- * @param  {*} obj  ...
- */
-Events.attach = function(obj) {
-  obj.on      = this.on;
-  obj.once    = this.once;
-  obj.off     = this.off;
-  obj.trigger = this.trigger;
-  obj._events = {};
-};
-
-
-/**
- * Bind a callback to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} callback  ...
- */
-Events.on = function(eventName, callback) {
-  ensureEvents(this, eventName);
-
-  this._events[eventName].push(callback);
-
-  return this;
-};
-
-
-/**
- * Bind a callback who will only be called once to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} callback  ...
- */
-Events.once = function(eventName, callback) {
-  var self = this;
-  var cb = once(function() {
-    self.off(eventName, once);
-    callback.apply(this, arguments);
-  });
-  cb._callback = callback;
-  return this.on(eventName, cb);
-};
-
-
-/**
- * Unbind one or all callbacks originally bound to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} [callback]  ...
- */
-Events.off = function(eventName, callback) {
-  ensureEvents(this, eventName);
-
-  if (!callback) {
-    delete this._events[eventName];
-    return this;
-  }
-
-  var e, ev, arr = [];
-  for (e in this._events[eventName]) {
-    if (this._events[eventName][e] !== callback) {
-      arr.push(this._events[eventName][e]);
-    }
-  }
-  this._events[eventName] = arr;
-
-  return this;
-};
-
-
-/**
- * Call the functions bound to `eventName`
- * @param  {String} eventName ...
- * @param {...*} [params]     ...
- */
-Events.trigger = function() {
-  var args = toArray(arguments);
-  var eventName = args.shift();
-  ensureEvents(this, eventName);
-
-  var e, ev;
-  for (e in this._events[eventName]) {
-    this._events[eventName][e](this, args);
-  }
-
-  return this;
-};
-
-
-module.exports = Events;
-
-},{}],5:[function(_dereq_,module,exports){
-'use strict';
-
-var HttpClient = _dereq_('./http-client');
-
-
-/**
- * Abstract class for resources
- * @exports CamSDK.GenericResource
- * @constructor
- *
- * @example
- *
- * // create a resource Model
- * var Model = GenericResource.extend({
- *   appUri: 'path-to-the-endpoint'
- *   doSomethingOnInstance: function() {
- *     // ...
- *   }
- * }, {
- *   somethingStatic: {}
- * });
- *
- * // use the generated Model statically
- * // with events
- * Model.on('eventname', function(results) {
- *   // You probably have something like
- *   var total = results.count;
- *   var instances = results.items;
- * });
- * Model.list({ nameLike: '%call%' });
- *
- * // or alternatively by using a callback
- * Model.list({ nameLike: '%call%' }, function(err, results) {
- *   if (err) {
- *     throw err;
- *   }
- *
- *   var total = results.count;
- *   var instances = results.items;
- * });
- *
- * var instance = new Model();
- * instance.claim(function(err, result) {
- *
- * });
- */
-function GenericResource() {
-  this.initialize();
-}
-
-
-
-
-/**
- * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
- * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
- * @param  {?Object.<String, *>} protoProps   ...
- * @param  {Object.<String, *>} [staticProps] ...
- * @return {CamSDK.GenericResource}           ...
- */
-GenericResource.extend = function(protoProps, staticProps) {
-  protoProps = protoProps || {};
-  staticProps = staticProps || {};
-
-  var parent = this;
-  var child, Surrogate, s, i;
-
-  if (protoProps && Object.hasOwnProperty.call(parent, 'constructor')) {
-    child = protoProps.constructor;
-  }
-  else {
-    child = function(){ return parent.apply(this, arguments); };
-  }
-
-  for (s in parent) {
-    child[s] = parent[s];
-  }
-  for (s in staticProps) {
-    child[s] = staticProps[s];
-  }
-
-  Surrogate = function(){ this.constructor = child; };
-  Surrogate.prototype = parent.prototype;
-  child.prototype = new Surrogate();
-
-  for (i in protoProps) {
-    child.prototype[i] = protoProps[i];
-  }
-
-  return child;
-};
-
-
-
-
-/**
- * Path used by the resource to perform HTTP queries
- * @abstract
- *
- * @type {String}
- */
-GenericResource.path = '';
-
-
-
-/**
- * Initializes a GenericResource instance
- *
- * This method is aimed to be overriden by other implementations
- * of the GenericResource.
- * @abstract
- */
-GenericResource.prototype.initialize = function() {
-  // do something to initialize the instance
-  // like copying the Model http property to the "this" (instanciated)
-  this.http = this.constructor.http;
-};
-
-
-/**
- * Object hosting the methods for HTTP queries.
- * @abstract
- *
- * @type {HttpClient}
- */
-GenericResource.http = {};
-
-
-
-/**
- * Create an instance on the backend
- * @abstract
- *
- * @param  {!Object|Object[]}  attributes        ...
- * @param  {requestCallback} [done]              ...
- */
-GenericResource.create = function(attributes, done) {};
-
-
-
-/**
- * Fetch a list of instances
- * @abstract
- *
- * @param  {?Object.<String, String>}     where ...
- * @param  {requestCallback} [done]  ...
- */
-GenericResource.list = function(where, done) {
-  where = where || {};
-  this.http.get(where, {
-    done: done
-  });
-};
-
-
-
-/**
- * Update one or more instances
- * @abstract
- *
- * @param  {!String|String[]}     ids           ...
- * @param  {Object.<String, *>}   attributes    ...
- * @param  {requestCallback} [done]   ...
- */
-GenericResource.update = function(ids, attributes, done) {};
-
-
-
-/**
- * Delete one or more instances
- * @abstract
- *
- * @param  {!String|String[]}  ids   ...
- * @param  {requestCallback} [done]   ...
- */
-GenericResource.delete = function(ids, done) {};
-
-
-
-/**
- * Update one or more instances.
- * @abstract
- *
- * @param  {Object}   attributes    ...
- * @param  {requestCallback} [done]  ...
- */
-GenericResource.prototype.update = function(attributes, done) {};
-
-
-
-/**
- * Delete one or more instances
- * @abstract
- *
- * @param  {requestCallback} [done] ...
- */
-GenericResource.prototype.delete = function(done) {};
-
-
-
-module.exports = GenericResource;
-
-},{"./http-client":6}],6:[function(_dereq_,module,exports){
-'use strict';
-
-var request = _dereq_('superagent');
-var Events = _dereq_('./events');
-
-
-/**
- * HttpClient
- * @exports CamSDK.HttpClient
- * @class
- * @classdesc A HTTP request abstraction layer to be used in node.js / browsers environments.
- */
-var HttpClient = function(config) {
-  config = config || {};
-
-  if (!config.baseUrl) {
-    throw new Error('HttpClient needs a `baseUrl` configuration property.');
-  }
-
-  Events.attach(this);
-
-  this.config = config;
-};
-
-
-/**
- * Performs a POST HTTP request
- */
-HttpClient.prototype.post = function(data, options) {
-  data = data || {};
-  options = options || {};
-
-  var url = this.config.baseUrl + (options.path ? '/'+ options.path : '');
-  var req = request
-    .post(url);
-  req.send(data);
-  req.end(options.done);
-};
-
-
-
-/**
- * Performs a GET HTTP request
- */
-HttpClient.prototype.get = function(path, options) {
-  options = options || {};
-  var done = options.done || function() {};
-
-  var url = this.config.baseUrl + (path ? '/'+ path : '');
-  var req = request
-    .get(url)
-    .query(options.data || {});
-
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      return done(err || new Error('The request on '+ url +' failed'));
-    }
-
-    console.info('response for '+ url, !!err, response);
-    // if () {
-
-    // }
-
-    done.apply(this, null, response);
-  });
-};
-
-
-
-/**
- * Performs a PUT HTTP request
- */
-HttpClient.prototype.put = function(data, options) {
-  data = data || {};
-  options = options || {};
-};
-
-
-
-/**
- * Performs a DELETE HTTP request
- */
-HttpClient.prototype.del = function(data, options) {
-  var instance = this.instance;
-  data = data || {};
-  options = options || {};
-};
-
-module.exports = HttpClient;
-
-},{"./events":4,"superagent":1}],7:[function(_dereq_,module,exports){
-'use strict';
-
-var HttpClient = _dereq_('./http-client');
-
-/**
- * @namespace CamSDK
- */
-
-/**
- * Entry point of the module
- * @exports Cam
- * @constructor
- *
- * @param  {Object} config        used to provide necessary configuration
- * @param  {String} [config.engine=default] ...
- * @param  {String} config.appUri ...
- *
- * @return {Object}               ...
- */
-function Cam(config) {
-  if (!config) {
-    throw new Error('Needs configuration');
-  }
-
-  if (!config.appUri) {
-    throw new Error('A appUri is required');
-  }
-
-  // http://localhost:8080/camunda/api/engine/engine/default/process-definition/statistics?incidents=true
-  config.hostname = config.hostname || false;
-
-  config.engine = config.engine || 'default';
-
-  this.baseUrl = '';
-  if (config.hostname) {
-    this.baseUrl = config.protocol +'://';
-    this.baseUrl += config.hostname;
-
-    if ((''+ config.port) !== '80' && config.port) {
-      this.baseUrl += ':'+ config.port;
-    }
-  }
-
-  this.baseUrl += '/'+ config.appUri;
-  this.baseUrl += '/'+ config.engine;
-
-  this.config = config;
-
-  this.initialize();
-}
-
-
-// provide an isolated scope
-(function(proto){
-  /**
-   * configuration storage
-   * @memberOf Cam.prototype
-   * @name  config
-   * @type {Object}
-   */
-  proto.config = {};
-
-  var _resources = {};
-
-  /**
-   * Prepare the instance
-   * @memberOf Cam.prototype
-   * @name  initialize
-   */
-  proto.initialize = function() {
-    var name;
-
-    /* jshint sub: true */
-    _resources['process-definition']  = _dereq_('./resources/process-definition');
-    _resources['process-instance']    = _dereq_('./resources/process-instance');
-    _resources['task']                = _dereq_('./resources/task');
-    _resources['variable']            = _dereq_('./resources/variable');
-    /* jshint sub: false */
-
-    for (name in _resources) {
-      _resources[name].http = new HttpClient({
-        baseUrl: this.baseUrl +'/'+ _resources[name].path
-      });
-    }
-  };
-
-  /**
-   * Allows to get a resource from SDK by its name
-   * @memberOf Cam.prototype
-   * @name resource
-   *
-   * @param  {String} name [description]
-   * @return {CamSDK.GenericResource}      [description]
-   */
-  proto.resource = function(name) {
-    return _resources[name];
-  };
-}(Cam.prototype));
-
-
-module.exports = Cam;
-
-
-/**
- * This callback is displayed as part of the Requester class.
- * @callback requestCallback
- * @param {?Object} error
- * @param {CamSDK.GenericResource|CamSDK.GenericResource[]} [results]
- */
-
-
-/**
- * Function who does not perform anything
- * @callback noopCallback
- */
-
-},{"./http-client":6,"./resources/process-definition":8,"./resources/process-instance":9,"./resources/task":10,"./resources/variable":11}],8:[function(_dereq_,module,exports){
-'use strict';
-
-var GenericResource = _dereq_("./../generic-resource");
-
-/**
- * No-Op callback
- */
-function noop() {}
-
-/**
- * Process Definition Resource
- * @class
- * @classdesc A process definition resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.ProcessDefinition
- * @constructor
- */
-var ProcessDefinition = GenericResource.extend();
-
-
-/**
- * API path for the process definition resource
- * @type {String}
- */
-ProcessDefinition.path = 'process-definition';
-
-/**
- * Get a list of process definitions
- * @param  {Object} [params]                      Query parameters as follow
- * @param  {String} [params.name]                 Filter by name.
- * @param  {String} [params.nameLike]             Filter by names that the parameter is a substring of.
- * @param  {String} [params.deploymentId]         Filter by the deployment the id belongs to.
- * @param  {String} [params.key]                  Filter by key, i.e. the id in the BPMN 2.0 XML. Exact match.
- * @param  {String} [params.keyLike]              Filter by keys that the parameter is a substring of.
- * @param  {String} [params.category]             Filter by category. Exact match.
- * @param  {String} [params.categoryLike]         Filter by categories that the parameter is a substring of.
- * @param  {String} [params.ver]                  Filter by version.
- * @param  {String} [params.latest]               Only include those process definitions that are latest versions.
- *                                                Values may be "true" or "false".
- * @param  {String} [params.resourceName]         Filter by the name of the process definition resource. Exact match.
- * @param  {String} [params.resourceNameLike]     Filter by names of those process definition resources that the parameter is a substring of.
- * @param  {String} [params.startableBy]          Filter by a user name who is allowed to start the process.
- * @param  {String} [params.active]               Only include active process definitions.
- *                                                Values may be "true" or "false".
- * @param  {String} [params.suspended]            Only include suspended process definitions.
- *                                                Values may be "true" or "false".
- * @param  {String} [params.incidentId]           Filter by the incident id.
- * @param  {String} [params.incidentType]         Filter by the incident type.
- * @param  {String} [params.incidentMessage]      Filter by the incident message. Exact match.
- * @param  {String} [params.incidentMessageLike]  Filter by the incident message that the parameter is a substring of.
- *
- * @param  {String} [params.sortBy]               Sort the results lexicographically by a given criterion.
- *                                                Valid values are category, "key", "id", "name", "version" and "deploymentId".
- *                                                Must be used in conjunction with the "sortOrder" parameter.
- *
- * @param  {String} [params.sortOrder]            Sort the results in a given order.
- *                                                Values may be asc for ascending "order" or "desc" for descending order.
- *                                                Must be used in conjunction with the sortBy parameter.
- *
- * @param  {Integer} [params.firstResult]         Pagination of results. Specifies the index of the first result to return.
- * @param  {Integer} [params.maxResults]          Pagination of results. Specifies the maximum number of results to return.
- *                                                Will return less results, if there are no more results left.
-
- * @param  {requestCallback} [done]       ...
- *
- * @example
- * CamSDK.resource('process-definition').list({
- *   nameLike: 'Process'
- * }, function(err, results) {
- *   // ...
- * });
- */
-ProcessDefinition.list = function(params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
-  }
-  params = params || {};
-  done = done || noop;
-
-  var likeExp = /Like$/;
-  var self = this;
-  var results = {
-    count: 0,
-    items: []
-  };
-
-  var where = {};
-  var name, value;
-  for (name in params) {
-    value = params[name];
-
-    if (likeExp.test(name)) {
-      value = '%'+ value +'%';
-    }
-
-    where[name] = value;
-  }
-
-  console.info('where', where);
-
-  // until a new webservice is made available,
-  // we need to perform 2 requests
-  return this.http.get(this.path +'/count', {
-    data: where,
-    done: function(err, countRes) {
-      console.info('count response', err, countRes.body);
-      if (err) {
-        return done(err);
-      }
-
-      results.count = countRes.body.count;
-
-      self.http.get(self.path, {
-        data: where,
-        done: function(err, itemsRes) {
-          console.info('items response', err, itemsRes.body);
-          if (err) {
-            return done(err);
-          }
-
-          results.items = itemsRes.body;
-
-          done(err, results);
-        }
-      });
-    }
-  });
-};
-
-
-
-/**
- * Suspends the process definition instance
- * @param  {Object.<String, *>} [params] ...
- * @param  {requestCallback}    [done]   ...
- */
-ProcessDefinition.prototype.suspend = function(params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
-  }
-  params = params || {};
-  done = done || noop;
-
-  return this.http.post(this.path, {
-    done: done
-  });
-};
-
-
-
-/**
- * Suspends one or more process definitions
- * @param  {String|String[]}    ids      ...
- * @param  {Object.<String, *>} [params] ...
- * @param  {requestCallback}    [done]   ...
- */
-ProcessDefinition.suspend = function(ids, params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
-  }
-  params = params || {};
-  done = done || noop;
-  // allows to pass a single ID
-  ids = Array.isArray(ids) ? ids : [ids];
-
-  return this.http.post(this.path, {
-    done: done
-  });
-};
-
-/**
- * Retrieves the statistics of a process definition.
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.prototype.stats = function(done) {
-  return this.http.post(this.path, {
-    done: done || noop
-  });
-};
-
-/**
- * Retrieves the BPMN 2.0 XML document of a process definition.
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.prototype.xml = function(done) {
-  return this.http.post(this.path, {
-    done: done || noop
-  });
-};
-
-/**
- * Retrieves the form of a process definition.
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.prototype.form = function(done) {
-  return this.http.post(this.path, {
-    done: done || noop
-  });
-};
-
-/**
- * Submits the form of a process definition.
- * @param  {Object} [data]    ...
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.prototype.submit = function(data, done) {
-  return this.http.post(this.path, {
-    data: {},
-    done: done
-  });
-};
-
-/**
- * Starts a process instance from a process definition.
- * @param  {Object} [varname]  ...
- * @param  {Function} [done]   ...
- */
-ProcessDefinition.prototype.start = function(done) {
-  return this.http.post(this.path, {
-    data: {},
-    done: done
-  });
-};
-
-
-module.exports = ProcessDefinition;
-
-
-},{"./../generic-resource":5}],9:[function(_dereq_,module,exports){
-'use strict';
-
-var GenericResource = _dereq_("./../generic-resource");
-
-
-
-
-/**
- * Process Instance Resource
- * @class
- * @classdesc A process instance resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.ProcessInstance
- * @constructor
- */
-var ProcessInstance = GenericResource.extend();
-
-
-/**
- * API path for the process instance resource
- * @type {String}
- */
-ProcessInstance.path = 'process-instance';
-
-
-
-/**
- * Creates a process instance from a process definition
- * @param  {Object}   params                        [description]
- * @param  {String}   [params.id]                   [description]
- * @param  {String}   [params.key]                  [description]
- * @param  {Object.<String, *>} [params.variables]  [description]
- * @param  {requestCallback} [done]                 [description]
- */
-ProcessInstance.create = function(params, done) {
-  return this.http.post(params, done);
-};
-
-
-
-/**
- * Get a list of process instances
- * @param  {Object}   params   [description]
- * @param  {requestCallback} [done] [description]
- */
-ProcessInstance.list = function(params, done) {
-  return this.http.get("/", params, done);
-};
-
-
-module.exports = ProcessInstance;
-
-
-},{"./../generic-resource":5}],10:[function(_dereq_,module,exports){
-'use strict';
-
-var GenericResource = _dereq_("./../generic-resource");
-
-
-
-/**
- * Task Resource
- * @class
- * @classdesc A Task resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.Task
- * @constructor
- */
-var Task = GenericResource.extend();
-
-/**
- * Path used by the resource to perform HTTP queries
- * @type {String}
- */
-Task.path = 'task';
-
-
-/**
- * Assign the task instance to a user
- *
- * @param {String} id [description]
- * @param {requestCallback} [done]
- */
-Task.prototype.assign = function(id, done) {};
-
-
-/**
- * Delegate the task instance to a user
- *
- * @param {String} id [description]
- * @param {requestCallback} [done]
- */
-Task.prototype.delegate = function(done) {};
-
-
-/**
- * Allow a user to claim (assign to hisself) a task instance
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.claim = function(done) {};
-
-
-/**
- * Allow a user to unclaim (unassign to hisself) a task instance
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.unclaim = function(done) {};
-
-
-/**
- * Set a task instance as resolved
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.resolve = function(done) {};
-
-
-/**
- * Set a task instance as completed
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.complete = function(done) {};
-
-
-
-module.exports = Task;
-
-
-},{"./../generic-resource":5}],11:[function(_dereq_,module,exports){
-'use strict';
-
-var GenericResource = _dereq_("./../generic-resource");
-
-
-
-/**
- * Variable Resource
- * @class
- * @classdesc A variable resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.Variable
- * @constructor
- */
-var Variable = GenericResource.extend();
-
-module.exports = Variable;
-
-
-},{"./../generic-resource":5}]},{},[7])
-(7)
+},{}]},{},[4])
+(4)
 });

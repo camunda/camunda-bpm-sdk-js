@@ -24,7 +24,7 @@ describe('The events system', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      Events = require('./../../src/events');
+      Events = require('./../../lib/events');
     }).not.toThrow();
   });
 

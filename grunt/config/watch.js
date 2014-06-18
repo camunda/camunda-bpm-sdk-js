@@ -8,7 +8,7 @@ module.exports = function(config) {
 
     sources: {
       files: [
-        'src/**/*.js'
+        'lib/**/*.js'
       ],
       tasks: [
         'newer:jshint',
@@ -19,7 +19,7 @@ module.exports = function(config) {
 
     jasmine_node: {
       files: [
-        'src/**/*.js',
+        'lib/**/*.js',
         'test/jasmine_node/**/*.js'
       ],
       tasks: [
@@ -29,7 +29,7 @@ module.exports = function(config) {
 
     // karma: {
     //   files: [
-    //     'src/**/*.js',
+    //     'lib/**/*.js',
     //     'test/karma/**/*.js'
     //   ],
     //   tasks: [

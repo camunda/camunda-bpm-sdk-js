@@ -14,7 +14,7 @@ module.exports = function(config) {
         }
       },
       files: {
-        'dist/camunda-bpm-sdk.js': ['./src/index.js']
+        'dist/camunda-bpm-sdk.js': ['./lib/index.js']
       }
     }
   };

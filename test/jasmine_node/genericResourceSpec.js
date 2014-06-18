@@ -5,7 +5,7 @@ describe('The GenericResource', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      GenericResource = require('./../../src/generic-resource');
+      GenericResource = require('./../../lib/generic-resource');
     }).not.toThrow();
   });
 

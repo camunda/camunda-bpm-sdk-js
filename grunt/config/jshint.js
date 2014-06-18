@@ -6,7 +6,7 @@ module.exports = function() {
     scripts: {
       files: {
         src: [
-          'src/**/*.js'
+          'lib/**/*.js'
         ]
       }
     },
