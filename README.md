@@ -17,69 +17,48 @@ Javascript client library for [camunda BPM](https://github.com/camunda/camunda-b
 
 <script type="text/javascript" src="dist/camunda-bpm-sdk.js"></script>
 <script type="text/javascript">
-  var cam = new require('camunda-bpm-sdk-js')({
-    apiUri: '//localhost:8080/engine-rest',
-    engineName: 'default' // optional, default to "default",
-    // 
-    authentication: {
-      type: 'basic',
-      username: 'jonny1',
-      password: 'insecure'
+  var CamSDK = require('camunda-bpm-sdk-js');
+  
+  
+  CamSDK.on('forbidden', function() {
+    // ... notify the user he/she is not authenticated
+  });
+  
+  
+  CamSDK.on('unauthorized', function() {
+    // ... notify the user he/she does not have enough rights
+  });
+  
+  
+  var ProcessDefinition = CamSDK.resource('process-definition');
+
+  ProcessDefinition.on('loaded', function(result) {
+    var total = results.count;
+    var processDefinitionInstances = results.items;
+    // ... do something when the process definitions are loaded
+  });
+
+  ProcessDefinition.list(function(err, result) {
+    if (err) {
+      throw err;
     }
+    var total = results.count;
+    var processDefinitionInstances = results.items;
+    // ... other way to do something when the process definitions are loaded
   });
-  
-  cam.processDefinition().list();
-  
-  var request = cam.task().create({
-    assignee: "jonny",
-    candidateUser: "mary"
+
+  ProcessDefinition.list({
+    nameLike: '%Call%'
+  }, function(err, result) {
+    if (err) {
+      throw err;
+    }
+    var total = results.count;
+    var processDefinitionInstances = results.items;
+    // ... other way to do something when the process definitions are loaded
   });
-  
-  
-  var taskResource = cam.task("existingTaskId", true); // <
-  var taskResource = task.get();  // <
-  
-  var assignee =  taskResource.assignee;
-  
-  
-  var task = cam.task().get("existingTaskId");
-  task.delete();
-  task.update({
-    assignee: "foo"
-  });
-  
-  cam.task().delete({id: "existingTaskId"});
-  
-  cam.task().update("existingTaskId", {
-    
-  });
-  
-  
-  var taskResource = task.get();  // <
-  
-  var assignee =  taskResource.assignee;
-  
-  
-  
-  
-  
-  request.on().on();
-    
-  cam.task().create({
-    assignee: "jonny",
-    candidateUser: "mary"
-  }).on("success", function() {
-    
-  });
-  
-  cam.task().create({
-    assignee: "jonny",
-    candidateUser: "mary"
-  }, function(error, data) {
-    
-  });
-  
-  cam.task().
+
+  var processDefinition = ProcessDefinition();
 </script>
 ```
 

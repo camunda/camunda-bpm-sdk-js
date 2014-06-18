@@ -1,19 +1,7 @@
 'use strict';
 
-
-// Notes:
-// - investigate possible use of XHR libraries
-//   - for node.js
-//     - https://github.com/mikeal/request
-//   - for browsers
-//     - rqst: https://github.com/voronianski/rqst very small
-//     - reqwest: https://github.com/ded/reqwest lots of feature
-//   - both (node.js & browsers)
-//     - superagent: https://github.com/visionmedia/superagent full-featured
-// - investigate mocking implementation
-
-
 var request = require('superagent');
+var Events = require('./events');
 
 
 /**
@@ -32,6 +20,8 @@ var HttpClient = function(config) {
   if (!config.baseUrl) {
     throw new Error('HttpClient needs a `baseUrl` configuration property.');
   }
+
+  Events.attach(this);
 
   this.config = config;
 };
@@ -57,7 +47,6 @@ HttpClient.prototype.post = function(data, options) {
  * Performs a GET HTTP request
  */
 HttpClient.prototype.get = function(data, options) {
-  var instance = this.instance;
   data = data || {};
   options = options || {};
   options.done = options.done || function() {};
@@ -71,7 +60,10 @@ HttpClient.prototype.get = function(data, options) {
       // ...
     }
 
-    console.info('response for '+ url, response.text);
+    console.info('response for '+ url, !!err, [[response]]);
+    // if () {
+
+    // }
 
     options.done.apply(this, arguments);
   });
@@ -83,7 +75,6 @@ HttpClient.prototype.get = function(data, options) {
  * Performs a PUT HTTP request
  */
 HttpClient.prototype.put = function(data, options) {
-  var instance = this.instance;
   data = data || {};
   options = options || {};
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-describe('The ProcessDefinition resource usage', function() {
+describe('The ProcessDefinition resource', function() {
   var ProcessDefinition, processDefinition;
 
   it('does not blow when loading', function() {

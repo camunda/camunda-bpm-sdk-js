@@ -9,9 +9,11 @@ describe('The ProcessInstance resource', function() {
     }).not.toThrow();
   });
 
+
   it('has a `path` static property', function() {
     expect(ProcessInstance.path).toBe('process-instance');
   });
+
 
   describe('instance', function() {
     var instance;
