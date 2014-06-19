@@ -17,20 +17,25 @@ Javascript client library for [camunda BPM](https://github.com/camunda/camunda-b
 
 <script type="text/javascript" src="dist/camunda-bpm-sdk.js"></script>
 <script type="text/javascript">
-  var CamSDK = require('camunda-bpm-sdk-js');
+  var CamundaClient = require('camunda-bpm-sdk-js');
+
+  cam = new CamundaClient({
+    appUri: 'engine-rest/engine',
+    // HttpClient: require('./../../lib/http-client-mock')
+  });
   
   
-  CamSDK.on('forbidden', function() {
+  cam.on('forbidden', function() {
     // ... notify the user he/she is not authenticated
   });
   
   
-  CamSDK.on('unauthorized', function() {
+  cam.on('unauthorized', function() {
     // ... notify the user he/she does not have enough rights
   });
   
   
-  var ProcessDefinition = CamSDK.resource('process-definition');
+  var ProcessDefinition = cam.resource('process-definition');
 
   ProcessDefinition.on('loaded', function(result) {
     var total = results.count;

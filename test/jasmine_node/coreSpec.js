@@ -31,7 +31,7 @@ describe('The SDK core', function() {
     expect(ProcessDefinition.http.mock).toBe(true);
 
     ProcessDefinition.list({
-      nameLike: 'Call'
+      nameLike: 'Bar'
     }, function(err, results) {
       expect(err).toBeNull();
       expect(results.count).toBeDefined();
