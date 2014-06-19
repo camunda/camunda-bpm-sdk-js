@@ -17,7 +17,10 @@ module.exports = function() {
     },
 
     unit: [
-      process.env.JASMINE_TEST_ONLY ? ('test/jasmine_node/'+ process.env.JASMINE_TEST_ONLY +'Spec.js') : 'test/jasmine_node/**/*Spec.js'
+      process.cwd() +'/'+
+      (process.env.JASMINE_TEST_ONLY ?
+        ('test/jasmine_node/'+ process.env.JASMINE_TEST_ONLY +'Spec.js') :
+        'test/jasmine_node/**/*Spec.js')
     ]
   };
 };
