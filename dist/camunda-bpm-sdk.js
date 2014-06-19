@@ -448,8 +448,6 @@ module.exports = HttpClient;
 },{"./events":1,"superagent":9}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var HttpClient = _dereq_('./http-client');
-
 /**
  * @namespace CamSDK
  */
@@ -479,15 +477,17 @@ function Cam(config) {
 
   config.engine = config.engine || 'default';
 
-  this.baseUrl = '';
-  if (config.hostname) {
-    this.baseUrl = config.protocol +'://';
-    this.baseUrl += config.hostname;
+  this.HttpClient = config.HttpClient || _dereq_('./http-client');
 
-    if ((''+ config.port) !== '80' && config.port) {
-      this.baseUrl += ':'+ config.port;
-    }
-  }
+  this.baseUrl = '';
+  // if (config.hostname) {
+  //   this.baseUrl = config.protocol +'://';
+  //   this.baseUrl += config.hostname;
+
+  //   if ((''+ config.port) !== '80' && config.port) {
+  //     this.baseUrl += ':'+ config.port;
+  //   }
+  // }
 
   this.baseUrl += '/'+ config.appUri;
   this.baseUrl += '/'+ config.engine;
@@ -526,7 +526,7 @@ function Cam(config) {
     /* jshint sub: false */
 
     for (name in _resources) {
-      _resources[name].http = new HttpClient({
+      _resources[name].http = new this.HttpClient({
         baseUrl: this.baseUrl +'/'+ _resources[name].path
       });
     }
@@ -662,9 +662,7 @@ ProcessDefinition.list = function(params, done) {
 
     where[name] = value;
   }
-
-  console.info('where', where);
-
+  
   // until a new webservice is made available,
   // we need to perform 2 requests
   return this.http.get(this.path +'/count', {

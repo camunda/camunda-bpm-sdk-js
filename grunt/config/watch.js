@@ -25,16 +25,16 @@ module.exports = function(config) {
       tasks: [
         'jasmine_node'
       ]
-    // },
+    },
 
-    // karma: {
-    //   files: [
-    //     'lib/**/*.js',
-    //     'test/karma/**/*.js'
-    //   ],
-    //   tasks: [
-    //     'jasmine_node'
-    //   ]
+    karma: {
+      files: [
+        'dist/camunda-bpm-sdk.js',
+        'test/karma/**/*.js'
+      ],
+      tasks: [
+        'jasmine_node'
+      ]
     }
   };
 };

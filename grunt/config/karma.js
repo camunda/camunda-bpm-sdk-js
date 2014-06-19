@@ -7,7 +7,8 @@ module.exports = function() {
       frameworks: ['jasmine'],
 
       files: [
-        {pattern: 'dist/camunda-bpm-sdk.min.js', included: true},
+        {pattern: 'dist/camunda-bpm-sdk.js', included: true},
+        // {pattern: 'dist/camunda-bpm-sdk.mocked.js', included: true},
 
         {pattern: 'test/karma/**/*Spec.js', included: true}
       ],
