@@ -13,7 +13,7 @@ module.exports = function() {
         {pattern: 'test/karma/**/*Spec.js', included: true}
       ],
       browsers: [
-        'Chrome',
+        // 'Chrome',
         // 'Firefox',
         'PhantomJS'
       ]
@@ -22,7 +22,16 @@ module.exports = function() {
     dev: {
       options: {
         singleRun: false,
-        autoWatch: true
+        autoWatch: true,
+        browsers: [
+          'Chrome',
+          'Firefox'
+        ]
+      }
+    },
+
+    watched: {
+      options: {
       }
     }
   }

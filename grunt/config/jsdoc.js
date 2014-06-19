@@ -1,12 +1,12 @@
 module.exports = function() {
   return {
     options: {
-      plugins: [
-        'plugins/markdown'
-      ],
-      markdown: {
-        parser: 'gfm'
-      }
+      // plugins: [
+      //   'plugins/markdown'
+      // ],
+      // markdown: {
+      //   parser: 'gfm'
+      // }
     },
     scripts: {
       options: {

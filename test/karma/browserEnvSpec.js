@@ -7,9 +7,10 @@ describe('The browser usage', function() {
     expect(CamSDK).toBeDefined();
   });
 
-  
-  it('can be required', function() {
+
+  xit('can be required', function() {
     expect(require).toBeDefined();
+
     expect(function() {
       camSdk = require('camunda-bpm-sdk');
     }).not.toThrow();

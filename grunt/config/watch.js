@@ -33,7 +33,7 @@ module.exports = function(config) {
         'test/karma/**/*.js'
       ],
       tasks: [
-        'jasmine_node'
+        'karma:watched'
       ]
     }
   };

@@ -12,16 +12,16 @@ describe('The SDK core', function() {
   it('initializes', function() {
     expect(function() {
       cam = new CamundaClient({
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8080',
+        // protocol: 'http',
+        // hostname: 'localhost',
+        // port: '8080',
         appUri: 'engine-rest/engine',
         HttpClient: require('./../../lib/http-client-mock')
       });
     }).not.toThrow();
   });
 
-  it('uses the mock HttpClient', function() {
+  it('uses the mock HttpClient', function(done) {
     expect(function() {
       ProcessDefinition = cam.resource('process-definition');
     }).not.toThrow();
@@ -30,9 +30,14 @@ describe('The SDK core', function() {
 
     expect(ProcessDefinition.http.mock).toBe(true);
 
-    expect(function() {
-      ProcessDefinition.list();      
-    }).not.toThrow();
+    ProcessDefinition.list({
+      nameLike: 'Call'
+    }, function(err, results) {
+      expect(err).toBeNull();
+      expect(results.count).toBeDefined();
+      expect(Array.isArray(results.items)).toBe(true);
+      done();
+    });
   });
 
   it('has resources', function() {
