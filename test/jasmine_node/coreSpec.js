@@ -34,6 +34,7 @@ describe('The SDK core', function() {
       nameLike: 'Bar'
     }, function(err, results) {
       expect(err).toBeNull();
+      console.info('results',results);
       expect(results.count).toBeDefined();
       expect(Array.isArray(results.items)).toBe(true);
       done();
