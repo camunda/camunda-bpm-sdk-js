@@ -9,17 +9,16 @@ describe('The SDK core', function() {
     }).not.toThrow();
   });
 
+
   it('initializes', function() {
     expect(function() {
       cam = new CamundaClient({
-        // protocol: 'http',
-        // hostname: 'localhost',
-        // port: '8080',
         appUri: 'engine-rest/engine',
         HttpClient: require('./../../lib/http-client-mock')
       });
     }).not.toThrow();
   });
+
 
   it('uses the mock HttpClient', function(done) {
     expect(function() {
@@ -34,12 +33,13 @@ describe('The SDK core', function() {
       nameLike: 'Bar'
     }, function(err, results) {
       expect(err).toBeNull();
-      console.info('results',results);
+      console.info('results', results.count, results.items.length);
       expect(results.count).toBeDefined();
       expect(Array.isArray(results.items)).toBe(true);
       done();
     });
   });
+
 
   it('has resources', function() {
     expect(function() {
