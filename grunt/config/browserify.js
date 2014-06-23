@@ -9,23 +9,18 @@ module.exports = function(config) {
       }
     },
 
+    mock: {
+      files: {
+        'dist/camunda-bpm-sdk-mock.js': [
+          './lib/http-client-mock.js'
+        ]
+      }
+    },
+
     dist: {
       files: {
         'dist/camunda-bpm-sdk.js': ['./lib/index.js']
       }
-    // },
-
-    // mocked: {
-    //   options: {
-    //     bundleOptions: {
-    //       preBundleCB: function(browserify) {
-    //         console.info('browserify', browserify);
-    //       }
-    //     }
-    //   },
-    //   files: {
-    //     'dist/camunda-bpm-sdk.mocked.js': ['./lib/index.js']
-    //   }
     }
   };
 };
