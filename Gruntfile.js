@@ -40,7 +40,7 @@ module.exports = function(grunt) {
       'jshint',
       'clean',
       'jsdoc',
-      'copy',
+      'copy:assets',
       'browserify',
       'uglify'
     ];

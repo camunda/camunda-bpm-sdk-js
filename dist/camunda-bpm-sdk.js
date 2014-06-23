@@ -7,6 +7,7 @@
  * and `trigger` functions.
  *
  * @exports CamSDK.Events
+ * @mixin
  *
  * @example
  * var obj = {};
@@ -155,12 +156,17 @@ module.exports = Events;
 'use strict';
 
 var HttpClient = _dereq_('./http-client');
+var Events = _dereq_('./events');
 
+
+function noop() {}
 
 /**
  * Abstract class for resources
  * @exports CamSDK.GenericResource
  * @constructor
+ * @mixes CamSDK.Events
+ *
  *
  * @example
  *
@@ -271,6 +277,9 @@ GenericResource.prototype.initialize = function() {
 };
 
 
+Events.attach(GenericResource);
+
+
 /**
  * Object hosting the methods for HTTP queries.
  * @abstract
@@ -296,13 +305,77 @@ GenericResource.create = function(attributes, done) {};
  * Fetch a list of instances
  * @abstract
  *
- * @param  {?Object.<String, String>}     where ...
- * @param  {requestCallback} [done]  ...
+ * @fires CamSDK.GenericResource#error
+ * @fires CamSDK.GenericResource#loaded
+ *
+ * @param  {?Object.<String, String>} params  ...
+ * @param  {requestCallback} [done]           ...
  */
-GenericResource.list = function(where, done) {
-  where = where || {};
-  this.http.get(where, {
-    done: done
+GenericResource.list = function(params, done) {
+  // allows to pass only a callback
+  if (typeof params === 'function') {
+    done = params;
+    params = {};
+  }
+  params = params || {};
+  done = done || noop;
+
+  var likeExp = /Like$/;
+  var self = this;
+  var results = {
+    count: 0,
+    items: []
+  };
+
+  var where = {};
+  var name, value;
+  for (name in params) {
+    value = params[name];
+
+    if (likeExp.test(name)) {
+      value = '%'+ value +'%';
+    }
+
+    where[name] = value;
+  }
+
+  // until a new webservice is made available,
+  // we need to perform 2 requests
+  return this.http.get(this.path +'/count', {
+    data: where,
+    done: function(err, countRes) {
+      if (err) {
+        self.trigger('error', err);
+        return done(err);
+      }
+
+      results.count = countRes.count;
+
+      self.http.get(self.path, {
+        data: where,
+        done: function(err, itemsRes) {
+          if (err) {
+            /**
+             * @event CamSDK.GenericResource#error
+             * @type {Error}
+             */
+            self.trigger('error', err);
+            return done(err);
+          }
+
+          results.items = itemsRes;
+
+          /**
+           * @event CamSDK.GenericResource#loaded
+           * @type {Object}
+           * @property {Number} count is the total of items matching on backend
+           * @property {Array} items  is an array of items
+           */
+          self.trigger('loaded', results);
+          done(err, results);
+        }
+      });
+    }
   });
 };
 
@@ -354,7 +427,7 @@ GenericResource.prototype.delete = function(done) {};
 
 module.exports = GenericResource;
 
-},{"./http-client":3}],3:[function(_dereq_,module,exports){
+},{"./events":1,"./http-client":3}],3:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
@@ -445,7 +518,7 @@ HttpClient.prototype.del = function(data, options) {
 
 module.exports = HttpClient;
 
-},{"./events":1,"superagent":9}],4:[function(_dereq_,module,exports){
+},{"./events":1,"superagent":10}],4:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -519,6 +592,7 @@ function Cam(config) {
     var name;
 
     /* jshint sub: true */
+    _resources['pile']                = _dereq_('./resources/pile');
     _resources['process-definition']  = _dereq_('./resources/process-definition');
     _resources['process-instance']    = _dereq_('./resources/process-instance');
     _resources['task']                = _dereq_('./resources/task');
@@ -568,7 +642,33 @@ module.exports = Cam;
  * @callback noopCallback
  */
 
-},{"./http-client":3,"./resources/process-definition":5,"./resources/process-instance":6,"./resources/task":7,"./resources/variable":8}],5:[function(_dereq_,module,exports){
+},{"./http-client":3,"./resources/pile":5,"./resources/process-definition":6,"./resources/process-instance":7,"./resources/task":8,"./resources/variable":9}],5:[function(_dereq_,module,exports){
+'use strict';
+
+var GenericResource = _dereq_("./../generic-resource");
+
+
+
+/**
+ * Pile Resource
+ * @class
+ * @classdesc A variable resource
+ * @augments CamSDK.GenericResource
+ * @exports CamSDK.Pile
+ * @constructor
+ */
+var Pile = GenericResource.extend();
+
+/**
+ * API path for the process definition resource
+ * @type {String}
+ */
+Pile.path = 'pile';
+
+module.exports = Pile;
+
+
+},{"./../generic-resource":2}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -650,8 +750,8 @@ ProcessDefinition.list = function(params, done) {
   params = params || {};
   done = done || noop;
 
-  var likeExp = /Like$/;
   var self = this;
+  var likeExp = /Like$/;
   var results = {
     count: 0,
     items: []
@@ -675,20 +775,38 @@ ProcessDefinition.list = function(params, done) {
     data: where,
     done: function(err, countRes) {
       if (err) {
+        /**
+         * @event CamSDK.ProcessDefinition#error
+         * @type {Error}
+         */
+        self.trigger('error', err);
         return done(err);
       }
 
-      results.count = countRes.body.count;
+      results.count = countRes.count;
 
       self.http.get(self.path, {
         data: where,
         done: function(err, itemsRes) {
           if (err) {
+            /**
+             * @event CamSDK.ProcessDefinition#error
+             * @type {Error}
+             */
+            self.trigger('error', err);
             return done(err);
           }
 
-          results.items = itemsRes.body;
+          results.items = itemsRes;
 
+
+          /**
+           * @event CamSDK.ProcessDefinition#loaded
+           * @type {Object}
+           * @property {Number} count is the total of items matching on backend
+           * @property {Array} items  is an array of items
+           */
+          self.trigger('loaded', results);
           done(err, results);
         }
       });
@@ -776,9 +894,18 @@ ProcessDefinition.prototype.form = function(done) {
  * @param  {Object} [data]    ...
  * @param  {Function} [done]  ...
  */
-ProcessDefinition.prototype.submit = function(data, done) {
-  return this.http.post(this.path, {
-    data: {},
+ProcessDefinition.submit = function(data, done) {
+  var path = this.path;
+  if (data.key) {
+    path += '/key/'+ data.key;
+  }
+  else {
+    path += '/'+ data.id;
+  }
+  path += '/submit-form';
+
+  return this.http.post(path, {
+    data: data,
     done: done
   });
 };
@@ -799,7 +926,7 @@ ProcessDefinition.prototype.start = function(done) {
 module.exports = ProcessDefinition;
 
 
-},{"./../generic-resource":2}],6:[function(_dereq_,module,exports){
+},{"./../generic-resource":2}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -853,7 +980,7 @@ ProcessInstance.list = function(params, done) {
 module.exports = ProcessInstance;
 
 
-},{"./../generic-resource":2}],7:[function(_dereq_,module,exports){
+},{"./../generic-resource":2}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -949,9 +1076,9 @@ Task.path = 'task';
  *                                                          Will return less results, if there are no more results left.
  * @param {Function} done   ...
  */
-Task.list = function(params, done) {
+// Task.list = function(params, done) {
 
-};
+// };
 
 
 /**
@@ -1008,7 +1135,7 @@ Task.prototype.complete = function(done) {};
 module.exports = Task;
 
 
-},{"./../generic-resource":2}],8:[function(_dereq_,module,exports){
+},{"./../generic-resource":2}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1028,7 +1155,7 @@ var Variable = GenericResource.extend();
 module.exports = Variable;
 
 
-},{"./../generic-resource":2}],9:[function(_dereq_,module,exports){
+},{"./../generic-resource":2}],10:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -2079,7 +2206,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":10,"reduce":11}],10:[function(_dereq_,module,exports){
+},{"emitter":11,"reduce":12}],11:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2245,7 +2372,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
