@@ -302,6 +302,7 @@ for (i = 0; i < 300; i++) {
 var subId;
 for (id in  _store.task) {
   if (fixturer.random(1, 6) > 3) {
+    var created = fixturer.randomDate(new Date('1.1.2014'), new Date());
     subId = uuid();
     procInstId = _store.task[id].processInstanceId;
     procInst = _store.processInstance[procInstId];
@@ -310,11 +311,11 @@ for (id in  _store.task) {
       id: subId,
       name: fixturer.thingName(),
       assignee: fixturer.randomItem(users),
-      created: '2013-01-23T13:42:42',
-      due: '2013-01-23T13:49:42',
-      followUp: '2013-01-23T13:44:42',
+      created: created,
+      due: fixturer.randomDate(created, new Date('11.29.2014')),
+      followUp: fixturer.randomDate(created, new Date('10.29.2014')),
       delegationState: 'RESOLVED',
-      description: 'aDescription',
+      description: fixturer.thingName(fixturer.random(7, 42)),
       executionId: uuid(),
       owner: fixturer.randomItem(users),
       // should link to a existing task.id
@@ -368,8 +369,8 @@ _.each([
     description: '',
     filters: [
       {
-        key: 'due',
-        operator: 'smaller',
+        key: 'dueBefore',
+        // operator: 'smaller',
         value: '{now}'
       }
     ],
@@ -381,8 +382,8 @@ _.each([
     description: '',
     filters: [
       {
-        key: 'due',
-        operator: 'smaller',
+        key: 'dueBefore',
+        // operator: 'smaller',
         value: '{now} + ({day} * 3)'
       }
     ],
@@ -394,8 +395,8 @@ _.each([
     description: '',
     filters: [
       {
-        key: 'identityLink',
-        operator: 'has',
+        key: 'candidateGroup',
+        // operator: 'has',
         value: 'group-a'
       }
     ],
@@ -407,8 +408,8 @@ _.each([
     description: '',
     filters: [
       {
-        key: 'identityLink',
-        operator: 'has',
+        key: 'candidateGroup',
+        // operator: 'has',
         value: 'group-a'
       }
     ],
@@ -438,8 +439,10 @@ function inPath(expected, given) {
 
 function filter(src, data) {
   var where = {
-    exact: {},
-    like: {}
+    exact:  {},
+    like:   {},
+    before: {},
+    after:  {}
   };
   var notFilters = [
     'sortBy',
@@ -449,11 +452,26 @@ function filter(src, data) {
   ];
 
   var likeExp = /Like$/;
+  var beforeExp = /Before$/;
+  var afterExp = /After$/;
+
   _.each(data, function(val, key) {
     if (notFilters.indexOf(key) > -1) { return; }
 
-    var isLike = likeExp.test(key);
-    where[isLike ? 'like' : 'exact'][key] = isLike ? new RegExp((''+ val).slice(1).slice(0, -1), 'g') : val;
+    /* jshint evil: true */
+    if (beforeExp.test(key)) {
+      where.before[key.split(beforeExp).shift()] = new Date(eval(val) * 1000);
+    }
+    else if (afterExp.test(key)) {
+      where.after[key.split(afterExp).shift()] = new Date(eval(val) * 1000);
+    }
+    /* jshint evil: false */
+    else if (likeExp.test(key)) {
+      where.like[key.split(likeExp).shift()] = new RegExp((''+ val).slice(1).slice(0, -1), 'g');
+    }
+    else {
+      where.exact[key] = val;
+    }
   });
 
   var found = _.size(where.exact) ? _.where(src, where.exact) : _.toArray(src);
@@ -463,12 +481,30 @@ function filter(src, data) {
     var realKey;
     _.each(where.like, function(search, key) {
       if (!keep) { return; }
-      realKey = key.slice(0, -4);
-      keep = search.test(''+ item[key.slice(0, -4)]);
+      keep = search.test(''+ item[key]);
     });
     return keep;
   }) : found;
 
+  found = _.size(where.before) ? _.filter(found, function(item) {
+    var keep = true;
+    _.each(where.before, function(val, key) {
+      if (!keep) { return; }
+      keep = item[key] <= val;
+    });
+    return keep;
+  }) : found;
+
+  found = _.size(where.after) ? _.filter(found, function(item) {
+    var keep = true;
+    _.each(where.after, function(val, key) {
+      if (!keep) { return; }
+      keep = item[key] >= val;
+    });
+    return keep;
+  }) : found;
+
+  console.info('found', found.length, where);
 
   return found;
 }
@@ -482,11 +518,6 @@ function genericGet(wanted, items, where) {
   }
 
   else if (!wanted || wanted === 'count') {
-    // var safe = _.clone(where);
-    // delete safe.maxResults;
-    // delete safe.firstResult;
-    // delete safe.sortBy;
-    // delete safe.sortOrder;
     returned = filter(items, where);
 
     // returns an object with "count"
@@ -562,7 +593,7 @@ HttpClient.prototype.post = function(path, options) {
   // postpone the response to simulate latency
   setTimeout(function() {
     done(null, results);
-  }, fixturer.random(50, 400));
+  }, fixturer.random(300, 700));
 };
 
 
@@ -577,7 +608,7 @@ HttpClient.prototype.get = function(path, options) {
 
   var pathParts = path.split('/');
   var resourceName = pathParts.shift();
-  console.info('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '));
+  console.info('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '), options.data);
 
   switch (resourceName) {
     case 'process-definition':
@@ -591,6 +622,10 @@ HttpClient.prototype.get = function(path, options) {
     case 'pile':
       results = genericGet(pathParts[0], _store.pile, options.data);
       break;
+
+    // case 'session':
+    //   results = genericGet(pathParts[0], _store.session, options.data);
+    //   break;
 
     case 'task':
       results = genericGet(pathParts[0], _store.task, options.data);
@@ -608,7 +643,7 @@ HttpClient.prototype.get = function(path, options) {
   // postpone the response to simulate latency
   setTimeout(function() {
     done(null, results);
-  }, fixturer.random(50, 400));
+  }, fixturer.random(300, 700));
 };
 
 

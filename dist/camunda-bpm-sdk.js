@@ -518,7 +518,7 @@ HttpClient.prototype.del = function(data, options) {
 
 module.exports = HttpClient;
 
-},{"./events":1,"superagent":10}],4:[function(_dereq_,module,exports){
+},{"./events":1,"superagent":11}],4:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -596,6 +596,7 @@ function Cam(config) {
     _resources['process-definition']  = _dereq_('./resources/process-definition');
     _resources['process-instance']    = _dereq_('./resources/process-instance');
     _resources['task']                = _dereq_('./resources/task');
+    _resources['session']             = _dereq_('./resources/session');
     _resources['variable']            = _dereq_('./resources/variable');
     /* jshint sub: false */
 
@@ -642,7 +643,7 @@ module.exports = Cam;
  * @callback noopCallback
  */
 
-},{"./http-client":3,"./resources/pile":5,"./resources/process-definition":6,"./resources/process-instance":7,"./resources/task":8,"./resources/variable":9}],5:[function(_dereq_,module,exports){
+},{"./http-client":3,"./resources/pile":5,"./resources/process-definition":6,"./resources/process-instance":7,"./resources/session":8,"./resources/task":9,"./resources/variable":10}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -798,6 +799,9 @@ ProcessDefinition.list = function(params, done) {
           }
 
           results.items = itemsRes;
+          // QUESTION: should we return that too?
+          results.firstResult = parseInt(where.firstResult || 0, 10);
+          results.maxResults = results.firstResult + parseInt(where.maxResults || 10, 10);
 
 
           /**
@@ -988,6 +992,32 @@ var GenericResource = _dereq_("./../generic-resource");
 
 
 /**
+ * Session Resource
+ * @class
+ * @classdesc A variable resource
+ * @augments CamSDK.GenericResource
+ * @exports CamSDK.Session
+ * @constructor
+ */
+var Session = GenericResource.extend();
+
+/**
+ * Path used by the resource to perform HTTP queries
+ * @type {String}
+ */
+Session.path = '';
+
+
+module.exports = Session;
+
+},{"./../generic-resource":2}],9:[function(_dereq_,module,exports){
+'use strict';
+
+var GenericResource = _dereq_("./../generic-resource");
+
+
+
+/**
  * Task Resource
  * @class
  * @classdesc A Task resource
@@ -1135,7 +1165,7 @@ Task.prototype.complete = function(done) {};
 module.exports = Task;
 
 
-},{"./../generic-resource":2}],9:[function(_dereq_,module,exports){
+},{"./../generic-resource":2}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1152,10 +1182,16 @@ var GenericResource = _dereq_("./../generic-resource");
  */
 var Variable = GenericResource.extend();
 
+/**
+ * Path used by the resource to perform HTTP queries
+ * @type {String}
+ */
+Variable.path = 'variable-instance';
+
 module.exports = Variable;
 
 
-},{"./../generic-resource":2}],10:[function(_dereq_,module,exports){
+},{"./../generic-resource":2}],11:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -2206,7 +2242,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":11,"reduce":12}],11:[function(_dereq_,module,exports){
+},{"emitter":12,"reduce":13}],12:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2372,7 +2408,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
