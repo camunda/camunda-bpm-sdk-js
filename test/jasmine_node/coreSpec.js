@@ -13,7 +13,7 @@ describe('The SDK core', function() {
   it('initializes', function() {
     expect(function() {
       cam = new CamundaClient({
-        appUri: 'engine-rest/engine',
+        apiUri: 'htt://path/to/engine-rest',
         HttpClient: require('./../../lib/http-client-mock')
       });
     }).not.toThrow();

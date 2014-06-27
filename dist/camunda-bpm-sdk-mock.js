@@ -604,7 +604,7 @@ HttpClient.prototype.get = function(path, options) {
   options = options || {};
 
   var done = options.done || function() {};
-  var results;
+  var results = {};
 
   var pathParts = path.split('/');
   var resourceName = pathParts.shift();
@@ -612,15 +612,15 @@ HttpClient.prototype.get = function(path, options) {
 
   switch (resourceName) {
     case 'process-definition':
-      results = genericGet(pathParts[0], _store.processDefinition, options.data);
+      results.body = genericGet(pathParts[0], _store.processDefinition, options.data);
       break;
 
     case 'process-instance':
-      results = genericGet(pathParts[0], _store.processInstance, options.data);
+      results.body = genericGet(pathParts[0], _store.processInstance, options.data);
       break;
 
     case 'pile':
-      results = genericGet(pathParts[0], _store.pile, options.data);
+      results.body = genericGet(pathParts[0], _store.pile, options.data);
       break;
 
     // case 'session':
@@ -628,15 +628,15 @@ HttpClient.prototype.get = function(path, options) {
     //   break;
 
     case 'task':
-      results = genericGet(pathParts[0], _store.task, options.data);
+      results.body = genericGet(pathParts[0], _store.task, options.data);
       break;
 
     case 'user':
-      results = genericGet(pathParts[0], _store.user, options.data);
+      results.body = genericGet(pathParts[0], _store.user, options.data);
       break;
 
     case 'variable-instance':
-      results = genericGet(pathParts[0], _store.variable, options.data);
+      results.body = genericGet(pathParts[0], _store.variable, options.data);
       break;
   }
 

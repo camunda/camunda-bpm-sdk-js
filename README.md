@@ -20,7 +20,7 @@ Javascript client library for [camunda BPM](https://github.com/camunda/camunda-b
   var CamundaClient = require('camunda-bpm-sdk-js');
 
   cam = new CamundaClient({
-    appUri: 'engine-rest/engine',
+    apiUri: 'http://localhost:8080/engine-rest/',
     // HttpClient: require('./../../lib/http-client-mock')
   });
   

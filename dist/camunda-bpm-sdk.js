@@ -311,7 +311,7 @@ GenericResource.create = function(attributes, done) {};
  * @param  {?Object.<String, String>} params  ...
  * @param  {requestCallback} [done]           ...
  */
-GenericResource.list = function(params, done) {
+GenericResource.getList = function(params, done) {
   // allows to pass only a callback
   if (typeof params === 'function') {
     done = params;
@@ -320,8 +320,8 @@ GenericResource.list = function(params, done) {
   params = params || {};
   done = done || noop;
 
-  var likeExp = /Like$/;
   var self = this;
+  var likeExp = /Like$/;
   var results = {
     count: 0,
     items: []
@@ -341,15 +341,19 @@ GenericResource.list = function(params, done) {
 
   // until a new webservice is made available,
   // we need to perform 2 requests
-  return this.http.get(this.path +'/count', {
+  return this.http.get(self.path + '/count', {
     data: where,
     done: function(err, countRes) {
       if (err) {
+        /**
+         * @event CamSDK.GenericResource#error
+         * @type {Error}
+         */
         self.trigger('error', err);
         return done(err);
       }
 
-      results.count = countRes.count;
+      results.count = countRes.body.count;
 
       self.http.get(self.path, {
         data: where,
@@ -363,7 +367,11 @@ GenericResource.list = function(params, done) {
             return done(err);
           }
 
-          results.items = itemsRes;
+          results.items = itemsRes.body;
+          // QUESTION: should we return that too?
+          results.firstResult = parseInt(where.firstResult || 0, 10);
+          results.maxResults = results.firstResult + parseInt(where.maxResults || 10, 10);
+
 
           /**
            * @event CamSDK.GenericResource#loaded
@@ -491,7 +499,7 @@ HttpClient.prototype.get = function(path, options) {
 
     // }
 
-    done.apply(this, null, response);
+    done(null, response);
   });
 };
 
@@ -541,29 +549,19 @@ function Cam(config) {
     throw new Error('Needs configuration');
   }
 
-  if (!config.appUri) {
-    throw new Error('A appUri is required');
+  if (!config.apiUri) {
+    throw new Error('An apiUri is required');
   }
-
-  // http://localhost:8080/camunda/api/engine/engine/default/process-definition/statistics?incidents=true
-  config.hostname = config.hostname || false;
 
   config.engine = config.engine || 'default';
 
   this.HttpClient = config.HttpClient || _dereq_('./http-client');
 
-  this.baseUrl = '';
-  // if (config.hostname) {
-  //   this.baseUrl = config.protocol +'://';
-  //   this.baseUrl += config.hostname;
-
-  //   if ((''+ config.port) !== '80' && config.port) {
-  //     this.baseUrl += ':'+ config.port;
-  //   }
-  // }
-
-  this.baseUrl += '/'+ config.appUri;
-  this.baseUrl += '/'+ config.engine;
+  this.baseUrl = config.apiUri;
+  if(this.baseUrl.indexOf("/", this.baseUrl.length - 1) === -1) {
+    this.baseUrl += '/';
+  }
+  this.baseUrl += 'engine/'+ config.engine;
 
   this.config = config;
 
@@ -600,10 +598,12 @@ function Cam(config) {
     _resources['variable']            = _dereq_('./resources/variable');
     /* jshint sub: false */
 
+    var httpClient = new this.HttpClient({
+      baseUrl: this.baseUrl
+    });
+
     for (name in _resources) {
-      _resources[name].http = new this.HttpClient({
-        baseUrl: this.baseUrl +'/'+ _resources[name].path
-      });
+      _resources[name].http = httpClient;
     }
   };
 
@@ -743,81 +743,8 @@ ProcessDefinition.path = 'process-definition';
  * });
  */
 ProcessDefinition.list = function(params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
-  }
-  params = params || {};
-  done = done || noop;
-
-  var self = this;
-  var likeExp = /Like$/;
-  var results = {
-    count: 0,
-    items: []
-  };
-
-  var where = {};
-  var name, value;
-  for (name in params) {
-    value = params[name];
-
-    if (likeExp.test(name)) {
-      value = '%'+ value +'%';
-    }
-
-    where[name] = value;
-  }
-
-  // until a new webservice is made available,
-  // we need to perform 2 requests
-  return this.http.get(this.path +'/count', {
-    data: where,
-    done: function(err, countRes) {
-      if (err) {
-        /**
-         * @event CamSDK.ProcessDefinition#error
-         * @type {Error}
-         */
-        self.trigger('error', err);
-        return done(err);
-      }
-
-      results.count = countRes.count;
-
-      self.http.get(self.path, {
-        data: where,
-        done: function(err, itemsRes) {
-          if (err) {
-            /**
-             * @event CamSDK.ProcessDefinition#error
-             * @type {Error}
-             */
-            self.trigger('error', err);
-            return done(err);
-          }
-
-          results.items = itemsRes;
-          // QUESTION: should we return that too?
-          results.firstResult = parseInt(where.firstResult || 0, 10);
-          results.maxResults = results.firstResult + parseInt(where.maxResults || 10, 10);
-
-
-          /**
-           * @event CamSDK.ProcessDefinition#loaded
-           * @type {Object}
-           * @property {Number} count is the total of items matching on backend
-           * @property {Array} items  is an array of items
-           */
-          self.trigger('loaded', results);
-          done(err, results);
-        }
-      });
-    }
-  });
+  return this.getList(params, done);
 };
-
 
 
 /**
@@ -977,7 +904,7 @@ ProcessInstance.create = function(params, done) {
  * @param  {requestCallback} [done] [description]
  */
 ProcessInstance.list = function(params, done) {
-  return this.http.get("/", params, done);
+  return this.getList(params, done);
 };
 
 
@@ -1106,9 +1033,9 @@ Task.path = 'task';
  *                                                          Will return less results, if there are no more results left.
  * @param {Function} done   ...
  */
-// Task.list = function(params, done) {
-
-// };
+Task.list = function(params, done) {
+  return this.getList(params, done);
+};
 
 
 /**
