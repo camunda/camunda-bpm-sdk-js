@@ -12,7 +12,6 @@ module.exports = function(config) {
       ],
       tasks: [
         'newer:jshint',
-        'jsdoc',
         'browserify'
       ]
     },

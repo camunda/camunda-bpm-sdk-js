@@ -18,7 +18,7 @@ describe('The node.js usage', function() {
 
 
   describe('configuration', function() {
-    it('needs a appUri property', function() {
+    it('needs a apiUri property', function() {
       expect(function() {
         new CamundaClient({});
       }).toThrow();

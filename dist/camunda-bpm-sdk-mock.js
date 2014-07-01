@@ -504,7 +504,19 @@ function filter(src, data) {
     return keep;
   }) : found;
 
-  console.info('found', found.length, where);
+
+  // just do some cleanup..
+  for (var c in where) {
+    if (!_.size(where[c])) {
+      delete where[c];
+    }
+  }
+  if (_.size(where)) {
+    console.info(''+ found.length +' / '+ _.size(src) +' record(s) matching', where);
+  }
+  else {
+    console.info('No filter applied');
+  }
 
   return found;
 }
@@ -551,7 +563,7 @@ HttpClient.prototype.post = function(path, options) {
 
   var pathParts = path.split('/');
   var resourceName = pathParts.shift();
-  console.info('SDK MOCKING: "POST" request on "'+ resourceName +'"', pathParts.join(', '), options.data);
+  console.info('SDK MOCKING: "POST" request on "'+ resourceName +'"', pathParts.join(', '));
 
   switch (resourceName) {
     case 'process-definition':
@@ -608,19 +620,19 @@ HttpClient.prototype.get = function(path, options) {
 
   var pathParts = path.split('/');
   var resourceName = pathParts.shift();
-  console.info('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '), options.data);
+  console.info('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '));
 
   switch (resourceName) {
     case 'process-definition':
-      results.body = genericGet(pathParts[0], _store.processDefinition, options.data);
+      results = genericGet(pathParts[0], _store.processDefinition, options.data);
       break;
 
     case 'process-instance':
-      results.body = genericGet(pathParts[0], _store.processInstance, options.data);
+      results = genericGet(pathParts[0], _store.processInstance, options.data);
       break;
 
     case 'pile':
-      results.body = genericGet(pathParts[0], _store.pile, options.data);
+      results = genericGet(pathParts[0], _store.pile, options.data);
       break;
 
     // case 'session':
@@ -628,15 +640,15 @@ HttpClient.prototype.get = function(path, options) {
     //   break;
 
     case 'task':
-      results.body = genericGet(pathParts[0], _store.task, options.data);
+      results = genericGet(pathParts[0], _store.task, options.data);
       break;
 
     case 'user':
-      results.body = genericGet(pathParts[0], _store.user, options.data);
+      results = genericGet(pathParts[0], _store.user, options.data);
       break;
 
     case 'variable-instance':
-      results.body = genericGet(pathParts[0], _store.variable, options.data);
+      results = genericGet(pathParts[0], _store.variable, options.data);
       break;
   }
 
@@ -656,7 +668,7 @@ HttpClient.prototype.put = function(path, options) {
   var done = options.done || function() {};
   var results = {};
 
-  done(null, { body: results });
+  done(null, results);
 };
 
 

@@ -172,7 +172,7 @@ function noop() {}
  *
  * // create a resource Model
  * var Model = GenericResource.extend({
- *   appUri: 'path-to-the-endpoint'
+ *   apiUri: 'path-to-the-endpoint'
  *   doSomethingOnInstance: function() {
  *     // ...
  *   }
@@ -311,7 +311,7 @@ GenericResource.create = function(attributes, done) {};
  * @param  {?Object.<String, String>} params  ...
  * @param  {requestCallback} [done]           ...
  */
-GenericResource.getList = function(params, done) {
+GenericResource.list = function(params, done) {
   // allows to pass only a callback
   if (typeof params === 'function') {
     done = params;
@@ -327,22 +327,10 @@ GenericResource.getList = function(params, done) {
     items: []
   };
 
-  var where = {};
-  var name, value;
-  for (name in params) {
-    value = params[name];
-
-    if (likeExp.test(name)) {
-      value = '%'+ value +'%';
-    }
-
-    where[name] = value;
-  }
-
   // until a new webservice is made available,
   // we need to perform 2 requests
-  return this.http.get(self.path + '/count', {
-    data: where,
+  return this.http.get(this.path +'/count', {
+    data: params,
     done: function(err, countRes) {
       if (err) {
         /**
@@ -353,10 +341,10 @@ GenericResource.getList = function(params, done) {
         return done(err);
       }
 
-      results.count = countRes.body.count;
+      results.count = countRes.count;
 
       self.http.get(self.path, {
-        data: where,
+        data: params,
         done: function(err, itemsRes) {
           if (err) {
             /**
@@ -367,10 +355,10 @@ GenericResource.getList = function(params, done) {
             return done(err);
           }
 
-          results.items = itemsRes.body;
+          results.items = itemsRes;
           // QUESTION: should we return that too?
-          results.firstResult = parseInt(where.firstResult || 0, 10);
-          results.maxResults = results.firstResult + parseInt(where.maxResults || 10, 10);
+          results.firstResult = parseInt(params.firstResult || 0, 10);
+          results.maxResults = results.firstResult + parseInt(params.maxResults || 10, 10);
 
 
           /**
@@ -440,7 +428,7 @@ module.exports = GenericResource;
 
 var request = _dereq_('superagent');
 var Events = _dereq_('./events');
-
+var noop = function() {};
 
 /**
  * HttpClient
@@ -460,19 +448,28 @@ var HttpClient = function(config) {
   this.config = config;
 };
 
-
 /**
  * Performs a POST HTTP request
  */
-HttpClient.prototype.post = function(data, options) {
-  data = data || {};
+HttpClient.prototype.post = function(path, options) {
   options = options || {};
-
-  var url = this.config.baseUrl + (options.path ? '/'+ options.path : '');
+  var done = options.done || noop;
+  var self = this;
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
     .post(url);
-  req.send(data);
-  req.end(options.done);
+  req.send(options.data || {});
+
+  req.end(function(err, response) {
+    if (err || !response.ok) {
+      err = err || response.error || new Error('The request on '+ url +' failed');
+      self.trigger('error', err);
+      return done(err);
+    }
+
+    // superagent puts the data into a property called body
+    done(null, response.body ? response.body : response);
+  });
 };
 
 
@@ -482,8 +479,8 @@ HttpClient.prototype.post = function(data, options) {
  */
 HttpClient.prototype.get = function(path, options) {
   options = options || {};
-  var done = options.done || function() {};
-
+  var done = options.done || noop;
+  var self = this;
   var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
     .get(url)
@@ -491,15 +488,13 @@ HttpClient.prototype.get = function(path, options) {
 
   req.end(function(err, response) {
     if (err || !response.ok) {
-      return done(err || new Error('The request on '+ url +' failed'));
+      err = err || response.error || new Error('The request on '+ url +' failed');
+      self.trigger('error', err);
+      return done(err);
     }
 
-    console.info('response for '+ url, !!err, response);
-    // if () {
-
-    // }
-
-    done(null, response);
+    // superagent puts the data into a property called body
+    done(null, response.body ? response.body : response);
   });
 };
 
@@ -511,6 +506,7 @@ HttpClient.prototype.get = function(path, options) {
 HttpClient.prototype.put = function(data, options) {
   data = data || {};
   options = options || {};
+  var done = options.done || noop;
 };
 
 
@@ -522,6 +518,7 @@ HttpClient.prototype.del = function(data, options) {
   var instance = this.instance;
   data = data || {};
   options = options || {};
+  var done = options.done || noop;
 };
 
 module.exports = HttpClient;
@@ -540,7 +537,7 @@ module.exports = HttpClient;
  *
  * @param  {Object} config        used to provide necessary configuration
  * @param  {String} [config.engine=default] ...
- * @param  {String} config.appUri ...
+ * @param  {String} config.apiUri ...
  *
  * @return {Object}               ...
  */
@@ -555,10 +552,15 @@ function Cam(config) {
 
   config.engine = config.engine || 'default';
 
-  this.HttpClient = config.HttpClient || _dereq_('./http-client');
+  // mock by default.. for now
+  config.mock =  typeof config.mock !== 'undefined' ? config.mock : true;
+
+  config.resources = config.resources || {};
+
+  this.HttpClient = config.HttpClient || Cam.HttpClient;
 
   this.baseUrl = config.apiUri;
-  if(this.baseUrl.indexOf("/", this.baseUrl.length - 1) === -1) {
+  if(this.baseUrl.slice(-1) !== '/') {
     this.baseUrl += '/';
   }
   this.baseUrl += 'engine/'+ config.engine;
@@ -568,6 +570,7 @@ function Cam(config) {
   this.initialize();
 }
 
+Cam.HttpClient = _dereq_('./http-client');
 
 // provide an isolated scope
 (function(proto){
@@ -587,8 +590,6 @@ function Cam(config) {
    * @name  initialize
    */
   proto.initialize = function() {
-    var name;
-
     /* jshint sub: true */
     _resources['pile']                = _dereq_('./resources/pile');
     _resources['process-definition']  = _dereq_('./resources/process-definition');
@@ -597,13 +598,36 @@ function Cam(config) {
     _resources['session']             = _dereq_('./resources/session');
     _resources['variable']            = _dereq_('./resources/variable');
     /* jshint sub: false */
+    var self = this;
 
-    var httpClient = new this.HttpClient({
-      baseUrl: this.baseUrl
-    });
+    function forwardError(err) {
+      self.trigger('error', err);
+    }
 
+    // configure the client for each resources separately,
+    var name, conf, resConf, c;
     for (name in _resources) {
-      _resources[name].http = httpClient;
+
+      conf = {
+        name:     name,
+        // use the SDK config for some default values
+        mock:     this.config.mock,
+        baseUrl:  this.baseUrl,
+        headers:  {
+          // we might want to set headers or
+        }
+      };
+      resConf = this.config.resources[name] || {};
+
+      for (c in resConf) {
+        conf[c] = resConf[c];
+      }
+
+      // instanciate a HTTP client for the resource
+      _resources[name].http = new this.HttpClient(conf);
+
+      // forward request errors
+      _resources[name].http.on('error', forwardError);
     }
   };
 
@@ -743,7 +767,7 @@ ProcessDefinition.path = 'process-definition';
  * });
  */
 ProcessDefinition.list = function(params, done) {
-  return this.getList(params, done);
+  GenericResource.list.apply(this, arguments);
 };
 
 
@@ -904,7 +928,7 @@ ProcessInstance.create = function(params, done) {
  * @param  {requestCallback} [done] [description]
  */
 ProcessInstance.list = function(params, done) {
-  return this.getList(params, done);
+  return this.list(params, done);
 };
 
 
@@ -1034,7 +1058,7 @@ Task.path = 'task';
  * @param {Function} done   ...
  */
 Task.list = function(params, done) {
-  return this.getList(params, done);
+  return GenericResource.list.apply(this, arguments);
 };
 
 

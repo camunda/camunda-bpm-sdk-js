@@ -39,25 +39,24 @@ module.exports = function(grunt) {
     var tasks = [
       'jshint',
       'clean',
-      'jsdoc',
       'copy:assets',
-      'browserify',
-      'uglify'
+      'browserify'
     ];
+
+    if (target === 'prod') {
+      tasks = tasks.concat([
+        'jsdoc',
+        'uglify'
+      ]);
+    }
 
     grunt.task.run(tasks);
   });
 
-  grunt.registerTask('auto-build', function(target) {
-    target = target || 'prod';
-
-    var tasks = [
-      'build',
-      'watch'
-    ];
-
-    grunt.task.run(tasks);
-  });
+  grunt.registerTask('auto-build', [
+    'build:dev',
+    'watch'
+  ]);
 
   grunt.registerTask('default', ['build']);
 };
