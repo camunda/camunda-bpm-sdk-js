@@ -1,6 +1,6 @@
 {
   "name": "camunda-bpm-sdk-js",
-  "version": "0.0.1",
+  "version": "7.2.0-SNAPSHOT",
   "description": "Javascript client library for camunda BPM",
   "scripts": {
     "test": "node_modules/.bin/jasmine_node"
