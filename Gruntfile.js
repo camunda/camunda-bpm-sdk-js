@@ -16,7 +16,7 @@ module.exports = function(grunt) {
 
     browserify:       require('./grunt/config/browserify')(config),
 
-    clean:            ['doc', 'dist', '.tmp'],
+    clean:            ['documentation', 'dist', '.tmp'],
 
     copy:             require('./grunt/config/copy')(config),
 

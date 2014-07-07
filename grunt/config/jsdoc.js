@@ -10,7 +10,7 @@ module.exports = function() {
     },
     scripts: {
       options: {
-        destination: 'doc'
+        destination: 'documentation'
       },
       src: [
         'README.md',
