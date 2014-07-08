@@ -33,8 +33,9 @@ module.exports = function(grunt) {
     uglify:           require('./grunt/config/uglify')(config),
   });
 
-  grunt.registerTask('build', function(target) {
-    target = target || 'prod';
+  grunt.registerTask('build', function(mode) {
+    mode = mode || 'prod';
+    grunt.log.writeln('Build JS SDK in "'+ mode +'" mode');
 
     var tasks = [
       'jshint',
@@ -43,7 +44,7 @@ module.exports = function(grunt) {
       'browserify'
     ];
 
-    if (target === 'prod') {
+    if (mode === 'prod') {
       tasks = tasks.concat([
         'jsdoc',
         'uglify'

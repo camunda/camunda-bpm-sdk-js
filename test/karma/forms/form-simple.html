@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>Simple embedded form</title>
+  </head>
+  <body>
+    <form cam-form>
+      <input cam-variable-name="stringVar"
+             type="text">
+
+      <textarea cam-variable-name="integerVar"
+                cols="30"
+                rows="10"></textarea>
+
+      <select cam-variable-name="singleChoiceSelect">
+        <option> - None - </option>
+        <option value="val1">Value 1</option>
+        <option value="val2">Value 2</option>
+      </select>
+
+      <select cam-variable-name="multipleChoicesSelect"
+              multiple>
+        <option value="val1">Value 1</option>
+        <option value="val2">Value 2</option>
+      </select>
+
+      <div>
+        <button type="button">Cancel</button>
+
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+  </body>
+</html>

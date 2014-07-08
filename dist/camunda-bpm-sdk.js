@@ -1,6 +1,80 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CamSDK=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
+var Events = _dereq_('./events');
+
+
+function noop() {}
+
+/**
+ * Abstract class for classes
+ * @exports CamSDK.BaseClass
+ * @constructor
+ * @mixes CamSDK.Events
+ */
+function BaseClass() {
+  this.initialize();
+}
+
+
+
+
+/**
+ * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
+ * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
+ * @param  {?Object.<String, *>} protoProps   ...
+ * @param  {Object.<String, *>} [staticProps] ...
+ * @return {CamSDK.BaseClass}           ...
+ */
+BaseClass.extend = function(protoProps, staticProps) {
+  protoProps = protoProps || {};
+  staticProps = staticProps || {};
+
+  var parent = this;
+  var child, Surrogate, s, i;
+
+  if (protoProps && Object.hasOwnProperty.call(parent, 'constructor')) {
+    child = protoProps.constructor;
+  }
+  else {
+    child = function(){ return parent.apply(this, arguments); };
+  }
+
+  for (s in parent) {
+    child[s] = parent[s];
+  }
+  for (s in staticProps) {
+    child[s] = staticProps[s];
+  }
+
+  Surrogate = function(){ this.constructor = child; };
+  Surrogate.prototype = parent.prototype;
+  child.prototype = new Surrogate();
+
+  for (i in protoProps) {
+    child.prototype[i] = protoProps[i];
+  }
+
+  return child;
+};
+
+
+/**
+ * Aimed to be overriden in order to initialize an instance.
+ * @type {Function}
+ */
+BaseClass.prototype.initialize = noop;
+
+
+Events.attach(BaseClass);
+
+
+
+module.exports = BaseClass;
+
+},{"./events":2}],2:[function(_dereq_,module,exports){
+'use strict';
+
 /**
  * Events handling utility who can be used on
  * any kind of object to provide `on`, `once`, `off`
@@ -152,11 +226,12 @@ Events.trigger = function() {
 
 module.exports = Events;
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 'use strict';
 
 var HttpClient = _dereq_('./http-client');
 var Events = _dereq_('./events');
+var BaseClass = _dereq_('./base-class');
 
 
 function noop() {}
@@ -164,6 +239,7 @@ function noop() {}
 /**
  * Abstract class for resources
  * @exports CamSDK.GenericResource
+ * @augments CamSDK.BaseClass
  * @constructor
  * @mixes CamSDK.Events
  *
@@ -204,51 +280,7 @@ function noop() {}
  *
  * });
  */
-function GenericResource() {
-  this.initialize();
-}
-
-
-
-
-/**
- * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
- * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
- * @param  {?Object.<String, *>} protoProps   ...
- * @param  {Object.<String, *>} [staticProps] ...
- * @return {CamSDK.GenericResource}           ...
- */
-GenericResource.extend = function(protoProps, staticProps) {
-  protoProps = protoProps || {};
-  staticProps = staticProps || {};
-
-  var parent = this;
-  var child, Surrogate, s, i;
-
-  if (protoProps && Object.hasOwnProperty.call(parent, 'constructor')) {
-    child = protoProps.constructor;
-  }
-  else {
-    child = function(){ return parent.apply(this, arguments); };
-  }
-
-  for (s in parent) {
-    child[s] = parent[s];
-  }
-  for (s in staticProps) {
-    child[s] = staticProps[s];
-  }
-
-  Surrogate = function(){ this.constructor = child; };
-  Surrogate.prototype = parent.prototype;
-  child.prototype = new Surrogate();
-
-  for (i in protoProps) {
-    child.prototype[i] = protoProps[i];
-  }
-
-  return child;
-};
+var GenericResource = BaseClass.extend();
 
 
 
@@ -256,6 +288,7 @@ GenericResource.extend = function(protoProps, staticProps) {
 /**
  * Path used by the resource to perform HTTP queries
  * @abstract
+ * @memberof CamSDK.GenericResource
  *
  * @type {String}
  */
@@ -269,6 +302,7 @@ GenericResource.path = '';
  * This method is aimed to be overriden by other implementations
  * of the GenericResource.
  * @abstract
+ * @memberof CamSDK.GenericResource.prototype
  */
 GenericResource.prototype.initialize = function() {
   // do something to initialize the instance
@@ -283,6 +317,7 @@ Events.attach(GenericResource);
 /**
  * Object hosting the methods for HTTP queries.
  * @abstract
+ * @memberof CamSDK.GenericResource
  *
  * @type {HttpClient}
  */
@@ -293,6 +328,7 @@ GenericResource.http = {};
 /**
  * Create an instance on the backend
  * @abstract
+ * @memberof CamSDK.GenericResource
  *
  * @param  {!Object|Object[]}  attributes        ...
  * @param  {requestCallback} [done]              ...
@@ -304,6 +340,7 @@ GenericResource.create = function(attributes, done) {};
 /**
  * Fetch a list of instances
  * @abstract
+ * @memberof CamSDK.GenericResource
  *
  * @fires CamSDK.GenericResource#error
  * @fires CamSDK.GenericResource#loaded
@@ -380,6 +417,7 @@ GenericResource.list = function(params, done) {
 /**
  * Update one or more instances
  * @abstract
+ * @memberof CamSDK.GenericResource
  *
  * @param  {!String|String[]}     ids           ...
  * @param  {Object.<String, *>}   attributes    ...
@@ -392,6 +430,7 @@ GenericResource.update = function(ids, attributes, done) {};
 /**
  * Delete one or more instances
  * @abstract
+ * @memberof CamSDK.GenericResource
  *
  * @param  {!String|String[]}  ids   ...
  * @param  {requestCallback} [done]   ...
@@ -403,6 +442,7 @@ GenericResource.delete = function(ids, done) {};
 /**
  * Update one or more instances.
  * @abstract
+ * @memberof CamSDK.GenericResource.prototype
  *
  * @param  {Object}   attributes    ...
  * @param  {requestCallback} [done]  ...
@@ -414,6 +454,7 @@ GenericResource.prototype.update = function(attributes, done) {};
 /**
  * Delete one or more instances
  * @abstract
+ * @memberof CamSDK.GenericResource.prototype
  *
  * @param  {requestCallback} [done] ...
  */
@@ -423,7 +464,7 @@ GenericResource.prototype.delete = function(done) {};
 
 module.exports = GenericResource;
 
-},{"./events":1,"./http-client":3}],3:[function(_dereq_,module,exports){
+},{"./base-class":1,"./events":2,"./http-client":4}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
@@ -523,7 +564,7 @@ HttpClient.prototype.del = function(data, options) {
 
 module.exports = HttpClient;
 
-},{"./events":1,"superagent":11}],4:[function(_dereq_,module,exports){
+},{"./events":2,"superagent":12}],5:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -667,7 +708,7 @@ module.exports = Cam;
  * @callback noopCallback
  */
 
-},{"./http-client":3,"./resources/pile":5,"./resources/process-definition":6,"./resources/process-instance":7,"./resources/session":8,"./resources/task":9,"./resources/variable":10}],5:[function(_dereq_,module,exports){
+},{"./http-client":4,"./resources/pile":6,"./resources/process-definition":7,"./resources/process-instance":8,"./resources/session":9,"./resources/task":10,"./resources/variable":11}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -693,7 +734,7 @@ Pile.path = 'pile';
 module.exports = Pile;
 
 
-},{"./../generic-resource":2}],6:[function(_dereq_,module,exports){
+},{"./../generic-resource":3}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -768,6 +809,41 @@ ProcessDefinition.path = 'process-definition';
  */
 ProcessDefinition.list = function(params, done) {
   GenericResource.list.apply(this, arguments);
+  // GenericResource.list.call(this, params, function() {
+  //   var e = new Error();
+  //   console.info('ProcessDefinition.list', e.stack);
+  //   done.apply(this, arguments);
+  // });
+};
+
+
+
+/**
+ * Fetch the variables of a process definition
+ * @param  {Object.<String, *>} data
+ * @param  {String}             [data.id]     of the process
+ * @param  {String}             [data.key]    of the process
+ * @param  {Array}              [data.names]  of variables to be fetched
+ * @param  {Function}           [done]
+ */
+ProcessDefinition.formVariables = function(data, done) {
+  var pointer = '';
+  if (data.key) {
+    pointer = 'key/'+ data.key;
+  }
+  else if (data.id) {
+    pointer = data.id;
+  }
+  else {
+    return done(new Error('Process definition task variables needs either a key or an id.'));
+  }
+
+  return this.http.get(this.path +'/'+ pointer +'/form-variables', {
+    data: {
+      variableNames: (data.names || []).join(',')
+    },
+    done: done || function() {}
+  });
 };
 
 
@@ -881,7 +957,7 @@ ProcessDefinition.prototype.start = function(done) {
 module.exports = ProcessDefinition;
 
 
-},{"./../generic-resource":2}],7:[function(_dereq_,module,exports){
+},{"./../generic-resource":3}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -935,7 +1011,7 @@ ProcessInstance.list = function(params, done) {
 module.exports = ProcessInstance;
 
 
-},{"./../generic-resource":2}],8:[function(_dereq_,module,exports){
+},{"./../generic-resource":3}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -961,7 +1037,7 @@ Session.path = '';
 
 module.exports = Session;
 
-},{"./../generic-resource":2}],9:[function(_dereq_,module,exports){
+},{"./../generic-resource":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1116,7 +1192,7 @@ Task.prototype.complete = function(done) {};
 module.exports = Task;
 
 
-},{"./../generic-resource":2}],10:[function(_dereq_,module,exports){
+},{"./../generic-resource":3}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1142,7 +1218,7 @@ Variable.path = 'variable-instance';
 module.exports = Variable;
 
 
-},{"./../generic-resource":2}],11:[function(_dereq_,module,exports){
+},{"./../generic-resource":3}],12:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -2193,7 +2269,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":12,"reduce":13}],12:[function(_dereq_,module,exports){
+},{"emitter":13,"reduce":14}],13:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2359,7 +2435,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -2384,6 +2460,6 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}]},{},[4])
-(4)
+},{}]},{},[5])
+(5)
 });

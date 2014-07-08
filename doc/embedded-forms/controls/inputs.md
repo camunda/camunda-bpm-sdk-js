@@ -4,40 +4,81 @@
 
 ### Single Line Text Input
 
+#### Binding to a Process Variable
+
+A text input can be bound to a process variable using the `cam-variable-name` directive:
+
+```html
+<input type="text" cam-variable-name="customerId" />
+```
+
+In the example above, the text input field is bound to the variable named `customerId`.
+
+#### Specifying the Type of the Variable
+
+Optionally, the type of the process variable can be specified using the `cam-variable-type`:
+
+
+```html
+<input type="text" cam-variable-name="customerId" cam-variable-type="string" />
+```
+
+The default type of a text input field is `string`.
+
 #### Legacy Syntax:
 
 ```html
-<input form-field type="[type]" name="[variableName]" />
+<input form-field type="text" name="[variableName]" />
 ```
 
-The following variable types are supported on input fields: `boolean`, `string`, `number` and 
-`date`. The mapping between variable types and rendered input is as follows:
+Parameter | Explanation
+--------- | -----------
+variableName | The name of the process variable 
 
-<table class="table table-bordered" style="max-width: 300px">
-  <thead>
-    <tr>
-      <th>Variable Type</th><th>Input Type</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>boolean</td><td>checkbox</td>
-    </tr>
-    <tr>
-      <td>string</td><td>text</td>
-    </tr>
-    <tr>
-      <td>number</td><td>number</td>
-    </tr>
-    <tr>
-      <td>date</td><td>datetime</td>
-    </tr>
-  </tbody>
-</table>
+### Multi Line Textarea
 
-Textarea
+#### Legacy Syntax
 
-### Number Input
+Textareas are HTML `<textarea>` elements of the form
 
-### Date Input
+```html
+<textarea form-field name="[variableName]"></textarea>
+```
+
+*Note:* currently the textarea only supports string variables.
+
+Parameter | Explanation
+--------- | -----------
+variableName | The name of the process variable 
+
+This is an example of the textarea:
+
+```html
+<textarea form-field name="selectedName"></textarea>
+```
+
+## Number Input
+
+#### Legacy Syntax:
+
+```html
+<input form-field type="number" name="[variableName]" />
+```
+
+Parameter | Explanation
+--------- | -----------
+variableName | The name of the process variable
+
+
+## Date Input
+
+#### Legacy Syntax:
+
+```html
+<input form-field type="date" name="[variableName]" />
+```
+
+Parameter | Explanation
+--------- | -----------
+variableName | The name of the process variable
 

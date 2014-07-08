@@ -13,7 +13,7 @@ module.exports = function() {
     test: {
       files: {
         src: [
-          'test/**/*.js'
+          'test/**/*Spec.js'
         ]
       }
     }

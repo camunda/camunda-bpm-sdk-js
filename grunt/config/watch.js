@@ -16,15 +16,15 @@ module.exports = function(config) {
       ]
     },
 
-    jasmine_node: {
-      files: [
-        'lib/**/*.js',
-        'test/jasmine_node/**/*.js'
-      ],
-      tasks: [
-        'jasmine_node'
-      ]
-    },
+    // jasmine_node: {
+    //   files: [
+    //     'lib/**/*.js',
+    //     'test/jasmine_node/**/*.js'
+    //   ],
+    //   tasks: [
+    //     'jasmine_node'
+    //   ]
+    // },
 
     karma: {
       files: [
