@@ -9,7 +9,11 @@ describe('The form', function() {
     runs(function() {
       jQuery.ajax('/base/test/karma/forms/form-simple.html', {
         success: function(data) {
-          $simpleFormDoc = jQuery('<div>'+ data +'</div>');
+          $simpleFormDoc = jQuery('<div id="test-form">'+ data +'</div>');
+          // the following lines allow to see the form in the browser
+          var _$top = $(top.document);
+          _$top.find('#test-form').remove();
+          _$top.find('#browsers').after($simpleFormDoc);
         },
         error: function() {
           console.info('errorThrown', arguments);
@@ -93,7 +97,7 @@ describe('The form', function() {
     }, 2000);
 
     runs(function() {
-      var $el = $simpleFormDoc.find('input[type=text]');
+      var $el = $simpleFormDoc.find('input[type="text"]');
 
       expect($el.length).toBe(1);
 
@@ -124,7 +128,7 @@ describe('The form', function() {
     }, 2000);
 
     runs(function() {
-      var $el = $simpleFormDoc.find('input[type=text]');
+      var $el = $simpleFormDoc.find('input[type="text"]');
 
       expect($el.length).toBe(1);
 
@@ -156,6 +160,76 @@ describe('The form', function() {
       expect(stored.stringVar.type).toBe('string');
 
       expect(stored.stringVar.value).toBe('updated');
+    });
+  });
+
+
+  describe('choices field', function() {
+    var initialized;
+    it('prepares the tests', function() {
+      runs(function() {
+        initialized = !!camForm;
+        camForm = camForm || new CamFormSDK({
+          service: camNet,
+          processDefinitionId: procDef.id,
+          formElement: $simpleFormDoc.find('form[cam-form]'),
+          initialized: function() {
+            initialized = true;
+          }
+        });
+      });
+
+      waitsFor('form to be initialized', function() {
+        return initialized && !!$simpleFormDoc;
+      }, 2000);
+    });
+
+
+    describe('single choice', function() {
+      // var $radios;
+      var $select;
+      beforeEach(function() {
+        // $radios = $simpleFormDoc.find('input[type="radio"]');
+        $select = $simpleFormDoc.find('select[cam-variable-name]:not([multiple])');
+      });
+
+
+      // xit('can be `input[type="radio"]`', function() {});
+
+
+      it('can be `select`', function() {
+        expect($select.length).toBe(1);
+
+        expect(camForm.formFieldHandlers instanceof Array).toBe(true);
+
+        expect(camForm.fields instanceof Array).toBe(true);
+      });
+    });
+
+
+    describe('multiple choices', function() {
+      // var $checkboxes;
+      var $select;
+      beforeEach(function() {
+        // $checkboxes = $simpleFormDoc.find('input[type="checkbox"]');
+        $select = $simpleFormDoc.find('select[cam-variable-name][multiple]');
+      });
+
+
+      // xit('can be `input[type="checkbox"]`', function() {});
+
+
+      it('can be `select[multiple]`', function() {
+        expect($select.length).toBe(1);
+
+        expect(camForm.formFieldHandlers instanceof Array).toBe(true);
+
+        expect(camForm.fields instanceof Array).toBe(true);
+
+        camForm.fields.forEach(function(field) {
+          console.info('camForm.fields', field.getValue());
+        });
+      });
     });
   });
 });
