@@ -1,5 +1,8 @@
 # Inputs
 
+__Important note__:
+This document is a draft and some of the features described are _not yet implemented_.
+
 ## Text Input
 
 ### Single Line Text Input

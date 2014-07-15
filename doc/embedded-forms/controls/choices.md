@@ -4,17 +4,6 @@
 
 boolean, enum values, ...
 
-### Attributes
-
-The following attributes are used with select tags (attributes marked with an "*" are required):
-
-* __cam-variable-name__: *
-  The name of the variable, can not be empty.
-
-* __cam-choices__:
-  The name of the variable having holding the choices, can not be empty.
-  If the select tag has `option` tags as children, the new `option` tags will be append.
-
 ### Example: minimal
 
 The following snippet illustrate the minimalistic way to render a dropdown selection with choices

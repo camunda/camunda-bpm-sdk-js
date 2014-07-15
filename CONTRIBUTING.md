@@ -2,7 +2,7 @@
 
 ## Writing Docs
 
-All docs are written in Markdown and are located in the `docs/` folder.
+All docs are written in Markdown and are located in the `doc/` folder.
 
 ### Markdown editing guidelines:
 
