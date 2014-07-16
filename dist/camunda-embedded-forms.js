@@ -232,10 +232,14 @@ module.exports = Events;
 var $ = _dereq_('./dom-lib'),
     VariableManager = _dereq_('./variable-manager'),
     // BaseClass = require('./../base-class'),
-    InputFieldHandler = _dereq_('./controls/input-field-handler');
+    InputFieldHandler = _dereq_('./controls/input-field-handler'),
+    ChoicesFieldHandler = _dereq_('./controls/choices-field-handler');
 
-function CamundaForm(formElement, options) {
-  options = options || {};
+function CamundaForm(options) {
+
+  if(!options) {
+    throw new Error("CamundaForm need to be initialized with options.");
+  }
 
   if (options.service) {
     this.service = options.service;
@@ -245,22 +249,36 @@ function CamundaForm(formElement, options) {
   }
 
   if (!options.taskId && !options.processDefinitionId && !options.processDefinitionKey) {
-    throw new Error('Dude!? how should I deal with that???');
+    throw new Error("Cannot initialize Taskform: either 'taskId' or 'processDefinitionId' or 'processDefinitionKey' must be provided");
+  }
+  this.taskId = options.taskId;
+  this.processDefinitionId = options.processDefinitionId;
+  this.processDefinitionKey = options.processDefinitionKey;
+
+  this.formElement = options.formElement;
+  this.containerElement = options.containerElement;
+  this.formUrl = options.formUrl;
+
+  if(!this.formElement && !this.containerElement) {
+    throw new Error("CamundaForm needs to be initilized with either 'formElement' or 'containerElement'");
   }
 
-  this.formElement = formElement;
+  if(!this.formElement && !this.formUrl) {
+    throw new Error("Camunda form needs to be intialized with either 'formElement' or 'formUrl'");
+  }
 
   this.variableManager = new VariableManager({
     service: this.service
   });
 
   this.formFieldHandlers = options.formFieldHandlers || [
-    InputFieldHandler
+    InputFieldHandler,
+    ChoicesFieldHandler
   ];
 
   this.fields = [];
 
-  this.initialize();
+  this.initialize(options.initialized);
 }
 
 CamundaForm.prototype.initializeHandler = function(FieldHandler) {
@@ -271,28 +289,78 @@ CamundaForm.prototype.initializeHandler = function(FieldHandler) {
   });
 };
 
-CamundaForm.prototype.initialize = function() {
+CamundaForm.prototype.initialize = function(done) {
+  done = done || function() {};
+  var self = this;
+
+  // check whether form needs to be loaded first
+  if(this.formUrl) {
+    this.service.http.load(this.formUrl, {
+      done: function(err, result) {
+        if(err) {
+          return done(err);
+        }
+
+        self.renderForm(result);
+
+        self.initializeForm(done);
+
+      }
+    });
+  } else {
+    this.initializeForm(done);
+  }
+};
+
+CamundaForm.prototype.renderForm = function(formHtmlSource) {
+
+  // apppend the form html to the container element,
+  // we also wrap the formHtmlSource to limit the risks of breaking
+  // the structure of the document
+  $(this.containerElement).html('').append('<div class="injected-form-wrapper">'+formHtmlSource+'</div>');
+
+  // extract and validate form element
+  this.formElement = $("form[cam-form]", this.containerElement);
+  if(this.formElement.length !== 1) {
+    throw new Error("Form must provide exaclty one element <form cam-form ..>");
+  }
+
+};
+
+CamundaForm.prototype.initializeForm = function(done) {
+  var self = this;
   for(var FieldHandler in this.formFieldHandlers) {
     this.initializeHandler(this.formFieldHandlers[FieldHandler]);
   }
 
-  var vars = this.variableManager.variables;
   this.fetchVariables(function(err, result) {
     if (err) {
       throw err;
     }
 
+    // merge the variables
+    self.mergeVariables(result);
 
-    for (var v in result) {
-      if (vars[v]) {
-        for (var p in result[v]) {
-          vars[v][p] = vars[v][p] || result[v][p];
-        }
-      }
-      else {
-        vars[v] = result[v];
-      }
+    // apply the variables to the form fields
+    self.applyVariables();
+
+    // invoke callback
+    done();
+  });
+};
+
+CamundaForm.prototype.submit = function(callback) {
+
+  // get values from form fields
+  this.retrieveVariables();
+
+  // submit the form variables
+  this.submitVariables(function(err, result) {
+    if(err) {
+      return callback(err);
     }
+
+    callback(null, result);
   });
 };
 
@@ -314,12 +382,76 @@ CamundaForm.prototype.fetchVariables = function(done) {
   }
 };
 
+CamundaForm.prototype.submitVariables = function(done) {
+  done = done || function() {};
+
+  var vars = this.variableManager.variables;
+
+  var variableData = {};
+  for(var v in vars) {
+    // only submit dirty variables
+    if(!!vars[v].isDirty) {
+      variableData[v] = {
+        value: vars[v].value,
+        type: vars[v].type
+      };
+    }
+  }
+
+  var data = { variables: variableData };
+
+  // pass either the taskId, processDefinitionId or processDefinitionKey
+  if (this.taskId) {
+    data.id = this.taskId;
+    this.service.resource('task').submitForm(data, done);
+  }
+  else {
+    data.id = this.processDefinitionId;
+    data.key = this.processDefinitionKey;
+    this.service.resource('process-definition').submitForm(data, done);
+  }
+
+
+};
+
+CamundaForm.prototype.mergeVariables = function(variables) {
+
+  var vars = this.variableManager.variables;
+
+  for (var v in variables) {
+    if (vars[v]) {
+      for (var p in variables[v]) {
+        vars[v][p] = vars[v][p] || variables[v][p];
+      }
+    }
+    else {
+      vars[v] = variables[v];
+    }
+  }
+};
+
+CamundaForm.prototype.applyVariables = function() {
+
+  for (var i in this.fields) {
+    this.fields[i].applyValue();
+  }
+
+};
+
+CamundaForm.prototype.retrieveVariables = function() {
+
+  for (var i in this.fields) {
+    this.fields[i].getValue();
+  }
+
+};
+
 CamundaForm.$ = $;
 
 module.exports = CamundaForm;
 
 
-},{"./controls/input-field-handler":6,"./dom-lib":7,"./variable-manager":9}],4:[function(_dereq_,module,exports){
+},{"./controls/choices-field-handler":6,"./controls/input-field-handler":7,"./dom-lib":8,"./variable-manager":10}],4:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -356,7 +488,77 @@ AbstractFormField.extend = BaseClass.extend;
 module.exports = AbstractFormField;
 
 
-},{"../../base-class":1,"./../dom-lib":7}],6:[function(_dereq_,module,exports){
+},{"../../base-class":1,"./../dom-lib":8}],6:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('./../constants'),
+    AbstractFormField = _dereq_('./abstract-form-field'),
+    $ = _dereq_('./../dom-lib');
+
+var ChoicesFieldHandler = AbstractFormField.extend({
+
+  initialize: function() {
+    // read variable definitions from markup
+    var variableName = this.variableName = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_NAME);
+    var variableType = this.variableType = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_TYPE);
+
+    // crate variable
+    this.variableManager.createVariable({
+      name: variableName,
+      type: variableType
+    });
+
+    // remember the original value found in the element for later checks
+    this.originalValue = this.element.val() || '';
+
+    this.previousValue = this.originalValue;
+
+    // remember variable name
+    this.variableName = variableName;
+
+    this.getValue();
+  },
+
+  applyValue: function() {
+    this.previousValue = this.element.val() || '';
+    var variableValue = this.variableManager.variableValue(this.variableName);
+    if (variableValue !== this.previousValue) {
+      // write value to html control
+      this.element.val(variableValue);
+    }
+  },
+
+  getValue: function() {
+    // read value from html control
+    var value;
+    var multiple = this.element.prop('multiple');
+
+    if (multiple) {
+      value = [];
+      this.element.find('option:selected').each(function() {
+        value.push($(this).val());
+      });
+    }
+    else {
+      value = this.element.val();
+    }
+
+    // write value to variable
+    this.variableManager.variableValue(this.variableName, value);
+
+    return value;
+  }
+
+}, {
+
+  selector: 'select['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'
+
+});
+
+module.exports = ChoicesFieldHandler;
+
+
+},{"./../constants":4,"./../dom-lib":8,"./abstract-form-field":5}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./../constants'),
@@ -376,32 +578,46 @@ var InputFieldHandler = AbstractFormField.extend({
       type: variableType
     });
 
+    // remember the original value found in the element for later checks
+    this.originalValue = this.element.val() || '';
+
+    this.previousValue = this.originalValue;
+
     // remember variable name
     this.variableName = variableName;
+
+    this.getValue();
   },
 
   applyValue: function() {
-    // write value to html control
-    this.element.val(this.variableManager.variableValue(this.variableName));
+    this.previousValue = this.element.val() || '';
+    var variableValue = this.variableManager.variableValue(this.variableName);
+    if (variableValue !== this.previousValue) {
+      // write value to html control
+      this.element.val(variableValue);
+    }
   },
 
   getValue: function() {
     // read value from html control
-    var value = this.element.val();
+    var value = this.element.val() || '';
     // write value to variable
     this.variableManager.variableValue(this.variableName, value);
+
+    return value;
   }
 
 }, {
 
-  selector: 'input['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +'],textarea['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'
+  selector: 'input['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'+
+           ',textarea['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'
 
 });
 
 module.exports = InputFieldHandler;
 
 
-},{"./../constants":4,"./../dom-lib":7,"./abstract-form-field":5}],7:[function(_dereq_,module,exports){
+},{"./../constants":4,"./../dom-lib":8,"./abstract-form-field":5}],8:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -416,12 +632,12 @@ module.exports = InputFieldHandler;
 }));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 
 
 module.exports = _dereq_('./camunda-form');
 
-},{"./camunda-form":3}],9:[function(_dereq_,module,exports){
+},{"./camunda-form":3}],10:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -434,10 +650,7 @@ module.exports = _dereq_('./camunda-form');
  *
  *   name: the name of the variable
  *
- *   type: the type of the variable. The type is a "backend type" and may be either a java primitive:
- *
- *
- * Variable Lifecycle
+ *   type: the type of the variable. The type is a "backend type"
  *
  *
  */
@@ -472,23 +685,26 @@ VariableManager.prototype.variableValue = function(variableName, value) {
 
   var variable = this.variable(variableName);
 
-  if(!!value) {
+  if(arguments.length === 2) {
+    variable.isDirty = true;
+    if(variable.value === value) {
+      variable.isDirty = false;
+    }
     variable.value = value;
   }
 
-  return variable.value;
+  return variable.value || '';
 };
 
 VariableManager.prototype.variableNames = function() {
-  var varNames = [];
-  for(var k in this.variables) varNames.push(k);
-  return varNames;
+  // since we support IE 8+ (http://kangax.github.io/compat-table/es5/)
+  return Object.keys(this.variables);
 };
 
 
 module.exports = VariableManager;
 
 
-},{}]},{},[8])
-(8)
+},{}]},{},[9])
+(9)
 });

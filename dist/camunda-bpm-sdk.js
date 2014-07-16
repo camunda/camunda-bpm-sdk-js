@@ -519,10 +519,17 @@ HttpClient.prototype.post = function(path, options) {
  * Performs a GET HTTP request
  */
 HttpClient.prototype.get = function(path, options) {
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
+  return this.load(url, options);
+};
+
+/**
+ * Loads a resource using http GET
+ */
+HttpClient.prototype.load = function(url, options) {
   options = options || {};
   var done = options.done || noop;
   var self = this;
-  var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
     .get(url)
     .query(options.data || {});
@@ -534,11 +541,11 @@ HttpClient.prototype.get = function(path, options) {
       return done(err);
     }
 
-    // superagent puts the data into a property called body
-    done(null, response.body ? response.body : response);
+    // superagent puts the parsed data into a property named "body"
+    // and the "raw" content in property named "text"
+    done(null, response.body ? response.body : (response.text ? response.text : response));
   });
 };
-
 
 
 /**
@@ -644,6 +651,9 @@ Cam.HttpClient = _dereq_('./http-client');
     function forwardError(err) {
       self.trigger('error', err);
     }
+
+    // create global HttpClient instance
+    this.http = new this.HttpClient({baseUrl: this.baseUrl});
 
     // configure the client for each resources separately,
     var name, conf, resConf, c;
@@ -847,6 +857,36 @@ ProcessDefinition.formVariables = function(data, done) {
 };
 
 
+
+/**
+ * Fetch the variables of a process definition
+ * @param  {Object.<String, *>} data
+ * @param  {String}             [data.id]     of the process
+ * @param  {String}             [data.key]    of the process
+ * @param  {Array}              [data.names]  of variables to be fetched
+ * @param  {Function}           [done]
+ */
+ProcessDefinition.submitForm = function(data, done) {
+  var pointer = '';
+  if (data.key) {
+    pointer = 'key/'+ data.key;
+  }
+  else if (data.id) {
+    pointer = data.id;
+  }
+  else {
+    return done(new Error('Process definition task variables needs either a key or an id.'));
+  }
+
+  return this.http.post(this.path +'/'+ pointer +'/submit-form', {
+    data: {
+      variables: data.variables
+    },
+    done: done || function() {}
+  });
+};
+
+
 /**
  * Suspends the process definition instance
  * @param  {Object.<String, *>} [params] ...
@@ -914,11 +954,17 @@ ProcessDefinition.prototype.xml = function(done) {
  * Retrieves the form of a process definition.
  * @param  {Function} [done]  ...
  */
-ProcessDefinition.prototype.form = function(done) {
-  return this.http.post(this.path, {
+ProcessDefinition.startForm = function(data, done) {
+  var path = this.path +'/'+ (data.key ? 'key/'+ data.key : data.id) +'/startForm';
+  return this.http.get(path, {
     done: done || noop
   });
 };
+
+// ProcessDefinition.prototype.startForm = function(data, done) {
+//   data.id = this.id;
+//   return ProcessDefinition.startForm(data, done);
+// };
 
 /**
  * Submits the form of a process definition.
