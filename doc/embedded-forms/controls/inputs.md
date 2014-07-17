@@ -12,7 +12,8 @@ This document is a draft and some of the features described are _not yet impleme
 A text input can be bound to a process variable using the `cam-variable-name` directive:
 
 ```html
-<input type="text" cam-variable-name="customerId" />
+<input type="text"
+       cam-variable-name="customerId" />
 ```
 
 In the example above, the text input field is bound to the variable named `customerId`.
@@ -23,7 +24,9 @@ Optionally, the type of the process variable can be specified using the `cam-var
 
 
 ```html
-<input type="text" cam-variable-name="customerId" cam-variable-type="string" />
+<input type="text"
+       cam-variable-name="customerId"
+       cam-variable-type="string" />
 ```
 
 The default type of a text input field is `string`.

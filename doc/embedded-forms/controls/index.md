@@ -13,7 +13,12 @@ Most of the implementation can be done by adding the following special attribute
 
 _Requires a value_ corresponding to the variable name.
 
-This attribute is used on every controls.
+This attribute __is used on every__ controls.
+
+## cam-variable-type
+
+Is _optional_ but _requires a value_ if used.
+
 
 ## cam-choices
 
