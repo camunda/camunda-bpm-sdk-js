@@ -11,7 +11,7 @@ module.exports = function(config) {
       },
       files: {
         'dist/camunda-bpm-sdk-mock.js': [
-          './lib/http-client-mock.js'
+          './lib/api-client/http-client-mock.js'
         ]
       }
     },
@@ -23,7 +23,9 @@ module.exports = function(config) {
         }
       },
       files: {
-        'dist/camunda-bpm-sdk.js': ['./lib/index.js']
+        'dist/camunda-bpm-sdk.js': [
+          './lib/api-client/index.js'
+        ]
       }
     },
 
@@ -34,7 +36,9 @@ module.exports = function(config) {
         }
       },
       files: {
-        'dist/camunda-embedded-forms.js': ['./lib/forms/index.js']
+        'dist/camunda-embedded-forms.js': [
+          './lib/forms/index.js'
+        ]
       }
     }
   };
