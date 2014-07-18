@@ -1,237 +1,9 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CamSDK=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var Events = _dereq_('./events');
-
-
-function noop() {}
-
-/**
- * Abstract class for classes
- * @exports CamSDK.BaseClass
- * @constructor
- * @mixes CamSDK.Events
- */
-function BaseClass() {
-  this.initialize();
-}
-
-
-
-
-/**
- * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
- * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
- * @param  {?Object.<String, *>} protoProps   ...
- * @param  {Object.<String, *>} [staticProps] ...
- * @return {CamSDK.BaseClass}           ...
- */
-BaseClass.extend = function(protoProps, staticProps) {
-  protoProps = protoProps || {};
-  staticProps = staticProps || {};
-
-  var parent = this;
-  var child, Surrogate, s, i;
-
-  if (protoProps && Object.hasOwnProperty.call(parent, 'constructor')) {
-    child = protoProps.constructor;
-  }
-  else {
-    child = function(){ return parent.apply(this, arguments); };
-  }
-
-  for (s in parent) {
-    child[s] = parent[s];
-  }
-  for (s in staticProps) {
-    child[s] = staticProps[s];
-  }
-
-  Surrogate = function(){ this.constructor = child; };
-  Surrogate.prototype = parent.prototype;
-  child.prototype = new Surrogate();
-
-  for (i in protoProps) {
-    child.prototype[i] = protoProps[i];
-  }
-
-  return child;
-};
-
-
-/**
- * Aimed to be overriden in order to initialize an instance.
- * @type {Function}
- */
-BaseClass.prototype.initialize = noop;
-
-
-Events.attach(BaseClass);
-
-
-
-module.exports = BaseClass;
-
-},{"./events":2}],2:[function(_dereq_,module,exports){
-'use strict';
-
-/**
- * Events handling utility who can be used on
- * any kind of object to provide `on`, `once`, `off`
- * and `trigger` functions.
- *
- * @exports CamSDK.Events
- * @mixin
- *
- * @example
- * var obj = {};
- * Events.attach(obj);
- *
- * obj.on('event:name', function() {});
- * obj.once('event:name', function() {});
- * obj.trigger('event:name', data, moreData, evenMoreData);
- */
-
-var Events = {};
-
-
-/**
- * Converts an object into array
- * @param  {*} obj  ...
- * @return {Array}  ...
- */
-function toArray(obj) {
-  var a, arr = [];
-  for (a in obj) {
-    arr.push(obj[a]);
-  }
-  return arr;
-}
-
-/**
- * Returns a function that will be executed
- * at most one time, no matter how often you call it.
- * @param  {Function} func ...
- * @return {Function}      ...
- */
-function once(func) {
-  var ran = false, memo;
-  return function() {
-    if (ran) return memo;
-    ran = true;
-    memo = func.apply(this, arguments);
-    func = null;
-    return memo;
-  };
-}
-
-
-/**
- * Ensure an object to have the needed _events property
- * @param  {*} obj        ...
- * @param  {String} name  ...
- */
-function ensureEvents(obj, name) {
-  obj._events = obj._events || {};
-  obj._events[name] = obj._events[name] || [];
-}
-
-
-/**
- * Add the relevant Events methods to an object
- * @param  {*} obj  ...
- */
-Events.attach = function(obj) {
-  obj.on      = this.on;
-  obj.once    = this.once;
-  obj.off     = this.off;
-  obj.trigger = this.trigger;
-  obj._events = {};
-};
-
-
-/**
- * Bind a callback to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} callback  ...
- */
-Events.on = function(eventName, callback) {
-  ensureEvents(this, eventName);
-
-  this._events[eventName].push(callback);
-
-  return this;
-};
-
-
-/**
- * Bind a callback who will only be called once to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} callback  ...
- */
-Events.once = function(eventName, callback) {
-  var self = this;
-  var cb = once(function() {
-    self.off(eventName, once);
-    callback.apply(this, arguments);
-  });
-  cb._callback = callback;
-  return this.on(eventName, cb);
-};
-
-
-/**
- * Unbind one or all callbacks originally bound to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} [callback]  ...
- */
-Events.off = function(eventName, callback) {
-  ensureEvents(this, eventName);
-
-  if (!callback) {
-    delete this._events[eventName];
-    return this;
-  }
-
-  var e, ev, arr = [];
-  for (e in this._events[eventName]) {
-    if (this._events[eventName][e] !== callback) {
-      arr.push(this._events[eventName][e]);
-    }
-  }
-  this._events[eventName] = arr;
-
-  return this;
-};
-
-
-/**
- * Call the functions bound to `eventName`
- * @param  {String} eventName ...
- * @param {...*} [params]     ...
- */
-Events.trigger = function() {
-  var args = toArray(arguments);
-  var eventName = args.shift();
-  ensureEvents(this, eventName);
-
-  var e, ev;
-  for (e in this._events[eventName]) {
-    this._events[eventName][e](this, args);
-  }
-
-  return this;
-};
-
-
-module.exports = Events;
-
-},{}],3:[function(_dereq_,module,exports){
-'use strict';
-
 var HttpClient = _dereq_('./http-client');
-var Events = _dereq_('./events');
-var BaseClass = _dereq_('./base-class');
+var Events = _dereq_('./../events');
+var BaseClass = _dereq_('./../base-class');
 
 
 function noop() {}
@@ -464,11 +236,11 @@ GenericResource.prototype.delete = function(done) {};
 
 module.exports = GenericResource;
 
-},{"./base-class":1,"./events":2,"./http-client":4}],4:[function(_dereq_,module,exports){
+},{"./../base-class":10,"./../events":11,"./http-client":2}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
-var Events = _dereq_('./events');
+var Events = _dereq_('./../events');
 var noop = function() {};
 
 /**
@@ -519,10 +291,17 @@ HttpClient.prototype.post = function(path, options) {
  * Performs a GET HTTP request
  */
 HttpClient.prototype.get = function(path, options) {
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
+  return this.load(url, options);
+};
+
+/**
+ * Loads a resource using http GET
+ */
+HttpClient.prototype.load = function(url, options) {
   options = options || {};
   var done = options.done || noop;
   var self = this;
-  var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
     .get(url)
     .query(options.data || {});
@@ -534,11 +313,11 @@ HttpClient.prototype.get = function(path, options) {
       return done(err);
     }
 
-    // superagent puts the data into a property called body
-    done(null, response.body ? response.body : response);
+    // superagent puts the parsed data into a property named "body"
+    // and the "raw" content in property named "text"
+    done(null, response.body ? response.body : (response.text ? response.text : response));
   });
 };
-
 
 
 /**
@@ -564,7 +343,7 @@ HttpClient.prototype.del = function(data, options) {
 
 module.exports = HttpClient;
 
-},{"./events":2,"superagent":12}],5:[function(_dereq_,module,exports){
+},{"./../events":11,"superagent":12}],3:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -645,6 +424,9 @@ Cam.HttpClient = _dereq_('./http-client');
       self.trigger('error', err);
     }
 
+    // create global HttpClient instance
+    this.http = new this.HttpClient({baseUrl: this.baseUrl});
+
     // configure the client for each resources separately,
     var name, conf, resConf, c;
     for (name in _resources) {
@@ -708,7 +490,7 @@ module.exports = Cam;
  * @callback noopCallback
  */
 
-},{"./http-client":4,"./resources/pile":6,"./resources/process-definition":7,"./resources/process-instance":8,"./resources/session":9,"./resources/task":10,"./resources/variable":11}],6:[function(_dereq_,module,exports){
+},{"./http-client":2,"./resources/pile":4,"./resources/process-definition":5,"./resources/process-instance":6,"./resources/session":7,"./resources/task":8,"./resources/variable":9}],4:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -734,7 +516,7 @@ Pile.path = 'pile';
 module.exports = Pile;
 
 
-},{"./../generic-resource":3}],7:[function(_dereq_,module,exports){
+},{"./../generic-resource":1}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -847,6 +629,36 @@ ProcessDefinition.formVariables = function(data, done) {
 };
 
 
+
+/**
+ * Fetch the variables of a process definition
+ * @param  {Object.<String, *>} data
+ * @param  {String}             [data.id]     of the process
+ * @param  {String}             [data.key]    of the process
+ * @param  {Array}              [data.names]  of variables to be fetched
+ * @param  {Function}           [done]
+ */
+ProcessDefinition.submitForm = function(data, done) {
+  var pointer = '';
+  if (data.key) {
+    pointer = 'key/'+ data.key;
+  }
+  else if (data.id) {
+    pointer = data.id;
+  }
+  else {
+    return done(new Error('Process definition task variables needs either a key or an id.'));
+  }
+
+  return this.http.post(this.path +'/'+ pointer +'/submit-form', {
+    data: {
+      variables: data.variables
+    },
+    done: done || function() {}
+  });
+};
+
+
 /**
  * Suspends the process definition instance
  * @param  {Object.<String, *>} [params] ...
@@ -914,11 +726,17 @@ ProcessDefinition.prototype.xml = function(done) {
  * Retrieves the form of a process definition.
  * @param  {Function} [done]  ...
  */
-ProcessDefinition.prototype.form = function(done) {
-  return this.http.post(this.path, {
+ProcessDefinition.startForm = function(data, done) {
+  var path = this.path +'/'+ (data.key ? 'key/'+ data.key : data.id) +'/startForm';
+  return this.http.get(path, {
     done: done || noop
   });
 };
+
+// ProcessDefinition.prototype.startForm = function(data, done) {
+//   data.id = this.id;
+//   return ProcessDefinition.startForm(data, done);
+// };
 
 /**
  * Submits the form of a process definition.
@@ -957,7 +775,7 @@ ProcessDefinition.prototype.start = function(done) {
 module.exports = ProcessDefinition;
 
 
-},{"./../generic-resource":3}],8:[function(_dereq_,module,exports){
+},{"./../generic-resource":1}],6:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1011,7 +829,7 @@ ProcessInstance.list = function(params, done) {
 module.exports = ProcessInstance;
 
 
-},{"./../generic-resource":3}],9:[function(_dereq_,module,exports){
+},{"./../generic-resource":1}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1037,7 +855,7 @@ Session.path = '';
 
 module.exports = Session;
 
-},{"./../generic-resource":3}],10:[function(_dereq_,module,exports){
+},{"./../generic-resource":1}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1192,7 +1010,7 @@ Task.prototype.complete = function(done) {};
 module.exports = Task;
 
 
-},{"./../generic-resource":3}],11:[function(_dereq_,module,exports){
+},{"./../generic-resource":1}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var GenericResource = _dereq_("./../generic-resource");
@@ -1218,7 +1036,235 @@ Variable.path = 'variable-instance';
 module.exports = Variable;
 
 
-},{"./../generic-resource":3}],12:[function(_dereq_,module,exports){
+},{"./../generic-resource":1}],10:[function(_dereq_,module,exports){
+'use strict';
+
+var Events = _dereq_('./events');
+
+
+function noop() {}
+
+/**
+ * Abstract class for classes
+ * @exports CamSDK.BaseClass
+ * @constructor
+ * @mixes CamSDK.Events
+ */
+function BaseClass() {
+  this.initialize();
+}
+
+
+
+
+/**
+ * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
+ * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
+ * @param  {?Object.<String, *>} protoProps   ...
+ * @param  {Object.<String, *>} [staticProps] ...
+ * @return {CamSDK.BaseClass}           ...
+ */
+BaseClass.extend = function(protoProps, staticProps) {
+  protoProps = protoProps || {};
+  staticProps = staticProps || {};
+
+  var parent = this;
+  var child, Surrogate, s, i;
+
+  if (protoProps && Object.hasOwnProperty.call(parent, 'constructor')) {
+    child = protoProps.constructor;
+  }
+  else {
+    child = function(){ return parent.apply(this, arguments); };
+  }
+
+  for (s in parent) {
+    child[s] = parent[s];
+  }
+  for (s in staticProps) {
+    child[s] = staticProps[s];
+  }
+
+  Surrogate = function(){ this.constructor = child; };
+  Surrogate.prototype = parent.prototype;
+  child.prototype = new Surrogate();
+
+  for (i in protoProps) {
+    child.prototype[i] = protoProps[i];
+  }
+
+  return child;
+};
+
+
+/**
+ * Aimed to be overriden in order to initialize an instance.
+ * @type {Function}
+ */
+BaseClass.prototype.initialize = noop;
+
+
+Events.attach(BaseClass);
+
+
+
+module.exports = BaseClass;
+
+},{"./events":11}],11:[function(_dereq_,module,exports){
+'use strict';
+
+/**
+ * Events handling utility who can be used on
+ * any kind of object to provide `on`, `once`, `off`
+ * and `trigger` functions.
+ *
+ * @exports CamSDK.Events
+ * @mixin
+ *
+ * @example
+ * var obj = {};
+ * Events.attach(obj);
+ *
+ * obj.on('event:name', function() {});
+ * obj.once('event:name', function() {});
+ * obj.trigger('event:name', data, moreData, evenMoreData);
+ */
+
+var Events = {};
+
+
+/**
+ * Converts an object into array
+ * @param  {*} obj  ...
+ * @return {Array}  ...
+ */
+function toArray(obj) {
+  var a, arr = [];
+  for (a in obj) {
+    arr.push(obj[a]);
+  }
+  return arr;
+}
+
+/**
+ * Returns a function that will be executed
+ * at most one time, no matter how often you call it.
+ * @param  {Function} func ...
+ * @return {Function}      ...
+ */
+function once(func) {
+  var ran = false, memo;
+  return function() {
+    if (ran) return memo;
+    ran = true;
+    memo = func.apply(this, arguments);
+    func = null;
+    return memo;
+  };
+}
+
+
+/**
+ * Ensure an object to have the needed _events property
+ * @param  {*} obj        ...
+ * @param  {String} name  ...
+ */
+function ensureEvents(obj, name) {
+  obj._events = obj._events || {};
+  obj._events[name] = obj._events[name] || [];
+}
+
+
+/**
+ * Add the relevant Events methods to an object
+ * @param  {*} obj  ...
+ */
+Events.attach = function(obj) {
+  obj.on      = this.on;
+  obj.once    = this.once;
+  obj.off     = this.off;
+  obj.trigger = this.trigger;
+  obj._events = {};
+};
+
+
+/**
+ * Bind a callback to `eventName`
+ * @param  {String}   eventName ...
+ * @param  {Function} callback  ...
+ */
+Events.on = function(eventName, callback) {
+  ensureEvents(this, eventName);
+
+  this._events[eventName].push(callback);
+
+  return this;
+};
+
+
+/**
+ * Bind a callback who will only be called once to `eventName`
+ * @param  {String}   eventName ...
+ * @param  {Function} callback  ...
+ */
+Events.once = function(eventName, callback) {
+  var self = this;
+  var cb = once(function() {
+    self.off(eventName, once);
+    callback.apply(this, arguments);
+  });
+  cb._callback = callback;
+  return this.on(eventName, cb);
+};
+
+
+/**
+ * Unbind one or all callbacks originally bound to `eventName`
+ * @param  {String}   eventName ...
+ * @param  {Function} [callback]  ...
+ */
+Events.off = function(eventName, callback) {
+  ensureEvents(this, eventName);
+
+  if (!callback) {
+    delete this._events[eventName];
+    return this;
+  }
+
+  var e, ev, arr = [];
+  for (e in this._events[eventName]) {
+    if (this._events[eventName][e] !== callback) {
+      arr.push(this._events[eventName][e]);
+    }
+  }
+  this._events[eventName] = arr;
+
+  return this;
+};
+
+
+/**
+ * Call the functions bound to `eventName`
+ * @param  {String} eventName ...
+ * @param {...*} [params]     ...
+ */
+Events.trigger = function() {
+  var args = toArray(arguments);
+  var eventName = args.shift();
+  ensureEvents(this, eventName);
+
+  var e, ev;
+  for (e in this._events[eventName]) {
+    this._events[eventName][e](this, args);
+  }
+
+  return this;
+};
+
+
+module.exports = Events;
+
+},{}],12:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -2460,6 +2506,6 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}]},{},[5])
-(5)
+},{}]},{},[3])
+(3)
 });

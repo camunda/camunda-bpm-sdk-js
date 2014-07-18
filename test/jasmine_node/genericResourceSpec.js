@@ -1,18 +1,18 @@
 'use strict';
 
-describe('The GenericResource', function() {
-  var GenericResource, Extended1, Extended2, instance1, instance2;
+describe('The AbstractClientResource', function() {
+  var AbstractClientResource, Extended1, Extended2, instance1, instance2;
 
   it('does not blow when loading', function() {
     expect(function() {
-      GenericResource = require('./../../lib/generic-resource');
+      AbstractClientResource = require('./../../lib/abstract-client-resource');
     }).not.toThrow();
   });
 
 
   it('can be extend', function() {
     expect(function() {
-      Extended1 = GenericResource.extend({
+      Extended1 = AbstractClientResource.extend({
         instanceMethod: function(){},
         instanceProperty: true
       }, {
@@ -20,7 +20,7 @@ describe('The GenericResource', function() {
         staticProperty: true
       });
 
-      Extended2 = GenericResource.extend({
+      Extended2 = AbstractClientResource.extend({
         otherInstanceMethod: function(){},
         otherInstanceProperty: true
       }, {

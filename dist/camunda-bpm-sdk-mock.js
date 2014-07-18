@@ -1,6 +1,572 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CamSDKMocks=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
+var Events = _dereq_('./../events');
+
+
+/**
+ * HttpClient
+ * @exports CamSDK.HttpClientMock
+ * @augments {CamSDK.HttpClient}
+ * @class
+ * @classdesc A mocking implementation of CamSDK.HttpClient
+ */
+var HttpClient = function(config) {
+  config = config || {};
+
+  if (!config.baseUrl) {
+    throw new Error('HttpClientMock needs a `baseUrl` configuration property.');
+  }
+
+  Events.attach(this);
+
+  this.config = config;
+
+  this.mock = true;
+};
+
+
+
+
+
+
+/**
+ * Variable to store fixtures
+ * @type {Object}
+ * @property {Object.<uuid, Object>} processDefinition  Process definition mocks
+ * @property {Object.<uuid, Object>} processInstance    Process instance mocks
+ * @property {Object.<uuid, Object>} user               User mocks
+ * @property {Object.<uuid, Object>} variable           Variable mocks
+ */
+var _store = {};
+var fixturer = _dereq_('fixturer');
+var uuid = _dereq_('uuid');
+var _ = _dereq_('underscore');
+_.str = _dereq_('underscore.string');
+
+var i = 0, id;
+_store.processDefinition = {};
+for (; i < 80; i++) {
+  id = uuid();
+  _store.processDefinition[id] = {
+    id: id,
+    key: fixturer.randomString(fixturer.random(8, 16)),
+    // name: fixturer.thingName(),
+    name: fixturer.randomItem([
+      'Call Process '+ i,
+      'process '+ i,
+      'yada '+ i,
+      'foo Bar '+ i,
+      'Foo-Bar '+ i
+    ]),
+    resource: fixturer.randomString(fixturer.random(4, 8)),
+    diagram: fixturer.randomString(fixturer.random(4, 8)),
+    version: fixturer.random(),
+    deploymentId: uuid(),
+    suspended: !!fixturer.random(0, 1),
+    category: fixturer.randomItem([
+      'category1',
+      'category2',
+      'category3',
+      'category4',
+      'category5'
+    ], 1)
+  };
+}
+
+
+_store.user = {};
+for (i = 0; i < 40; i++) {
+  id = fixturer.randomString(fixturer.random(4, 8));
+  _store.user[id] = {
+    id: id,
+    firstName: fixturer.personName(true, false),
+    lastName: fixturer.personName(false, true),
+    email: fixturer.randomString(fixturer.random(4, 8)) +'@'+ fixturer.randomString(fixturer.random(5, 7)) +'.com'
+  };
+}
+_store.user.jonny1 = {
+  id: 'jonny1',
+  firstName: 'Jonny',
+  lastName: 'One',
+  email: fixturer.randomString(fixturer.random(4, 8)) +'@'+ fixturer.randomString(fixturer.random(5, 7)) +'.com'
+};
+
+
+
+_store.processInstance = {};
+for (var processDefinitionId in _store.processDefinition) {
+  var count = fixturer.random(0, 80);
+  for (i = 0; i < count; i++) {
+    id = uuid();
+    _store.processInstance[id] = {
+      links: [],
+      id: id,
+      definitionId: processDefinitionId,
+      businessKey: fixturer.randomString(fixturer.random(8, 16)),
+      ended: !!fixturer.random(0, 1),
+      suspended: !!fixturer.random(0, 1)
+    };
+  }
+}
+
+var users = _.keys(_store.user);
+users.push(null);
+
+var procInst, procInstId;
+var procInstances = _.keys(_store.processInstance);
+// procInstances.push(null);
+
+_store.task = {};
+for (i = 0; i < 400; i++) {
+  id = uuid();
+  procInstId = fixturer.randomItem(procInstances);
+  procInst = _store.processInstance[procInstId];
+  var created = fixturer.randomDate(new Date('2014-01-01'), new Date());
+
+  _store.task[id] = {
+    id: id,
+    name: fixturer.thingName(fixturer.random(2, 12)),
+    assignee: fixturer.randomItem(users),
+    created: created,
+    due: fixturer.randomDate(created, new Date('2014-11-29')),
+    followUp: fixturer.randomDate(created, new Date('2014-10-29')),
+    delegationState: 'RESOLVED',
+    description: fixturer.thingName(fixturer.random(7, 42)),
+    executionId: uuid(),
+    owner: fixturer.randomItem(users),
+    // should link to a existing task.id
+    parentTaskId: null,
+    priority: fixturer.random(),
+    processDefinitionId: procInst.definitionId,
+    processInstanceId: procInstId,
+    taskDefinitionKey: 'Task_'+ fixturer.random(1, 20)
+  };
+}
+
+var subId;
+for (id in  _store.task) {
+  if (fixturer.random(1, 6) > 3) {
+    var created = fixturer.randomDate(new Date('2014-01-01'), new Date());
+    subId = uuid();
+    procInstId = _store.task[id].processInstanceId;
+    procInst = _store.processInstance[procInstId];
+
+    _store.task[subId] = {
+      id: subId,
+      name: fixturer.thingName(),
+      assignee: fixturer.randomItem(users),
+      created: created,
+      due: fixturer.randomDate(created, new Date('2014-11-29')),
+      followUp: fixturer.randomDate(created, new Date('2014-10-29')),
+      delegationState: 'RESOLVED',
+      description: fixturer.thingName(fixturer.random(7, 42)),
+      executionId: uuid(),
+      owner: fixturer.randomItem(users),
+      // should link to a existing task.id
+      parentTaskId: id,
+      priority: fixturer.random(),
+      processDefinitionId: procInst.definitionId,
+      processInstanceId: procInstId,
+      taskDefinitionKey: null
+    };
+  }
+}
+
+
+
+_store.variable = {};
+for (i = 0; i < 600; i++) {
+  id = uuid();
+  _store.variable[id] = {
+    id: id,
+    name: fixturer.randomString(fixturer.random(4, 16)),
+    type: fixturer.randomItem([
+      'integer',
+      'double',
+      'string'
+    ]),
+    value: 5,
+    processInstanceId: null,
+    executionId: uuid(),
+    taskId: null,
+    activityInstanceId: 'Task_1:b68b71ca-e310-11e2-beb0-f0def1557726'
+  };
+}
+
+_store.pile = {};
+_.each([
+  {
+    id: uuid(),
+    name: 'Mines',
+    description: '',
+    filters: [
+      {
+        key: 'assignee',
+        value: '{self}'
+      }
+    ],
+    color: '#AFB3E2'
+  },
+  {
+    id: uuid(),
+    name: 'Overdue',
+    description: '',
+    filters: [
+      {
+        key: 'dueBefore',
+        // operator: 'smaller',
+        value: '{now}'
+      }
+    ],
+    color: '#FFB4B4'
+  },
+  {
+    id: uuid(),
+    name: 'Due in 3 days',
+    description: '',
+    filters: [
+      {
+        key: 'dueBefore',
+        // operator: 'smaller',
+        value: '{now} + ({day} * 3)'
+      }
+    ],
+    color: '#FFD2D2'
+  },
+  {
+    id: uuid(),
+    name: 'Group A',
+    description: '',
+    filters: [
+      {
+        key: 'candidateGroup',
+        // operator: 'has',
+        value: 'group-a'
+      }
+    ],
+    color: ''
+  },
+  {
+    id: uuid(),
+    name: 'Group B',
+    description: '',
+    filters: [
+      {
+        key: 'candidateGroup',
+        // operator: 'has',
+        value: 'group-a'
+      }
+    ],
+    color: ''
+  }
+], function(pile) {
+  _store.pile[pile.id] = pile;
+});
+
+
+_store.processInstanceFormVariables = {};
+
+_store.processDefinitionFormVariables = {};
+for (id in _store.processDefinition) {
+  _store.processDefinitionFormVariables[id] = {
+    integerVar: {
+      id: uuid(),
+      name: 'integerVar',
+      type: 'integer',
+      value: fixturer.random(4, 16),
+      processInstanceId: id,
+      executionId: 'b68b71c9-e310-11e2-beb0-f0def1557726',
+      taskId: null,
+      activityInstanceId: 'Task_1:b68b71ca-e310-11e2-beb0-f0def1557726'
+    },
+    stringVar: {
+      id: uuid(),
+      name: 'stringVar',
+      type: 'string',
+      value: fixturer.randomString(fixturer.random(4, 16)),
+      processInstanceId: id,
+      executionId: 'b68b71c9-e310-11e2-beb0-f0def1557726',
+      taskId: null,
+      activityInstanceId: 'Task_1:b68b71ca-e310-11e2-beb0-f0def1557726'
+    }
+  };
+}
+
+
+// expose the "storage"
+HttpClient.mockedData = _store;
+
+if (typeof window !== 'undefined') {
+  window.fixturer = fixturer;
+  window.mockedData = _store;
+}
+
+function filter(src, data) {
+  var where = {
+    exact:  {},
+    like:   {},
+    before: {},
+    after:  {}
+  };
+  var notFilters = [
+    'sortBy',
+    'sortOrder',
+    'firstResult',
+    'maxResults'
+  ];
+
+  var likeExp = /Like$/;
+  var beforeExp = /Before$/;
+  var afterExp = /After$/;
+
+  _.each(data, function(val, key) {
+    if (notFilters.indexOf(key) > -1) { return; }
+
+    /* jshint evil: true */
+    if (beforeExp.test(key)) {
+      where.before[key.split(beforeExp).shift()] = new Date(eval(val) * 1000);
+    }
+    else if (afterExp.test(key)) {
+      where.after[key.split(afterExp).shift()] = new Date(eval(val) * 1000);
+    }
+    /* jshint evil: false */
+    else if (likeExp.test(key)) {
+      where.like[key.split(likeExp).shift()] = new RegExp((''+ val).slice(1).slice(0, -1), 'g');
+    }
+    else {
+      where.exact[key] = val;
+    }
+  });
+
+  var found = _.size(where.exact) ? _.where(src, where.exact) : _.toArray(src);
+
+  found = _.size(where.like) ? _.filter(found, function(item) {
+    var keep = true;
+    // var realKey;
+    _.each(where.like, function(search, key) {
+      if (!keep) { return; }
+      keep = search.test(''+ item[key]);
+    });
+    return keep;
+  }) : found;
+
+  found = _.size(where.before) ? _.filter(found, function(item) {
+    var keep = true;
+    _.each(where.before, function(val, key) {
+      if (!keep) { return; }
+      keep = item[key] <= val;
+    });
+    return keep;
+  }) : found;
+
+  found = _.size(where.after) ? _.filter(found, function(item) {
+    var keep = true;
+    _.each(where.after, function(val, key) {
+      if (!keep) { return; }
+      keep = item[key] >= val;
+    });
+    return keep;
+  }) : found;
+
+
+  // just do some cleanup..
+  for (var c in where) {
+    if (!_.size(where[c])) {
+      delete where[c];
+    }
+  }
+  if (_.size(where)) {
+    console.info(''+ found.length +' / '+ _.size(src) +' record(s) matching\n'+ JSON.stringify(where, null, 2));
+  }
+  else {
+    console.info('No filter applied');
+  }
+
+  return found;
+}
+
+
+function genericGet(wanted, items, where) {
+  var returned;
+
+  if (wanted === 'key') {
+    returned = _.findWhere(items, {key: wanted});
+  }
+
+  else if (!wanted || wanted === 'count') {
+    returned = filter(items, where);
+
+    // returns an object with "count"
+    if (wanted) {
+      returned = { count: returned.length };
+    }
+    // returns an aray of items
+    else {
+      var offset = parseInt(where.firstResult || 0, 10);
+      var limit = offset + parseInt(where.maxResults || 10, 10);
+      returned = _.toArray(returned).slice(offset, limit);
+    }
+  }
+
+  // request by id
+  else if (wanted) {
+    returned = items[wanted];
+  }
+
+  return returned;
+}
+
+/**
+ * Performs a POST HTTP request
+ */
+HttpClient.prototype.post = function(path, options) {
+  options = options || {};
+
+  var done = options.done || function() {};
+  var results;
+
+  var pathParts = path.split('/');
+  var resourceName = pathParts.shift();
+  console.info('SDK MOCKING: "POST" request on "'+ resourceName +'"', pathParts.join(', '));
+
+  switch (resourceName) {
+    case 'process-definition':
+      var action = pathParts[pathParts.length - 1];
+      var definition;
+      if (pathParts[0] === 'key') {
+        definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+      }
+      else {
+        definition = _store.processDefinition[pathParts[0]];
+      }
+
+
+      switch (action) {
+        case 'submit-form':
+          var instanceId = uuid();
+          var variables = options.data.variables;
+
+          _store.processInstanceFormVariables[instanceId] = variables;
+
+          _store.processInstance[instanceId] = {
+            id: instanceId,
+            definitionId: definition.id,
+            businessKey: 'myBusinessKey',
+            ended: false,
+            suspended: false
+          };
+
+          results = _.extend({
+            links:[
+              {
+                method: 'GET',
+                href: 'http://localhost:8080/rest-test/process-instance/'+ instanceId,
+                rel: 'self'
+              }
+            ],
+          }, _store.processInstance[instanceId]);
+          break;
+      }
+      break;
+  }
+
+  // postpone the response to simulate latency
+  setTimeout(function() {
+    done(null, results);
+  }, fixturer.random(300, 700));
+};
+
+
+/**
+ * Performs a GET HTTP request
+ */
+HttpClient.prototype.get = function(path, options) {
+  options = options || {};
+
+  var done = options.done || function() {};
+  var results = {};
+
+  var pathParts = path.split('/');
+  var resourceName = pathParts.shift();
+  console.info('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '));
+
+  switch (resourceName) {
+    case 'process-definition':
+      var action = pathParts[pathParts.length - 1];
+      if (action === 'form-variables') {
+        var definition;
+        if (pathParts[0] === 'key') {
+          definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+        }
+        else {
+          definition = _store.processDefinition[pathParts[0]];
+        }
+        results = _store.processDefinitionFormVariables[definition.id];
+      }
+      else {
+        results = genericGet(pathParts[0], _store.processDefinition, options.data);
+      }
+      break;
+
+    case 'process-instance':
+      results = genericGet(pathParts[0], _store.processInstance, options.data);
+      break;
+
+    case 'pile':
+      results = genericGet(pathParts[0], _store.pile, options.data);
+      break;
+
+    // case 'session':
+    //   results = genericGet(pathParts[0], _store.session, options.data);
+    //   break;
+
+    case 'task':
+      results = genericGet(pathParts[0], _store.task, options.data);
+      break;
+
+    case 'user':
+      results = genericGet(pathParts[0], _store.user, options.data);
+      break;
+
+    case 'variable-instance':
+      results = genericGet(pathParts[0], _store.variable, options.data);
+      break;
+  }
+
+  // postpone the response to simulate latency
+  setTimeout(function() {
+    done(null, results);
+  }, fixturer.random(300, 700));
+};
+
+
+
+/**
+ * Performs a PUT HTTP request
+ */
+HttpClient.prototype.put = function(path, options) {
+  options = options || {};
+  var done = options.done || function() {};
+  var results = {};
+
+  done(null, results);
+};
+
+
+
+/**
+ * Performs a DELETE HTTP request
+ */
+HttpClient.prototype.del = function(data, options) {
+  data = data || {};
+  options = options || {};
+};
+module.exports = HttpClient;
+
+},{"./../events":2,"fixturer":6,"underscore":8,"underscore.string":7,"uuid":10}],2:[function(_dereq_,module,exports){
+'use strict';
+
 /**
  * Events handling utility who can be used on
  * any kind of object to provide `on`, `once`, `off`
@@ -152,537 +718,7 @@ Events.trigger = function() {
 
 module.exports = Events;
 
-},{}],2:[function(_dereq_,module,exports){
-'use strict';
-
-var request = _dereq_('superagent');
-var Events = _dereq_('./events');
-
-
-/**
- * HttpClient
- * @exports CamSDK.HttpClientMock
- * @augments {CamSDK.HttpClient}
- * @class
- * @classdesc A mocking implementation of CamSDK.HttpClient
- */
-var HttpClient = function(config) {
-  config = config || {};
-
-  if (!config.baseUrl) {
-    throw new Error('HttpClientMock needs a `baseUrl` configuration property.');
-  }
-
-  Events.attach(this);
-
-  this.config = config;
-
-  this.mock = true;
-};
-
-
-
-
-
-
-/**
- * Variable to store fixtures
- * @type {Object}
- * @property {Object.<uuid, Object>} processDefinition  Process definition mocks
- * @property {Object.<uuid, Object>} processInstance    Process instance mocks
- * @property {Object.<uuid, Object>} user               User mocks
- * @property {Object.<uuid, Object>} variable           Variable mocks
- */
-var _store = {};
-var fixturer = _dereq_('fixturer');
-var uuid = _dereq_('uuid');
-var _ = _dereq_('underscore');
-_.str = _dereq_('underscore.string');
-
-var i = 0, id;
-_store.processDefinition = {};
-for (; i < 80; i++) {
-  id = uuid();
-  _store.processDefinition[id] = {
-    id: id,
-    key: fixturer.randomString(fixturer.random(8, 16)),
-    // name: fixturer.thingName(),
-    name: fixturer.randomItem([
-      'Call Process '+ i,
-      'process '+ i,
-      'yada '+ i,
-      'foo Bar '+ i,
-      'Foo-Bar '+ i
-    ]),
-    resource: fixturer.randomString(fixturer.random(4, 8)),
-    diagram: fixturer.randomString(fixturer.random(4, 8)),
-    version: fixturer.random(),
-    deploymentId: uuid(),
-    suspended: !!fixturer.random(0, 1),
-    category: fixturer.randomItem([
-      'category1',
-      'category2',
-      'category3',
-      'category4',
-      'category5'
-    ], 1)
-  };
-}
-
-
-_store.user = {};
-for (i = 0; i < 40; i++) {
-  id = fixturer.randomString(4, 8);
-  _store.user[id] = {
-    id: id,
-    firstName: fixturer.personName(true, false),
-    lastName: fixturer.personName(false, true),
-    email: fixturer.randomString(4, 8) +'@'+ fixturer.randomString(5, 7) +'.com'
-  };
-}
-_store.user.jonny1 = {
-  id: 'jonny1',
-  firstName: 'Jonny',
-  lastName: 'One',
-  email: fixturer.randomString(4, 8) +'@'+ fixturer.randomString(5, 7) +'.com'
-};
-
-
-
-_store.processInstance = {};
-for (var processDefinitionId in _store.processDefinition) {
-  var count = fixturer.random(0, 80);
-  for (i = 0; i < count; i++) {
-    id = uuid();
-    _store.processInstance[id] = {
-      links: [],
-      id: id,
-      definitionId: processDefinitionId,
-      businessKey: fixturer.randomString(8, 16),
-      ended: !!fixturer.random(0, 1),
-      suspended: !!fixturer.random(0, 1)
-    };
-  }
-}
-
-var users = _.keys(_store.user);
-users.push(null);
-
-var procInst, procInstId;
-var procInstances = _.keys(_store.processInstance);
-// procInstances.push(null);
-
-_store.task = {};
-for (i = 0; i < 300; i++) {
-  id = uuid();
-  procInstId = fixturer.randomItem(procInstances);
-  procInst = _store.processInstance[procInstId];
-  var created = fixturer.randomDate(new Date('1.1.2014'), new Date());
-
-  _store.task[id] = {
-    id: id,
-    name: fixturer.thingName(fixturer.random(2, 12)),
-    assignee: fixturer.randomItem(users),
-    created: created,
-    due: fixturer.randomDate(created, new Date('11.29.2014')),
-    followUp: fixturer.randomDate(created, new Date('10.29.2014')),
-    delegationState: 'RESOLVED',
-    description: fixturer.thingName(fixturer.random(7, 42)),
-    executionId: uuid(),
-    owner: fixturer.randomItem(users),
-    // should link to a existing task.id
-    parentTaskId: null,
-    priority: fixturer.random(),
-    processDefinitionId: procInst.definitionId,
-    processInstanceId: procInstId,
-    taskDefinitionKey: 'Task_'+ fixturer.random(1, 20)
-  };
-}
-
-var subId;
-for (id in  _store.task) {
-  if (fixturer.random(1, 6) > 3) {
-    var created = fixturer.randomDate(new Date('1.1.2014'), new Date());
-    subId = uuid();
-    procInstId = _store.task[id].processInstanceId;
-    procInst = _store.processInstance[procInstId];
-
-    _store.task[subId] = {
-      id: subId,
-      name: fixturer.thingName(),
-      assignee: fixturer.randomItem(users),
-      created: created,
-      due: fixturer.randomDate(created, new Date('11.29.2014')),
-      followUp: fixturer.randomDate(created, new Date('10.29.2014')),
-      delegationState: 'RESOLVED',
-      description: fixturer.thingName(fixturer.random(7, 42)),
-      executionId: uuid(),
-      owner: fixturer.randomItem(users),
-      // should link to a existing task.id
-      parentTaskId: id,
-      priority: fixturer.random(),
-      processDefinitionId: procInst.definitionId,
-      processInstanceId: procInstId,
-      taskDefinitionKey: null
-    };
-  }
-}
-
-
-
-_store.variable = {};
-for (i = 0; i < 600; i++) {
-  id = uuid();
-  _store.variable[id] = {
-    id: id,
-    name: fixturer.randomString(4, 16),
-    type: fixturer.randomItem([
-      'integer',
-      'double',
-      'string'
-    ]),
-    value: 5,
-    processInstanceId: null,
-    executionId: uuid(),
-    taskId: null,
-    activityInstanceId: 'Task_1:b68b71ca-e310-11e2-beb0-f0def1557726'
-  };
-}
-
-_store.pile = {};
-_.each([
-  {
-    id: uuid(),
-    name: 'Mines',
-    description: '',
-    filters: [
-      {
-        key: 'assignee',
-        value: '{self}'
-      }
-    ],
-    color: '#AFB3E2'
-  },
-  {
-    id: uuid(),
-    name: 'Overdue',
-    description: '',
-    filters: [
-      {
-        key: 'dueBefore',
-        // operator: 'smaller',
-        value: '{now}'
-      }
-    ],
-    color: '#FFB4B4'
-  },
-  {
-    id: uuid(),
-    name: 'Due in 3 days',
-    description: '',
-    filters: [
-      {
-        key: 'dueBefore',
-        // operator: 'smaller',
-        value: '{now} + ({day} * 3)'
-      }
-    ],
-    color: '#FFD2D2'
-  },
-  {
-    id: uuid(),
-    name: 'Group A',
-    description: '',
-    filters: [
-      {
-        key: 'candidateGroup',
-        // operator: 'has',
-        value: 'group-a'
-      }
-    ],
-    color: ''
-  },
-  {
-    id: uuid(),
-    name: 'Group B',
-    description: '',
-    filters: [
-      {
-        key: 'candidateGroup',
-        // operator: 'has',
-        value: 'group-a'
-      }
-    ],
-    color: ''
-  }
-], function(pile) {
-  _store.pile[pile.id] = pile;
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function inPath(expected, given) {
-  return given.slice(0, expected.length) === expected;
-}
-
-
-function filter(src, data) {
-  var where = {
-    exact:  {},
-    like:   {},
-    before: {},
-    after:  {}
-  };
-  var notFilters = [
-    'sortBy',
-    'sortOrder',
-    'firstResult',
-    'maxResults'
-  ];
-
-  var likeExp = /Like$/;
-  var beforeExp = /Before$/;
-  var afterExp = /After$/;
-
-  _.each(data, function(val, key) {
-    if (notFilters.indexOf(key) > -1) { return; }
-
-    /* jshint evil: true */
-    if (beforeExp.test(key)) {
-      where.before[key.split(beforeExp).shift()] = new Date(eval(val) * 1000);
-    }
-    else if (afterExp.test(key)) {
-      where.after[key.split(afterExp).shift()] = new Date(eval(val) * 1000);
-    }
-    /* jshint evil: false */
-    else if (likeExp.test(key)) {
-      where.like[key.split(likeExp).shift()] = new RegExp((''+ val).slice(1).slice(0, -1), 'g');
-    }
-    else {
-      where.exact[key] = val;
-    }
-  });
-
-  var found = _.size(where.exact) ? _.where(src, where.exact) : _.toArray(src);
-
-  found = _.size(where.like) ? _.filter(found, function(item) {
-    var keep = true;
-    var realKey;
-    _.each(where.like, function(search, key) {
-      if (!keep) { return; }
-      keep = search.test(''+ item[key]);
-    });
-    return keep;
-  }) : found;
-
-  found = _.size(where.before) ? _.filter(found, function(item) {
-    var keep = true;
-    _.each(where.before, function(val, key) {
-      if (!keep) { return; }
-      keep = item[key] <= val;
-    });
-    return keep;
-  }) : found;
-
-  found = _.size(where.after) ? _.filter(found, function(item) {
-    var keep = true;
-    _.each(where.after, function(val, key) {
-      if (!keep) { return; }
-      keep = item[key] >= val;
-    });
-    return keep;
-  }) : found;
-
-
-  // just do some cleanup..
-  for (var c in where) {
-    if (!_.size(where[c])) {
-      delete where[c];
-    }
-  }
-  if (_.size(where)) {
-    console.info(''+ found.length +' / '+ _.size(src) +' record(s) matching', where);
-  }
-  else {
-    console.info('No filter applied');
-  }
-
-  return found;
-}
-
-
-function genericGet(wanted, items, where) {
-  var returned;
-
-  if (wanted === 'key') {
-    returned = _.findWhere(items, {key: wanted});
-  }
-
-  else if (!wanted || wanted === 'count') {
-    returned = filter(items, where);
-
-    // returns an object with "count"
-    if (wanted) {
-      returned = { count: returned.length };
-    }
-    // returns an aray of items
-    else {
-      var offset = parseInt(where.firstResult || 0, 10);
-      var limit = offset + parseInt(where.maxResults || 10, 10);
-      returned = _.toArray(returned).slice(offset, limit);
-    }
-  }
-
-  // request by id
-  else if (wanted) {
-    returned = items[wanted];
-  }
-
-  return returned;
-}
-
-/**
- * Performs a POST HTTP request
- */
-HttpClient.prototype.post = function(path, options) {
-  options = options || {};
-
-  var done = options.done || function() {};
-  var results;
-
-  var pathParts = path.split('/');
-  var resourceName = pathParts.shift();
-  console.info('SDK MOCKING: "POST" request on "'+ resourceName +'"', pathParts.join(', '));
-
-  switch (resourceName) {
-    case 'process-definition':
-      var action = pathParts[pathParts.length - 1];
-      var definition;
-      if (pathParts[0] === 'key') {
-        definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
-      }
-      else {
-        definition = _store.processDefinition[pathParts[0]];
-      }
-
-
-      switch (action) {
-        case 'submit-form':
-          var id = uuid();
-          _store.processInstance[id] = {
-            id: id,
-            definitionId: definition.id,
-            businessKey: 'myBusinessKey',
-            ended: false,
-            suspended: false
-          };
-
-          results = _.extend({
-            links:[
-              {
-                method: 'GET',
-                href: 'http://localhost:8080/rest-test/process-instance/'+ id,
-                rel: 'self'
-              }
-            ],
-          }, _store.processInstance[id]);
-          break;
-      }
-      break;
-  }
-
-  // postpone the response to simulate latency
-  setTimeout(function() {
-    done(null, results);
-  }, fixturer.random(300, 700));
-};
-
-
-/**
- * Performs a GET HTTP request
- */
-HttpClient.prototype.get = function(path, options) {
-  options = options || {};
-
-  var done = options.done || function() {};
-  var results = {};
-
-  var pathParts = path.split('/');
-  var resourceName = pathParts.shift();
-  console.info('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '));
-
-  switch (resourceName) {
-    case 'process-definition':
-      results = genericGet(pathParts[0], _store.processDefinition, options.data);
-      break;
-
-    case 'process-instance':
-      results = genericGet(pathParts[0], _store.processInstance, options.data);
-      break;
-
-    case 'pile':
-      results = genericGet(pathParts[0], _store.pile, options.data);
-      break;
-
-    // case 'session':
-    //   results = genericGet(pathParts[0], _store.session, options.data);
-    //   break;
-
-    case 'task':
-      results = genericGet(pathParts[0], _store.task, options.data);
-      break;
-
-    case 'user':
-      results = genericGet(pathParts[0], _store.user, options.data);
-      break;
-
-    case 'variable-instance':
-      results = genericGet(pathParts[0], _store.variable, options.data);
-      break;
-  }
-
-  // postpone the response to simulate latency
-  setTimeout(function() {
-    done(null, results);
-  }, fixturer.random(300, 700));
-};
-
-
-
-/**
- * Performs a PUT HTTP request
- */
-HttpClient.prototype.put = function(path, options) {
-  options = options || {};
-  var done = options.done || function() {};
-  var results = {};
-
-  done(null, results);
-};
-
-
-
-/**
- * Performs a DELETE HTTP request
- */
-HttpClient.prototype.del = function(data, options) {
-  data = data || {};
-  options = options || {};
-};
-module.exports = HttpClient;
-
-},{"./events":1,"fixturer":6,"superagent":7,"underscore":11,"underscore.string":10,"uuid":13}],3:[function(_dereq_,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -2461,1249 +2497,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   return fixturer;
 }));
 
-},{"underscore":11,"underscore.string":10}],7:[function(_dereq_,module,exports){
-/**
- * Module dependencies.
- */
-
-var Emitter = _dereq_('emitter');
-var reduce = _dereq_('reduce');
-
-/**
- * Root reference for iframes.
- */
-
-var root = 'undefined' == typeof window
-  ? this
-  : window;
-
-/**
- * Noop.
- */
-
-function noop(){};
-
-/**
- * Check if `obj` is a host object,
- * we don't want to serialize these :)
- *
- * TODO: future proof, move to compoent land
- *
- * @param {Object} obj
- * @return {Boolean}
- * @api private
- */
-
-function isHost(obj) {
-  var str = {}.toString.call(obj);
-
-  switch (str) {
-    case '[object File]':
-    case '[object Blob]':
-    case '[object FormData]':
-      return true;
-    default:
-      return false;
-  }
-}
-
-/**
- * Determine XHR.
- */
-
-function getXHR() {
-  if (root.XMLHttpRequest
-    && ('file:' != root.location.protocol || !root.ActiveXObject)) {
-    return new XMLHttpRequest;
-  } else {
-    try { return new ActiveXObject('Microsoft.XMLHTTP'); } catch(e) {}
-    try { return new ActiveXObject('Msxml2.XMLHTTP.6.0'); } catch(e) {}
-    try { return new ActiveXObject('Msxml2.XMLHTTP.3.0'); } catch(e) {}
-    try { return new ActiveXObject('Msxml2.XMLHTTP'); } catch(e) {}
-  }
-  return false;
-}
-
-/**
- * Removes leading and trailing whitespace, added to support IE.
- *
- * @param {String} s
- * @return {String}
- * @api private
- */
-
-var trim = ''.trim
-  ? function(s) { return s.trim(); }
-  : function(s) { return s.replace(/(^\s*|\s*$)/g, ''); };
-
-/**
- * Check if `obj` is an object.
- *
- * @param {Object} obj
- * @return {Boolean}
- * @api private
- */
-
-function isObject(obj) {
-  return obj === Object(obj);
-}
-
-/**
- * Serialize the given `obj`.
- *
- * @param {Object} obj
- * @return {String}
- * @api private
- */
-
-function serialize(obj) {
-  if (!isObject(obj)) return obj;
-  var pairs = [];
-  for (var key in obj) {
-    if (null != obj[key]) {
-      pairs.push(encodeURIComponent(key)
-        + '=' + encodeURIComponent(obj[key]));
-    }
-  }
-  return pairs.join('&');
-}
-
-/**
- * Expose serialization method.
- */
-
- request.serializeObject = serialize;
-
- /**
-  * Parse the given x-www-form-urlencoded `str`.
-  *
-  * @param {String} str
-  * @return {Object}
-  * @api private
-  */
-
-function parseString(str) {
-  var obj = {};
-  var pairs = str.split('&');
-  var parts;
-  var pair;
-
-  for (var i = 0, len = pairs.length; i < len; ++i) {
-    pair = pairs[i];
-    parts = pair.split('=');
-    obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-  }
-
-  return obj;
-}
-
-/**
- * Expose parser.
- */
-
-request.parseString = parseString;
-
-/**
- * Default MIME type map.
- *
- *     superagent.types.xml = 'application/xml';
- *
- */
-
-request.types = {
-  html: 'text/html',
-  json: 'application/json',
-  xml: 'application/xml',
-  urlencoded: 'application/x-www-form-urlencoded',
-  'form': 'application/x-www-form-urlencoded',
-  'form-data': 'application/x-www-form-urlencoded'
-};
-
-/**
- * Default serialization map.
- *
- *     superagent.serialize['application/xml'] = function(obj){
- *       return 'generated xml here';
- *     };
- *
- */
-
- request.serialize = {
-   'application/x-www-form-urlencoded': serialize,
-   'application/json': JSON.stringify
- };
-
- /**
-  * Default parsers.
-  *
-  *     superagent.parse['application/xml'] = function(str){
-  *       return { object parsed from str };
-  *     };
-  *
-  */
-
-request.parse = {
-  'application/x-www-form-urlencoded': parseString,
-  'application/json': JSON.parse
-};
-
-/**
- * Parse the given header `str` into
- * an object containing the mapped fields.
- *
- * @param {String} str
- * @return {Object}
- * @api private
- */
-
-function parseHeader(str) {
-  var lines = str.split(/\r?\n/);
-  var fields = {};
-  var index;
-  var line;
-  var field;
-  var val;
-
-  lines.pop(); // trailing CRLF
-
-  for (var i = 0, len = lines.length; i < len; ++i) {
-    line = lines[i];
-    index = line.indexOf(':');
-    field = line.slice(0, index).toLowerCase();
-    val = trim(line.slice(index + 1));
-    fields[field] = val;
-  }
-
-  return fields;
-}
-
-/**
- * Return the mime type for the given `str`.
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-function type(str){
-  return str.split(/ *; */).shift();
-};
-
-/**
- * Return header field parameters.
- *
- * @param {String} str
- * @return {Object}
- * @api private
- */
-
-function params(str){
-  return reduce(str.split(/ *; */), function(obj, str){
-    var parts = str.split(/ *= */)
-      , key = parts.shift()
-      , val = parts.shift();
-
-    if (key && val) obj[key] = val;
-    return obj;
-  }, {});
-};
-
-/**
- * Initialize a new `Response` with the given `xhr`.
- *
- *  - set flags (.ok, .error, etc)
- *  - parse header
- *
- * Examples:
- *
- *  Aliasing `superagent` as `request` is nice:
- *
- *      request = superagent;
- *
- *  We can use the promise-like API, or pass callbacks:
- *
- *      request.get('/').end(function(res){});
- *      request.get('/', function(res){});
- *
- *  Sending data can be chained:
- *
- *      request
- *        .post('/user')
- *        .send({ name: 'tj' })
- *        .end(function(res){});
- *
- *  Or passed to `.send()`:
- *
- *      request
- *        .post('/user')
- *        .send({ name: 'tj' }, function(res){});
- *
- *  Or passed to `.post()`:
- *
- *      request
- *        .post('/user', { name: 'tj' })
- *        .end(function(res){});
- *
- * Or further reduced to a single call for simple cases:
- *
- *      request
- *        .post('/user', { name: 'tj' }, function(res){});
- *
- * @param {XMLHTTPRequest} xhr
- * @param {Object} options
- * @api private
- */
-
-function Response(req, options) {
-  options = options || {};
-  this.req = req;
-  this.xhr = this.req.xhr;
-  this.text = this.xhr.responseText;
-  this.setStatusProperties(this.xhr.status);
-  this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
-  // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
-  // getResponseHeader still works. so we get content-type even if getting
-  // other headers fails.
-  this.header['content-type'] = this.xhr.getResponseHeader('content-type');
-  this.setHeaderProperties(this.header);
-  this.body = this.req.method != 'HEAD'
-    ? this.parseBody(this.text)
-    : null;
-}
-
-/**
- * Get case-insensitive `field` value.
- *
- * @param {String} field
- * @return {String}
- * @api public
- */
-
-Response.prototype.get = function(field){
-  return this.header[field.toLowerCase()];
-};
-
-/**
- * Set header related properties:
- *
- *   - `.type` the content type without params
- *
- * A response of "Content-Type: text/plain; charset=utf-8"
- * will provide you with a `.type` of "text/plain".
- *
- * @param {Object} header
- * @api private
- */
-
-Response.prototype.setHeaderProperties = function(header){
-  // content-type
-  var ct = this.header['content-type'] || '';
-  this.type = type(ct);
-
-  // params
-  var obj = params(ct);
-  for (var key in obj) this[key] = obj[key];
-};
-
-/**
- * Parse the given body `str`.
- *
- * Used for auto-parsing of bodies. Parsers
- * are defined on the `superagent.parse` object.
- *
- * @param {String} str
- * @return {Mixed}
- * @api private
- */
-
-Response.prototype.parseBody = function(str){
-  var parse = request.parse[this.type];
-  return parse
-    ? parse(str)
-    : null;
-};
-
-/**
- * Set flags such as `.ok` based on `status`.
- *
- * For example a 2xx response will give you a `.ok` of __true__
- * whereas 5xx will be __false__ and `.error` will be __true__. The
- * `.clientError` and `.serverError` are also available to be more
- * specific, and `.statusType` is the class of error ranging from 1..5
- * sometimes useful for mapping respond colors etc.
- *
- * "sugar" properties are also defined for common cases. Currently providing:
- *
- *   - .noContent
- *   - .badRequest
- *   - .unauthorized
- *   - .notAcceptable
- *   - .notFound
- *
- * @param {Number} status
- * @api private
- */
-
-Response.prototype.setStatusProperties = function(status){
-  var type = status / 100 | 0;
-
-  // status / class
-  this.status = status;
-  this.statusType = type;
-
-  // basics
-  this.info = 1 == type;
-  this.ok = 2 == type;
-  this.clientError = 4 == type;
-  this.serverError = 5 == type;
-  this.error = (4 == type || 5 == type)
-    ? this.toError()
-    : false;
-
-  // sugar
-  this.accepted = 202 == status;
-  this.noContent = 204 == status || 1223 == status;
-  this.badRequest = 400 == status;
-  this.unauthorized = 401 == status;
-  this.notAcceptable = 406 == status;
-  this.notFound = 404 == status;
-  this.forbidden = 403 == status;
-};
-
-/**
- * Return an `Error` representative of this response.
- *
- * @return {Error}
- * @api public
- */
-
-Response.prototype.toError = function(){
-  var req = this.req;
-  var method = req.method;
-  var url = req.url;
-
-  var msg = 'cannot ' + method + ' ' + url + ' (' + this.status + ')';
-  var err = new Error(msg);
-  err.status = this.status;
-  err.method = method;
-  err.url = url;
-
-  return err;
-};
-
-/**
- * Expose `Response`.
- */
-
-request.Response = Response;
-
-/**
- * Initialize a new `Request` with the given `method` and `url`.
- *
- * @param {String} method
- * @param {String} url
- * @api public
- */
-
-function Request(method, url) {
-  var self = this;
-  Emitter.call(this);
-  this._query = this._query || [];
-  this.method = method;
-  this.url = url;
-  this.header = {};
-  this._header = {};
-  this.on('end', function(){
-    var res = new Response(self);
-    if ('HEAD' == method) res.text = null;
-    self.callback(null, res);
-  });
-}
-
-/**
- * Mixin `Emitter`.
- */
-
-Emitter(Request.prototype);
-
-/**
- * Allow for extension
- */
-
-Request.prototype.use = function(fn) {
-  fn(this);
-  return this;
-}
-
-/**
- * Set timeout to `ms`.
- *
- * @param {Number} ms
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.timeout = function(ms){
-  this._timeout = ms;
-  return this;
-};
-
-/**
- * Clear previous timeout.
- *
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.clearTimeout = function(){
-  this._timeout = 0;
-  clearTimeout(this._timer);
-  return this;
-};
-
-/**
- * Abort the request, and clear potential timeout.
- *
- * @return {Request}
- * @api public
- */
-
-Request.prototype.abort = function(){
-  if (this.aborted) return;
-  this.aborted = true;
-  this.xhr.abort();
-  this.clearTimeout();
-  this.emit('abort');
-  return this;
-};
-
-/**
- * Set header `field` to `val`, or multiple fields with one object.
- *
- * Examples:
- *
- *      req.get('/')
- *        .set('Accept', 'application/json')
- *        .set('X-API-Key', 'foobar')
- *        .end(callback);
- *
- *      req.get('/')
- *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
- *        .end(callback);
- *
- * @param {String|Object} field
- * @param {String} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.set = function(field, val){
-  if (isObject(field)) {
-    for (var key in field) {
-      this.set(key, field[key]);
-    }
-    return this;
-  }
-  this._header[field.toLowerCase()] = val;
-  this.header[field] = val;
-  return this;
-};
-
-/**
- * Get case-insensitive header `field` value.
- *
- * @param {String} field
- * @return {String}
- * @api private
- */
-
-Request.prototype.getHeader = function(field){
-  return this._header[field.toLowerCase()];
-};
-
-/**
- * Set Content-Type to `type`, mapping values from `request.types`.
- *
- * Examples:
- *
- *      superagent.types.xml = 'application/xml';
- *
- *      request.post('/')
- *        .type('xml')
- *        .send(xmlstring)
- *        .end(callback);
- *
- *      request.post('/')
- *        .type('application/xml')
- *        .send(xmlstring)
- *        .end(callback);
- *
- * @param {String} type
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.type = function(type){
-  this.set('Content-Type', request.types[type] || type);
-  return this;
-};
-
-/**
- * Set Accept to `type`, mapping values from `request.types`.
- *
- * Examples:
- *
- *      superagent.types.json = 'application/json';
- *
- *      request.get('/agent')
- *        .accept('json')
- *        .end(callback);
- *
- *      request.get('/agent')
- *        .accept('application/json')
- *        .end(callback);
- *
- * @param {String} accept
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.accept = function(type){
-  this.set('Accept', request.types[type] || type);
-  return this;
-};
-
-/**
- * Set Authorization field value with `user` and `pass`.
- *
- * @param {String} user
- * @param {String} pass
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.auth = function(user, pass){
-  var str = btoa(user + ':' + pass);
-  this.set('Authorization', 'Basic ' + str);
-  return this;
-};
-
-/**
-* Add query-string `val`.
-*
-* Examples:
-*
-*   request.get('/shoes')
-*     .query('size=10')
-*     .query({ color: 'blue' })
-*
-* @param {Object|String} val
-* @return {Request} for chaining
-* @api public
-*/
-
-Request.prototype.query = function(val){
-  if ('string' != typeof val) val = serialize(val);
-  if (val) this._query.push(val);
-  return this;
-};
-
-/**
- * Write the field `name` and `val` for "multipart/form-data"
- * request bodies.
- *
- * ``` js
- * request.post('/upload')
- *   .field('foo', 'bar')
- *   .end(callback);
- * ```
- *
- * @param {String} name
- * @param {String|Blob|File} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.field = function(name, val){
-  if (!this._formData) this._formData = new FormData();
-  this._formData.append(name, val);
-  return this;
-};
-
-/**
- * Queue the given `file` as an attachment to the specified `field`,
- * with optional `filename`.
- *
- * ``` js
- * request.post('/upload')
- *   .attach(new Blob(['<a id="a"><b id="b">hey!</b></a>'], { type: "text/html"}))
- *   .end(callback);
- * ```
- *
- * @param {String} field
- * @param {Blob|File} file
- * @param {String} filename
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.attach = function(field, file, filename){
-  if (!this._formData) this._formData = new FormData();
-  this._formData.append(field, file, filename);
-  return this;
-};
-
-/**
- * Send `data`, defaulting the `.type()` to "json" when
- * an object is given.
- *
- * Examples:
- *
- *       // querystring
- *       request.get('/search')
- *         .end(callback)
- *
- *       // multiple data "writes"
- *       request.get('/search')
- *         .send({ search: 'query' })
- *         .send({ range: '1..5' })
- *         .send({ order: 'desc' })
- *         .end(callback)
- *
- *       // manual json
- *       request.post('/user')
- *         .type('json')
- *         .send('{"name":"tj"})
- *         .end(callback)
- *
- *       // auto json
- *       request.post('/user')
- *         .send({ name: 'tj' })
- *         .end(callback)
- *
- *       // manual x-www-form-urlencoded
- *       request.post('/user')
- *         .type('form')
- *         .send('name=tj')
- *         .end(callback)
- *
- *       // auto x-www-form-urlencoded
- *       request.post('/user')
- *         .type('form')
- *         .send({ name: 'tj' })
- *         .end(callback)
- *
- *       // defaults to x-www-form-urlencoded
-  *      request.post('/user')
-  *        .send('name=tobi')
-  *        .send('species=ferret')
-  *        .end(callback)
- *
- * @param {String|Object} data
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.send = function(data){
-  var obj = isObject(data);
-  var type = this.getHeader('Content-Type');
-
-  // merge
-  if (obj && isObject(this._data)) {
-    for (var key in data) {
-      this._data[key] = data[key];
-    }
-  } else if ('string' == typeof data) {
-    if (!type) this.type('form');
-    type = this.getHeader('Content-Type');
-    if ('application/x-www-form-urlencoded' == type) {
-      this._data = this._data
-        ? this._data + '&' + data
-        : data;
-    } else {
-      this._data = (this._data || '') + data;
-    }
-  } else {
-    this._data = data;
-  }
-
-  if (!obj) return this;
-  if (!type) this.type('json');
-  return this;
-};
-
-/**
- * Invoke the callback with `err` and `res`
- * and handle arity check.
- *
- * @param {Error} err
- * @param {Response} res
- * @api private
- */
-
-Request.prototype.callback = function(err, res){
-  var fn = this._callback;
-  if (2 == fn.length) return fn(err, res);
-  if (err) return this.emit('error', err);
-  fn(res);
-};
-
-/**
- * Invoke callback with x-domain error.
- *
- * @api private
- */
-
-Request.prototype.crossDomainError = function(){
-  var err = new Error('Origin is not allowed by Access-Control-Allow-Origin');
-  err.crossDomain = true;
-  this.callback(err);
-};
-
-/**
- * Invoke callback with timeout error.
- *
- * @api private
- */
-
-Request.prototype.timeoutError = function(){
-  var timeout = this._timeout;
-  var err = new Error('timeout of ' + timeout + 'ms exceeded');
-  err.timeout = timeout;
-  this.callback(err);
-};
-
-/**
- * Enable transmission of cookies with x-domain requests.
- *
- * Note that for this to work the origin must not be
- * using "Access-Control-Allow-Origin" with a wildcard,
- * and also must set "Access-Control-Allow-Credentials"
- * to "true".
- *
- * @api public
- */
-
-Request.prototype.withCredentials = function(){
-  this._withCredentials = true;
-  return this;
-};
-
-/**
- * Initiate request, invoking callback `fn(res)`
- * with an instanceof `Response`.
- *
- * @param {Function} fn
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.end = function(fn){
-  var self = this;
-  var xhr = this.xhr = getXHR();
-  var query = this._query.join('&');
-  var timeout = this._timeout;
-  var data = this._formData || this._data;
-
-  // store callback
-  this._callback = fn || noop;
-
-  // state change
-  xhr.onreadystatechange = function(){
-    if (4 != xhr.readyState) return;
-    if (0 == xhr.status) {
-      if (self.aborted) return self.timeoutError();
-      return self.crossDomainError();
-    }
-    self.emit('end');
-  };
-
-  // progress
-  if (xhr.upload) {
-    xhr.upload.onprogress = function(e){
-      e.percent = e.loaded / e.total * 100;
-      self.emit('progress', e);
-    };
-  }
-
-  // timeout
-  if (timeout && !this._timer) {
-    this._timer = setTimeout(function(){
-      self.abort();
-    }, timeout);
-  }
-
-  // querystring
-  if (query) {
-    query = request.serializeObject(query);
-    this.url += ~this.url.indexOf('?')
-      ? '&' + query
-      : '?' + query;
-  }
-
-  // initiate request
-  xhr.open(this.method, this.url, true);
-
-  // CORS
-  if (this._withCredentials) xhr.withCredentials = true;
-
-  // body
-  if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !isHost(data)) {
-    // serialize stuff
-    var serialize = request.serialize[this.getHeader('Content-Type')];
-    if (serialize) data = serialize(data);
-  }
-
-  // set header fields
-  for (var field in this.header) {
-    if (null == this.header[field]) continue;
-    xhr.setRequestHeader(field, this.header[field]);
-  }
-
-  // send stuff
-  this.emit('request', this);
-  xhr.send(data);
-  return this;
-};
-
-/**
- * Expose `Request`.
- */
-
-request.Request = Request;
-
-/**
- * Issue a request:
- *
- * Examples:
- *
- *    request('GET', '/users').end(callback)
- *    request('/users').end(callback)
- *    request('/users', callback)
- *
- * @param {String} method
- * @param {String|Function} url or callback
- * @return {Request}
- * @api public
- */
-
-function request(method, url) {
-  // callback
-  if ('function' == typeof url) {
-    return new Request('GET', method).end(url);
-  }
-
-  // url first
-  if (1 == arguments.length) {
-    return new Request('GET', method);
-  }
-
-  return new Request(method, url);
-}
-
-/**
- * GET `url` with optional callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.get = function(url, data, fn){
-  var req = request('GET', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.query(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * HEAD `url` with optional callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.head = function(url, data, fn){
-  var req = request('HEAD', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * DELETE `url` with optional callback `fn(res)`.
- *
- * @param {String} url
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.del = function(url, fn){
-  var req = request('DELETE', url);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * PATCH `url` with optional `data` and callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed} data
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.patch = function(url, data, fn){
-  var req = request('PATCH', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * POST `url` with optional `data` and callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed} data
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.post = function(url, data, fn){
-  var req = request('POST', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * PUT `url` with optional `data` and callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.put = function(url, data, fn){
-  var req = request('PUT', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * Expose `request`.
- */
-
-module.exports = request;
-
-},{"emitter":8,"reduce":9}],8:[function(_dereq_,module,exports){
-
-/**
- * Expose `Emitter`.
- */
-
-module.exports = Emitter;
-
-/**
- * Initialize a new `Emitter`.
- *
- * @api public
- */
-
-function Emitter(obj) {
-  if (obj) return mixin(obj);
-};
-
-/**
- * Mixin the emitter properties.
- *
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
-
-function mixin(obj) {
-  for (var key in Emitter.prototype) {
-    obj[key] = Emitter.prototype[key];
-  }
-  return obj;
-}
-
-/**
- * Listen on the given `event` with `fn`.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.on =
-Emitter.prototype.addEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-  (this._callbacks[event] = this._callbacks[event] || [])
-    .push(fn);
-  return this;
-};
-
-/**
- * Adds an `event` listener that will be invoked a single
- * time then automatically removed.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.once = function(event, fn){
-  var self = this;
-  this._callbacks = this._callbacks || {};
-
-  function on() {
-    self.off(event, on);
-    fn.apply(this, arguments);
-  }
-
-  on.fn = fn;
-  this.on(event, on);
-  return this;
-};
-
-/**
- * Remove the given callback for `event` or all
- * registered callbacks.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.off =
-Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners =
-Emitter.prototype.removeEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-
-  // all
-  if (0 == arguments.length) {
-    this._callbacks = {};
-    return this;
-  }
-
-  // specific event
-  var callbacks = this._callbacks[event];
-  if (!callbacks) return this;
-
-  // remove all handlers
-  if (1 == arguments.length) {
-    delete this._callbacks[event];
-    return this;
-  }
-
-  // remove specific handler
-  var cb;
-  for (var i = 0; i < callbacks.length; i++) {
-    cb = callbacks[i];
-    if (cb === fn || cb.fn === fn) {
-      callbacks.splice(i, 1);
-      break;
-    }
-  }
-  return this;
-};
-
-/**
- * Emit `event` with the given args.
- *
- * @param {String} event
- * @param {Mixed} ...
- * @return {Emitter}
- */
-
-Emitter.prototype.emit = function(event){
-  this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
-    , callbacks = this._callbacks[event];
-
-  if (callbacks) {
-    callbacks = callbacks.slice(0);
-    for (var i = 0, len = callbacks.length; i < len; ++i) {
-      callbacks[i].apply(this, args);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return array of callbacks for `event`.
- *
- * @param {String} event
- * @return {Array}
- * @api public
- */
-
-Emitter.prototype.listeners = function(event){
-  this._callbacks = this._callbacks || {};
-  return this._callbacks[event] || [];
-};
-
-/**
- * Check if this emitter has `event` handlers.
- *
- * @param {String} event
- * @return {Boolean}
- * @api public
- */
-
-Emitter.prototype.hasListeners = function(event){
-  return !! this.listeners(event).length;
-};
-
-},{}],9:[function(_dereq_,module,exports){
-
-/**
- * Reduce `arr` with `fn`.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Mixed} initial
- *
- * TODO: combatible error handling?
- */
-
-module.exports = function(arr, fn, initial){  
-  var idx = 0;
-  var len = arr.length;
-  var curr = arguments.length == 3
-    ? initial
-    : arr[idx++];
-
-  while (idx < len) {
-    curr = fn.call(null, curr, arr[idx], ++idx, arr);
-  }
-  
-  return curr;
-};
-},{}],10:[function(_dereq_,module,exports){
+},{"underscore":8,"underscore.string":7}],7:[function(_dereq_,module,exports){
 //  Underscore.string
 //  (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
 //  Underscore.string is freely distributable under the terms of the MIT license.
@@ -4378,7 +3172,7 @@ module.exports = function(arr, fn, initial){
   root._.string = root._.str = _s;
 }(this, String);
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -5723,7 +4517,7 @@ module.exports = function(arr, fn, initial){
   }
 }).call(this);
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 (function (global){
 
 var rng;
@@ -5758,7 +4552,7 @@ module.exports = rng;
 
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 (function (Buffer){
 //     uuid.js
 //
@@ -5949,6 +4743,6 @@ uuid.BufferClass = BufferClass;
 module.exports = uuid;
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"./rng":12,"buffer":3}]},{},[2])
-(2)
+},{"./rng":9,"buffer":3}]},{},[1])
+(1)
 });
