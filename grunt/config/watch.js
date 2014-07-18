@@ -16,6 +16,17 @@ module.exports = function(config) {
       ]
     },
 
+    doc: {
+      files: [
+        'doc/**/*.md',
+        'lib/**/*.js'
+      ],
+      tasks: [
+        'newer:jshint',
+        'jsdoc'
+      ]
+    },
+
     // jasmine_node: {
     //   files: [
     //     'lib/**/*.js',

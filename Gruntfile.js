@@ -56,8 +56,16 @@ module.exports = function(grunt) {
 
   grunt.registerTask('auto-build', [
     'build:dev',
-    'watch'
+    'watch:sources',
+    'watch:karma'
   ]);
+
+  grunt.registerTask('auto-doc', [
+    'jsdoc',
+    'watch:doc'
+  ]);
+
+
 
   grunt.registerTask('default', ['build']);
 };
