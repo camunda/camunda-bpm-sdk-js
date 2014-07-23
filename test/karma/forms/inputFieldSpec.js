@@ -117,7 +117,7 @@ describe('The input field', function() {
     expect(variable.value).toBe(exampleVariableStringValue);
   });
 
-  iit('should apply a string value to the control', function() {
+  it('should apply a string value to the control', function() {
 
     var variableManager = new VariableManager();
 
