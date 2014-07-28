@@ -1,8 +1,8 @@
 # Documentation
 
+* [API Client][api-client]
 * [Embedded Forms][embedded-forms]
-* [Service][webservice]
 
+[api-client]: api-client/index.md
 [embedded-forms]: embedded-forms/index.md
-[webservice]: webservice/index.md
 

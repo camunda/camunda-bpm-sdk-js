@@ -1,20 +1,20 @@
 'use strict';
 
 describe('The SDK core', function() {
-  var CamundaClient, cam, ProcessDefinition, processDefinition;
+  var CamSDK, camClient, ProcessDefinition, processDefinition;
 
   it('does not blow when loading', function() {
     expect(function() {
-      CamundaClient = require('./../../lib/index');
+      CamSDK = require('./../../lib/index');
     }).not.toThrow();
   });
 
 
   it('initializes', function() {
     expect(function() {
-      cam = new CamundaClient({
+      camClient = new CamSDK.Client({
         apiUri: 'engine-rest/engine',
-        HttpClient: require('./../../lib/http-client-mock')
+        HttpClient: require('./../../lib/api-client/http-client-mock')
       });
     }).not.toThrow();
   });
@@ -22,7 +22,7 @@ describe('The SDK core', function() {
 
   it('uses the mock HttpClient', function(done) {
     expect(function() {
-      ProcessDefinition = cam.resource('process-definition');
+      ProcessDefinition = camClient.resource('process-definition');
     }).not.toThrow();
 
     expect(ProcessDefinition.http).toBeDefined();

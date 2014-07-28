@@ -1,4 +1,4 @@
-# API SDK
+# camunda BPM API Client
 
 ## Usage
 
@@ -8,25 +8,24 @@
 
 <script type="text/javascript" src="dist/camunda-bpm-sdk.js"></script>
 <script type="text/javascript">
-  var CamundaClient = require('camunda-bpm-sdk-js');
 
-  cam = new CamundaClient({
+  camClient = new CamSDK.Client({
     // HttpClient: require('./../../lib/http-client-mock'),
     apiUri: 'http://localhost:8080/engine-rest/'
   });
-  
-  
-  cam.on('forbidden', function() {
+
+
+  camClient.on('forbidden', function() {
     // ... notify the user he/she is not authenticated
   });
-  
-  
-  cam.on('unauthorized', function() {
+
+
+  camClient.on('unauthorized', function() {
     // ... notify the user he/she does not have enough rights
   });
-  
-  
-  var ProcessDefinition = cam.resource('process-definition');
+
+
+  var ProcessDefinition = camClient.resource('process-definition');
 
   ProcessDefinition.on('loaded', function(result) {
     var total = results.count;
@@ -61,6 +60,11 @@
 ### With node.js
 
 ```js
-var cam = require('camunda-bpm-sdk-js');
-// TODO
+var CamSDK = require('camunda-bpm-sdk-js');
+
+var camClient = new CamSDK.Client({
+  apiUri: 'http://localhost:8080/engine-rest/'
+});
+
+...
 ```

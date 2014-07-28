@@ -5,7 +5,7 @@ describe('The AbstractClientResource', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      AbstractClientResource = require('./../../lib/abstract-client-resource');
+      AbstractClientResource = require('./../../lib/api-client/abstract-client-resource');
     }).not.toThrow();
   });
 

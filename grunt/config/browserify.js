@@ -24,20 +24,32 @@ module.exports = function(config) {
       },
       files: {
         'dist/camunda-bpm-sdk.js': [
-          './lib/api-client/index.js'
+          './lib/index-browser.js'
         ]
       }
     },
 
-    forms: {
+    formsAngular: {
       options: {
         bundleOptions: {
-          standalone: 'CamFormSDK'
-        }
+          standalone: 'CamFormSDKAngularJS'
+        },
+        transform: [
+          [ 'exposify',
+            {
+              // do not embed angular, instead, use window.angular
+              expose: {
+               'angular': 'angular',
+               './../camunda-form': 'CamSDK.Form',
+               './../../': 'CamSDK'
+              }
+            }
+          ]
+        ]
       },
       files: {
-        'dist/camunda-embedded-forms.js': [
-          './lib/forms/index.js'
+        'dist/camunda-bpm-sdk-angular.js': [
+          './lib/forms/angularjs/index.js'
         ]
       }
     }

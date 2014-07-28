@@ -5,7 +5,7 @@ describe('The Task resource usage', function() {
 
   it('does not blow when loading', function() {
     expect(function() {
-      Task = require('./../../../lib/resources/task');
+      Task = require('./../../../lib/api-client/resources/task');
     }).not.toThrow();
   });
 
@@ -16,7 +16,7 @@ describe('The Task resource usage', function() {
   describe('instance', function() {
     var instance;
 
-    it('does not blow when instanciating', function() {
+    it('does not blow when instatiating', function() {
       expect(function() {
         instance = new Task();
       }).not.toThrow();

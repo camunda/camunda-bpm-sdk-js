@@ -2,7 +2,7 @@ describe('The form', function() {
   /* global jQuery: false, CamSDK: false, CamSDKMocks: false, CamFormSDK: false */
   'use strict';
   var $simpleFormDoc;
-  var camForm, camNet, procDef;
+  var camForm, camClient, procDef;
 
 
   it('prepares the testing environemnt', function() {
@@ -28,19 +28,19 @@ describe('The form', function() {
     runs(function() {
       expect(typeof CamSDKMocks).toBe('function');
 
-      expect(typeof CamSDK).toBe('function');
+      expect(typeof CamSDK).toBe('object');
     });
   });
 
 
   it('needs a process definition', function() {
     runs(function() {
-      camNet = new CamSDK({
+      camClient = new CamSDK.Client({
         apiUri: 'engine-rest/engine',
         HttpClient: CamSDKMocks
       });
 
-      camNet.resource('process-definition').list({}, function(err, result) {
+      camClient.resource('process-definition').list({}, function(err, result) {
         if (err) {
           throw err;
         }
@@ -60,25 +60,24 @@ describe('The form', function() {
 
 
   it('exists globally', function() {
-    expect(typeof CamFormSDK).toBe('function');
+    expect(typeof CamSDK.Form).toBe('function');
   });
 
 
   it('has a DOM library', function() {
-    expect(CamFormSDK.$).toBeTruthy();
+    expect(CamSDK.Form.$).toBeTruthy();
   });
 
 
   it('initialize', function() {
     var initialized;
     runs(function() {
-      expect(typeof CamFormSDK).toBe('function');
 
-      expect(camNet).toBeTruthy();
+      expect(camClient).toBeTruthy();
 
       expect(function() {
-        camForm = new CamFormSDK({
-          service: camNet,
+        camForm = new CamSDK.Form({
+          client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
           initialized: function() {
@@ -111,8 +110,8 @@ describe('The form', function() {
     var initialized, submitted, submissionError, submissionResponse;
     runs(function() {
       expect(function() {
-        camForm = new CamFormSDK({
-          service: camNet,
+        camForm = new CamSDK.Form({
+          client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
           initialized: function() {
@@ -169,8 +168,8 @@ describe('The form', function() {
     it('prepares the tests', function() {
       runs(function() {
         initialized = !!camForm;
-        camForm = camForm || new CamFormSDK({
-          service: camNet,
+        camForm = camForm || new CamSDK.Form({
+          client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
           initialized: function() {

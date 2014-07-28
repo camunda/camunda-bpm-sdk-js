@@ -5,8 +5,8 @@ describe('The input field', function() {
   var exampleVariableName = "exampleVariableName";
   var exampleVariableStringValue = "exampleVariableStringValue";
 
-  var VariableManager = CamFormSDK.VariableManager;
-  var InputFieldHandler = CamFormSDK.fields.InputFieldHandler;
+  var VariableManager = CamSDK.Form.VariableManager;
+  var InputFieldHandler = CamSDK.Form.fields.InputFieldHandler;
   var inputFieldTemplate = '<input type="text" />';
 
   it('should init the var name', function() {

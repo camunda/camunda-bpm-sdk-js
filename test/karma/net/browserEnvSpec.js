@@ -15,4 +15,5 @@ describe('The browser usage', function() {
       camSdk = require('camunda-bpm-sdk');
     }).not.toThrow();
   });
+
 });
