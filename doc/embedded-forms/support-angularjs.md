@@ -5,6 +5,7 @@ provides support for
 
 * Angular compilation of Forms loaded from URLs,
 * `ng-model` binding
+* Using Angular directives (such as form validation) in the form
 
 ## Setting up Support for Embedded Forms
 

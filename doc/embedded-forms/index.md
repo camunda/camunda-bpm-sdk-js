@@ -1,129 +1,58 @@
-# Using Embedded Forms
+# camunda BPM JavaScript Forms SDK
 
-* [Supported Html Controls][controls]
+## Overview
 
-## The form
+The Forms SDK greatly simplifies the implementation of task forms.
 
-To add an embedded Task Form to your application:
-
-1. Create an HTML file and attach it to a [User Task][user-task]
-   or a [Start Event][start-event] in your process model.
-2. Add a folder `src/main/webapp/forms` to your project folder
-3. Create a `FORM_NAME.html` file containing the relevant content for your form
-
-### Defining your form
-
-The only required attribute is `cam-form`.
+The main feature of the Forms SDK is handling of *process variables*. You can directly bind Html
+form controls to process variables:
 
 ```html
-<form cam-form>
-  <!-- ... -->
+<form>
+
+  <input type="text" 
+         cam-variable-name="CUSTOMER_ID"
+         cam-variable-type="String">
+
+  <input type="text" 
+         cam-variable-name="CUSTOMER_REVENUE" 
+         cam-variable-type="Float">
+
 </form>
 ```
 
-### Scripting
+The Forms SDK handles the fetching of the variable values from the process engine, type conversions
+and so on.
 
-It is possible to add custom logics to a form by using a script tag as described below.
+The Forms SDK optionally integrates with AngularJS to take advantage of AngularJS form
+validation and other AngularJS goodies.
 
-#### Single form
+## The Form SDK in camunda Tasklist
 
-If there's only 1 form in the document the location of the script tag is not relevant,
+camunda Tasklist uses the Form SDK for providing support for *Embedded Forms*. By default, the
+tasklist uses the Form SDKs [AngularJS integration][angularjs].
 
-```html
-<form cam-form>
-  <!-- ... -->
-</form>
+## Documentation
 
-<script cam-script>
-</script>
-```
+**Basic Topics**
 
+* [Getting started using the Forms SDK][getting-started]
+* [Angular JS Integration][angularjs]
+* [Reference of supported Html Controls][controls]
 
+**Advanced Topics**
 
-#### Multiple form
-
-If they are more than 1 form in the document the location of the script tag can be:
-
-* inside the `form` tag
-* outside the `form` tag with a attribute `name` who has the same value as the `form`
-```html
-<form cam-form>
-  <!-- ... -->
-  <script cam-script>
-    /* ... */
-  </script>
-</form>
-
-<form cam-form>
-  <!-- ... -->
-  <script cam-script>
-    /* ... */
-  </script>
-</form>
-```
-
-```html
-<form cam-form name="form-1"><!-- ... --></form>
-<form cam-form name="form-2"><!-- ... --></form>
-
-<script cam-script name="form-1">/* ... */</script>
-<script cam-script name="form-2">/* ... */</script>
-```
-
-### Fields
-
-```html
-<input cam-variable-name="foo" />
-```
-
-
-```html
-<select cam-variable-name="foo"
-        cam-choices="fooChoices">
-  <option value="bar">Bar</options>
-</select>
-```
+* [The Form Lifecycle and callbacks][lifecycle]
+* Custom JavaScript
+* Working with complex Variable Types
 
 
 
-## Mechanisms
-
-### Lifecycle
-
-1. The form get parsed, variable names collected.
-   _Events:_
-   * `init` is fired __before__ the form is being parsed
-
-2. From the variable names, a request to the server is made to gather information about those
-   variables (using the [web services toolkit][webservices]).
-   _Events:_
-   * `info-fetch` is fired __before__ the request is being made
-   * `info-fetched` is fired __after__ the server responded
-
-3. With the information given by the server, the form fields are "enhanced".
-   _Events:_
-   * `apply` is fired __before__ the processing of variables and inputs happend
-   * `applied` is fired __after__ the processing of variables and inputs has been done
-   
-4. The user interacts the form.
-   _Events:_
-   * `submit` is fired __after__ the user clicked on the submit button and can be used to alterate
-     the form values (state) before validation
-   * `validate` is fired __before__ the information are being sent to the server and can prevent
-     the request to be performed
-
-5. The form is submitted to the server.
-   _Events:_
-   * `submited` is __always__ fired after the server response is received
-   * `submit-success` is fired __after__ the server successfuly treated the submission
-   * `submit-error` is fired __after__ the server failed at treating the submission
-     or when a network error happend
-
-### HTML binding / State
-
-__TODO:__ write something clever about what we mean by "HTML binding" or state
 
 [start-event]: //stage.docs.camunda.org/api-references/bpmn20/#events-start-events
 [user-task]:   //stage.docs.camunda.org/api-references/bpmn20/#tasks-user-task
 [webservices]: webservices
 [controls]:    controls/index.md
+[angularjs]: support-angularjs.md
+[getting-started]: getting-started.md
+[lifecycle]: lifecycle.md
