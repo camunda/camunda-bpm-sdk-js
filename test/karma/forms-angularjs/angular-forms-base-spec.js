@@ -73,7 +73,7 @@ describe('The input field', function() {
      .controller('AppController', ['$scope', function ($scope) {
        camForm = new CamSDK.AngularForm({
          "$scope": $scope,
-         service: camClient,
+         client: camClient,
          processDefinitionId: procDef.id,
          formElement: $simpleFormDoc.find('form[cam-form]'),
          initialized: function() {
@@ -135,7 +135,7 @@ describe('The input field', function() {
       .controller('AppController', ['$scope', function ($scope) {
        camForm = new CamSDK.AngularForm({
          "$scope": $scope,
-         service: camClient,
+         client: camClient,
          processDefinitionId: procDef.id,
          containerElement: appElement,
          formUrl: '/base/test/karma/forms-angularjs/angular-form.html',

@@ -1,90 +1,135 @@
 # Inputs
 
-__Important note__:
-This document is a draft and some of the features described are _not yet implemented_.
+## Single Line Text Input
 
-## Text Input
+Single line text inputs are `<input type="text">` controls. Single line text input are the most
+common input field and allow the user to provide values for different data types.
 
-### Single Line Text Input
+### Binding to a Process Variable
 
-#### Binding to a Process Variable
-
-A text input can be bound to a process variable using the `cam-variable-name` directive:
-
-```html
-<input type="text"
-       cam-variable-name="customerId" />
-```
-
-In the example above, the text input field is bound to the variable named `customerId`.
-
-#### Specifying the Type of the Variable
-
-Optionally, the type of the process variable can be specified using the `cam-variable-type`:
-
+A text input can be bound to a process variable using the `cam-variable-type` and
+`cam-variable-name` directives:
 
 ```html
 <input type="text"
-       cam-variable-name="customerId"
-       cam-variable-type="string" />
+       cam-variable-name="CUSTOMER_ID"
+       cam-variable-type="String" />
 ```
 
-The default type of a text input field is `string`.
+In the example above, the text input field is bound to the variable named `CUSTOMER_ID` of type
+`String`.
 
-#### Legacy Syntax:
+### Supported Variable Types
+
+A text input field supports multiple variable types.
+
+> *Binding to existing variables*: Note that if you bind the input field to an existing variable,
+> the type of the variable is provided by the process engine and the `cam-variable-type` directive
+> is not required.
+
+#### String
+
+In order to bind the input field to a `String` variable, the directive `cam-variable-type="String"`
+must be used.
+
+Example:
 
 ```html
-<input form-field type="text" name="[variableName]" />
+<input type="text"
+       cam-variable-name="CUSTOMER_ID"
+       cam-variable-type="String" />
 ```
 
-Parameter | Explanation
---------- | -----------
-variableName | The name of the process variable 
+> *Trimming*: Note that the value of the String variable is trimmed before it is submitted to the 
+> process engine: leading and trailing whitespace is removed.
 
-### Multi Line Textarea
+#### Integer
 
-#### Legacy Syntax
+In order to bind the input field to a Java `Integer` variable, the directive 
+`cam-variable-type="Integer"` must be used.
+
+Example:
+
+```html
+<input type="text"
+       cam-variable-name="CUSTOMER_AGE"
+       cam-variable-type="Integer" />
+```
+
+#### Float
+
+In order to bind the input field to a Java `Float` variable, the directive 
+`cam-variable-type="Float"` must be used.
+
+Example:
+
+```html
+<input type="text"
+       cam-variable-name="CUSTOMER_REVENUE"
+       cam-variable-type="Float" />
+```
+
+#### Date
+
+In order to bind the input field to a Java `Date` variable, the directive 
+`cam-variable-type="Date"` must be used.
+
+Example:
+
+```html
+<input type="text"
+       cam-variable-name="CONTRACT_START_DATE"
+       cam-variable-type="Date" />
+```
+
+##### Date Format
+
+Currently only the ISO Date Format `yyyy-MM-dd'T'HH:mm:ss` is supported.
+Example value: `2013-01-23T13:42:42`
+
+#### Boolean
+
+In order to bind the input field to a Java `Boolean` variable, the directive 
+`cam-variable-type="Boolean"` must be used.
+
+Text input fields of type `Boolean` accept the following string values:
+
+* `true`
+* `false`
+
+Meaning that the user has to type the words "true" or "false" into the text input field.
+
+Example:
+
+```html
+<input type="text"
+       cam-variable-name="IS_VIP_CUSTOMER"
+       cam-variable-type="Boolean" />
+```
+
+## Multi Line Textarea
 
 Textareas are HTML `<textarea>` elements of the form
 
 ```html
-<textarea form-field name="[variableName]"></textarea>
+<textarea></textarea>
 ```
 
-*Note:* currently the textarea only supports string variables.
+### Binding to a Process Variable
 
-Parameter | Explanation
---------- | -----------
-variableName | The name of the process variable 
-
-This is an example of the textarea:
+A textarea input can be bound to a process variable using the `cam-variable-type` and
+`cam-variable-name` directives:
 
 ```html
-<textarea form-field name="selectedName"></textarea>
+<textarea cam-variable-name="CUSTOMER_ADDRESS"
+          cam-variable-type="String">
+</textarea>
 ```
 
-## Number Input
+In the example above, the textarea is bound to the variable named `CUSTOMER_ADDRESS` of type
+`String`.
 
-#### Legacy Syntax:
+### Supported Variable Types
 
-```html
-<input form-field type="number" name="[variableName]" />
-```
-
-Parameter | Explanation
---------- | -----------
-variableName | The name of the process variable
-
-
-## Date Input
-
-#### Legacy Syntax:
-
-```html
-<input form-field type="date" name="[variableName]" />
-```
-
-Parameter | Explanation
---------- | -----------
-variableName | The name of the process variable
-
+The textarea supports the same variable types as the single line text input `<input
+type="text"></input>`.

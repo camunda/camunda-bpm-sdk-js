@@ -1,4 +1,4 @@
-# Support for AngularJS in Embedded fORMS
+# Support for AngularJS in Embedded Forms
 
 Embedded forms provide optional support for integrating with AngularJS. The angular JS integration
 provides support for

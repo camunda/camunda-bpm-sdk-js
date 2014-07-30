@@ -156,7 +156,7 @@ describe('The form', function() {
 
       expect(stored.stringVar).toBeTruthy();
 
-      expect(stored.stringVar.type).toBe('string');
+      expect(stored.stringVar.type).toBe('String');
 
       expect(stored.stringVar.value).toBe('updated');
     });
