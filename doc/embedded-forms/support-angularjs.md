@@ -35,10 +35,10 @@ TODO.
 
 In case the built-in `cam-form` directive does not provide enough flexibility, an embedded form can
 be bootstrapped programatically. Once you loaded the `camunda-bpm-sdk-angular.js` file, the Api is
-available through `CamSDK.AngularForm`:
+available through `CamSDK.Form`:
 
 ```javascript
-var camForm = new CamSDK.AngularForm({
+var camForm = new CamSDK.Form({
   ...
 });
 ```
@@ -54,7 +54,7 @@ forms from an external source depending on the process definition.
 Forms can be loaded from an URI by setting the `formUrl` property when initializing the form:
 
 ```javascript
-new CamSDK.AngularForm({
+new CamSDK.Form({
     formUrl: "/url/to/my/form",
     ...
 });
@@ -86,7 +86,7 @@ Create a container element for the form:
 <div id="formContainer" ng-controller="FormController"></div>
 ```
 
-In an AngularJS Controller, set the `formUrl` property of the `CamSDK.AngularForm` object:
+In an AngularJS Controller, set the `formUrl` property of the `CamSDK.Form` object:
 
 ```javascript
 angular.module('formExample', [])
@@ -96,7 +96,7 @@ angular.module('formExample', [])
     apiUri: 'http://localhost:8080/engine-rest/engine'
   });
 
-  $scope.camForm = new CamSDK.AngularForm({
+  $scope.camForm = new CamSDK.Form({
     client: camApiClient,
     formUrl: "/url/to/my/form",
     processDefinitionKey: 'createCustomerAccount',
@@ -116,7 +116,7 @@ In order to initialize an embedded form for a `<form>` element already existing 
 to set the `formElement` property when initializing the form:
 
 ```javascript
-new CamSDK.AngularForm({
+new CamSDK.Form({
   formElement: $('#startForm'),
   ...
 });
@@ -157,7 +157,7 @@ angular.module('formExample', [])
     apiUri: 'http://localhost:8080/engine-rest/engine'
   });
 
-  $scope.camForm = new CamSDK.AngularForm({
+  $scope.camForm = new CamSDK.Form({
     client: camApiClient,
     processDefinitionKey: 'createCustomerAccount',
     formElement: $('#startForm')
