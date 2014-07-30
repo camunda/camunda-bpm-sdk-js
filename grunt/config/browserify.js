@@ -29,19 +29,17 @@ module.exports = function(config) {
       }
     },
 
-    formsAngular: {
+    distAngular: {
       options: {
         bundleOptions: {
-          standalone: 'CamFormSDKAngularJS'
+          standalone: 'CamSDK'
         },
         transform: [
           [ 'exposify',
             {
-              // do not embed angular, instead, use window.angular
               expose: {
+               // do not embed angular, instead, use window.angular
                'angular': 'angular',
-               './../camunda-form': 'CamSDK.Form',
-               './../../': 'CamSDK'
               }
             }
           ]
@@ -49,7 +47,7 @@ module.exports = function(config) {
       },
       files: {
         'dist/camunda-bpm-sdk-angular.js': [
-          './lib/forms/angularjs/index.js'
+          './lib/angularjs/index.js'
         ]
       }
     }

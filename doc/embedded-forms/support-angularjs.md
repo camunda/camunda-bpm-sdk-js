@@ -15,7 +15,6 @@ When using camunda BPM embedded forms inside an AngularJS application,
 
 ```html
 <script src="angular.min.js"></script>
-<script src="camunda-bpm-sdk.js"></script>
 <script src="camunda-bpm-sdk-angular.js"></script>
 ```
 

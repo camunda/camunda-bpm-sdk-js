@@ -59,7 +59,7 @@ describe('The input field', function() {
 
 
   it('should provide CamSDKFormsAngular', function() {
-    expect(CamSDK.AngularForm).toBeDefined();
+    expect(CamSDK.Form).toBeDefined();
   });
 
   /**
@@ -71,8 +71,7 @@ describe('The input field', function() {
     var scope;
     angular.module('testApp', [])
      .controller('AppController', ['$scope', function ($scope) {
-       camForm = new CamSDK.AngularForm({
-         "$scope": $scope,
+       camForm = new CamSDK.Form({
          client: camClient,
          processDefinitionId: procDef.id,
          formElement: $simpleFormDoc.find('form[cam-form]'),
@@ -133,8 +132,7 @@ describe('The input field', function() {
 
     angular.module('testApp', [])
       .controller('AppController', ['$scope', function ($scope) {
-       camForm = new CamSDK.AngularForm({
-         "$scope": $scope,
+       camForm = new CamSDK.Form({
          client: camClient,
          processDefinitionId: procDef.id,
          containerElement: appElement,
