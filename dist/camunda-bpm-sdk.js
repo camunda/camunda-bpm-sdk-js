@@ -1,7 +1,7 @@
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.CamSDK=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var HttpClient = _dereq_('./http-client');
+// var HttpClient = require('./http-client');
 var Events = _dereq_('./../events');
 var BaseClass = _dereq_('./../base-class');
 
@@ -10,19 +10,29 @@ function noop() {}
 
 /**
  * Abstract class for resources
- * @exports CamSDK.GenericResource
- * @augments CamSDK.BaseClass
- * @constructor
- * @mixes CamSDK.Events
+ *
+ * @class
+ * @augments {CamSDK.BaseClass}
+ * @memberof CamSDK.client
+ *
+ * @borrows CamSDK.Events.on                        as on
+ * @borrows CamSDK.Events.once                      as once
+ * @borrows CamSDK.Events.off                       as off
+ * @borrows CamSDK.Events.trigger                   as trigger
+ *
+ * @borrows CamSDK.Events.on                        as prototype.on
+ * @borrows CamSDK.Events.once                      as prototype.once
+ * @borrows CamSDK.Events.off                       as prototype.off
+ * @borrows CamSDK.Events.trigger                   as prototype.trigger
  *
  *
  * @example
  *
  * // create a resource Model
- * var Model = GenericResource.extend({
+ * var Model = AbstractClientResource.extend({
  *   apiUri: 'path-to-the-endpoint'
  *   doSomethingOnInstance: function() {
- *     // ...
+ *     //
  *   }
  * }, {
  *   somethingStatic: {}
@@ -52,191 +62,166 @@ function noop() {}
  *
  * });
  */
-var GenericResource = BaseClass.extend();
-
-
-
-
-/**
- * Path used by the resource to perform HTTP queries
- * @abstract
- * @memberof CamSDK.GenericResource
- *
- * @type {String}
- */
-GenericResource.path = '';
-
-
-
-/**
- * Initializes a GenericResource instance
- *
- * This method is aimed to be overriden by other implementations
- * of the GenericResource.
- * @abstract
- * @memberof CamSDK.GenericResource.prototype
- */
-GenericResource.prototype.initialize = function() {
-  // do something to initialize the instance
-  // like copying the Model http property to the "this" (instanciated)
-  this.http = this.constructor.http;
-};
-
-
-Events.attach(GenericResource);
-
-
-/**
- * Object hosting the methods for HTTP queries.
- * @abstract
- * @memberof CamSDK.GenericResource
- *
- * @type {HttpClient}
- */
-GenericResource.http = {};
-
-
-
-/**
- * Create an instance on the backend
- * @abstract
- * @memberof CamSDK.GenericResource
- *
- * @param  {!Object|Object[]}  attributes        ...
- * @param  {requestCallback} [done]              ...
- */
-GenericResource.create = function(attributes, done) {};
-
-
-
-/**
- * Fetch a list of instances
- * @abstract
- * @memberof CamSDK.GenericResource
- *
- * @fires CamSDK.GenericResource#error
- * @fires CamSDK.GenericResource#loaded
- *
- * @param  {?Object.<String, String>} params  ...
- * @param  {requestCallback} [done]           ...
- */
-GenericResource.list = function(params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
+var AbstractClientResource = BaseClass.extend(
+/** @lends AbstractClientResource.prototype */
+{
+  /**
+   * Initializes a AbstractClientResource instance
+   *
+   * This method is aimed to be overriden by other implementations
+   * of the AbstractClientResource.
+   *
+   * @method initialize
+   */
+  initialize: function() {
+    // do something to initialize the instance
+    // like copying the Model http property to the "this" (instanciated)
+    this.http = this.constructor.http;
   }
-  params = params || {};
-  done = done || noop;
-
-  var self = this;
-  var likeExp = /Like$/;
-  var results = {
-    count: 0,
-    items: []
-  };
-
-  // until a new webservice is made available,
-  // we need to perform 2 requests
-  return this.http.get(this.path +'/count', {
-    data: params,
-    done: function(err, countRes) {
-      if (err) {
-        /**
-         * @event CamSDK.GenericResource#error
-         * @type {Error}
-         */
-        self.trigger('error', err);
-        return done(err);
-      }
-
-      results.count = countRes.count;
-
-      self.http.get(self.path, {
-        data: params,
-        done: function(err, itemsRes) {
-          if (err) {
-            /**
-             * @event CamSDK.GenericResource#error
-             * @type {Error}
-             */
-            self.trigger('error', err);
-            return done(err);
-          }
-
-          results.items = itemsRes;
-          // QUESTION: should we return that too?
-          results.firstResult = parseInt(params.firstResult || 0, 10);
-          results.maxResults = results.firstResult + parseInt(params.maxResults || 10, 10);
+},
 
 
-          /**
-           * @event CamSDK.GenericResource#loaded
-           * @type {Object}
-           * @property {Number} count is the total of items matching on backend
-           * @property {Array} items  is an array of items
-           */
-          self.trigger('loaded', results);
-          done(err, results);
-        }
-      });
+/** @lends AbstractClientResource */
+{
+  /**
+   * Path used by the resource to perform HTTP queries
+   *
+   * @abstract
+   * @memberOf CamSDK.client.AbstractClientResource
+   */
+  path: '',
+
+  /**
+   * Object hosting the methods for HTTP queries.
+   *
+   * @abstract
+   * @memberof CamSDK.client.AbstractClientResource
+   */
+  http: {},
+
+
+
+  /**
+   * Create an instance on the backend
+   *
+   * @abstract
+   * @memberOf CamSDK.client.AbstractClientResource
+   *
+   * @param  {!Object|Object[]}  attributes
+   * @param  {requestCallback} [done]
+   */
+  create: function(attributes, done) {},
+
+
+  /**
+   * Fetch a list of instances
+   *
+   * @memberof CamSDK.client.AbstractClientResource
+   *
+   * @fires CamSDK.AbstractClientResource#error
+   * @fires CamSDK.AbstractClientResource#loaded
+   *
+   * @param  {?Object.<String, String>} params
+   * @param  {requestCallback} [done]
+   */
+  list: function(params, done) {
+    // allows to pass only a callback
+    if (typeof params === 'function') {
+      done = params;
+      params = {};
     }
-  });
-};
+    params = params || {};
+    done = done || noop;
+
+    // var likeExp = /Like$/;
+    var self = this;
+    var results = {
+      count: 0,
+      items: []
+    };
+
+    // until a new webservice is made available,
+    // we need to perform 2 requests
+    return this.http.get(this.path +'/count', {
+      data: params,
+      done: function(err, countRes) {
+        if (err) {
+          /**
+           * @event CamSDK.AbstractClientResource#error
+           * @type {Error}
+           */
+          self.trigger('error', err);
+          return done(err);
+        }
+
+        results.count = countRes.count;
+
+        self.http.get(self.path, {
+          data: params,
+          done: function(err, itemsRes) {
+            if (err) {
+              /**
+               * @event CamSDK.AbstractClientResource#error
+               * @type {Error}
+               */
+              self.trigger('error', err);
+              return done(err);
+            }
+
+            results.items = itemsRes;
+            // QUESTION: should we return that too?
+            results.firstResult = parseInt(params.firstResult || 0, 10);
+            results.maxResults = results.firstResult + parseInt(params.maxResults || 10, 10);
+
+
+            /**
+             * @event CamSDK.AbstractClientResource#loaded
+             * @type {Object}
+             * @property {Number} count is the total of items matching on backend
+             * @property {Array} items  is an array of items
+             */
+            self.trigger('loaded', results);
+            done(err, results);
+          }
+        });
+      }
+    });
+  },
 
 
 
-/**
- * Update one or more instances
- * @abstract
- * @memberof CamSDK.GenericResource
- *
- * @param  {!String|String[]}     ids           ...
- * @param  {Object.<String, *>}   attributes    ...
- * @param  {requestCallback} [done]   ...
- */
-GenericResource.update = function(ids, attributes, done) {};
+  /**
+   * Update one or more instances
+   *
+   * @abstract
+   * @memberof CamSDK.AbstractClientResource
+   *
+   * @param  {!String|String[]}     ids
+   * @param  {Object.<String, *>}   attributes
+   * @param  {requestCallback} [done]
+   */
+  update: function(ids, attributes, done) {},
 
 
 
-/**
- * Delete one or more instances
- * @abstract
- * @memberof CamSDK.GenericResource
- *
- * @param  {!String|String[]}  ids   ...
- * @param  {requestCallback} [done]   ...
- */
-GenericResource.delete = function(ids, done) {};
+  /**
+   * Delete one or more instances
+   *
+   * @abstract
+   * @memberof CamSDK.AbstractClientResource
+   *
+   * @param  {!String|String[]}  ids
+   * @param  {requestCallback} [done]
+   */
+  delete: function(ids, done) {}
+});
 
 
+Events.attach(AbstractClientResource);
 
-/**
- * Update one or more instances.
- * @abstract
- * @memberof CamSDK.GenericResource.prototype
- *
- * @param  {Object}   attributes    ...
- * @param  {requestCallback} [done]  ...
- */
-GenericResource.prototype.update = function(attributes, done) {};
+module.exports = AbstractClientResource;
 
-
-
-/**
- * Delete one or more instances
- * @abstract
- * @memberof CamSDK.GenericResource.prototype
- *
- * @param  {requestCallback} [done] ...
- */
-GenericResource.prototype.delete = function(done) {};
-
-
-
-module.exports = GenericResource;
-
-},{"./../base-class":10,"./../events":11,"./http-client":2}],2:[function(_dereq_,module,exports){
+},{"./../base-class":9,"./../events":10}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
@@ -245,9 +230,11 @@ var noop = function() {};
 
 /**
  * HttpClient
- * @exports CamSDK.HttpClient
+ *
+ * A HTTP request abstraction layer to be used in node.js / browsers environments.
+ *
  * @class
- * @classdesc A HTTP request abstraction layer to be used in node.js / browsers environments.
+ * @memberof CamSDK.client
  */
 var HttpClient = function(config) {
   config = config || {};
@@ -260,6 +247,18 @@ var HttpClient = function(config) {
 
   this.config = config;
 };
+
+function toDone(response, done) {
+  // superagent puts the parsed data into a property named "body"
+  // and the "raw" content in property named "text"
+  // and.. it does not parse the response if it does not have
+  // the "application/json" type.
+  if (response.type === 'application/hal+json' && !response.body) {
+    response.body = JSON.parse(response.text);
+  }
+
+  done(null, response.body ? response.body : (response.text ? response.text : response));
+}
 
 /**
  * Performs a POST HTTP request
@@ -280,8 +279,7 @@ HttpClient.prototype.post = function(path, options) {
       return done(err);
     }
 
-    // superagent puts the data into a property called body
-    done(null, response.body ? response.body : response);
+    toDone(response, done);
   });
 };
 
@@ -304,6 +302,7 @@ HttpClient.prototype.load = function(url, options) {
   var self = this;
   var req = request
     .get(url)
+    .set('Accept', 'application/hal+json, application/json')
     .query(options.data || {});
 
   req.end(function(err, response) {
@@ -313,9 +312,7 @@ HttpClient.prototype.load = function(url, options) {
       return done(err);
     }
 
-    // superagent puts the parsed data into a property named "body"
-    // and the "raw" content in property named "text"
-    done(null, response.body ? response.body : (response.text ? response.text : response));
+    toDone(response, done);
   });
 };
 
@@ -327,6 +324,8 @@ HttpClient.prototype.put = function(data, options) {
   data = data || {};
   options = options || {};
   var done = options.done || noop;
+
+  // toDone(response, done);
 };
 
 
@@ -339,29 +338,36 @@ HttpClient.prototype.del = function(data, options) {
   data = data || {};
   options = options || {};
   var done = options.done || noop;
+
+  // toDone(response, done);
 };
 
 module.exports = HttpClient;
 
-},{"./../events":11,"superagent":12}],3:[function(_dereq_,module,exports){
+},{"./../events":10,"superagent":21}],3:[function(_dereq_,module,exports){
 'use strict';
 
 /**
- * @namespace CamSDK
+ * For all API client related
+ * @namespace CamSDK.client
+ */
+
+/**
+ * For the resources implementations
+ * @namespace CamSDK.client.resource
  */
 
 /**
  * Entry point of the module
- * @exports Cam
- * @constructor
  *
- * @param  {Object} config        used to provide necessary configuration
- * @param  {String} [config.engine=default] ...
- * @param  {String} config.apiUri ...
+ * @class CamundaClient
+ * @memberof CamSDK.client
  *
- * @return {Object}               ...
+ * @param  {Object} config                  used to provide necessary configuration
+ * @param  {String} [config.engine=default]
+ * @param  {String} config.apiUri
  */
-function Cam(config) {
+function CamundaClient(config) {
   if (!config) {
     throw new Error('Needs configuration');
   }
@@ -377,7 +383,7 @@ function Cam(config) {
 
   config.resources = config.resources || {};
 
-  this.HttpClient = config.HttpClient || Cam.HttpClient;
+  this.HttpClient = config.HttpClient || CamundaClient.HttpClient;
 
   this.baseUrl = config.apiUri;
   if(this.baseUrl.slice(-1) !== '/') {
@@ -390,13 +396,19 @@ function Cam(config) {
   this.initialize();
 }
 
-Cam.HttpClient = _dereq_('./http-client');
+/**
+ * [HttpClient description]
+ * @memberof CamSDK.client.CamundaClient
+ * @name HttpClient
+ * @type {CamSDK.client.HttpClient}
+ */
+CamundaClient.HttpClient = _dereq_('./http-client');
 
 // provide an isolated scope
 (function(proto){
   /**
    * configuration storage
-   * @memberOf Cam.prototype
+   * @memberof CamSDK.client.CamundaClient.prototype
    * @name  config
    * @type {Object}
    */
@@ -405,9 +417,8 @@ Cam.HttpClient = _dereq_('./http-client');
   var _resources = {};
 
   /**
-   * Prepare the instance
-   * @memberOf Cam.prototype
-   * @name  initialize
+   * @memberof CamSDK.client.CamundaClient.prototype
+   * @name initialize
    */
   proto.initialize = function() {
     /* jshint sub: true */
@@ -415,7 +426,6 @@ Cam.HttpClient = _dereq_('./http-client');
     _resources['process-definition']  = _dereq_('./resources/process-definition');
     _resources['process-instance']    = _dereq_('./resources/process-instance');
     _resources['task']                = _dereq_('./resources/task');
-    _resources['session']             = _dereq_('./resources/session');
     _resources['variable']            = _dereq_('./resources/variable');
     /* jshint sub: false */
     var self = this;
@@ -456,19 +466,19 @@ Cam.HttpClient = _dereq_('./http-client');
 
   /**
    * Allows to get a resource from SDK by its name
-   * @memberOf Cam.prototype
+   * @memberof CamSDK.client.CamundaClient.prototype
    * @name resource
    *
-   * @param  {String} name [description]
-   * @return {CamSDK.GenericResource}      [description]
+   * @param  {String} name
+   * @return {CamSDK.client.AbstractClientResource}
    */
   proto.resource = function(name) {
     return _resources[name];
   };
-}(Cam.prototype));
+}(CamundaClient.prototype));
 
 
-module.exports = Cam;
+module.exports = CamundaClient;
 
 
 /**
@@ -481,7 +491,7 @@ module.exports = Cam;
  * This callback is displayed as part of the Requester class.
  * @callback requestCallback
  * @param {?Object} error
- * @param {CamSDK.GenericResource|CamSDK.GenericResource[]} [results]
+ * @param {CamSDK.AbstractClientResource|CamSDK.AbstractClientResource[]} [results]
  */
 
 
@@ -490,22 +500,20 @@ module.exports = Cam;
  * @callback noopCallback
  */
 
-},{"./http-client":2,"./resources/pile":4,"./resources/process-definition":5,"./resources/process-instance":6,"./resources/session":7,"./resources/task":8,"./resources/variable":9}],4:[function(_dereq_,module,exports){
+},{"./http-client":2,"./resources/pile":4,"./resources/process-definition":5,"./resources/process-instance":6,"./resources/task":7,"./resources/variable":8}],4:[function(_dereq_,module,exports){
 'use strict';
 
-var GenericResource = _dereq_("./../generic-resource");
+var AbstractClientResource = _dereq_("./../abstract-client-resource");
 
 
 
 /**
  * Pile Resource
  * @class
- * @classdesc A variable resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.Pile
- * @constructor
+ * @memberof CamSDK.client.resource
+ * @augments CamSDK.client.AbstractClientResource
  */
-var Pile = GenericResource.extend();
+var Pile = AbstractClientResource.extend();
 
 /**
  * API path for the process definition resource
@@ -516,10 +524,10 @@ Pile.path = 'pile';
 module.exports = Pile;
 
 
-},{"./../generic-resource":1}],5:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":1}],5:[function(_dereq_,module,exports){
 'use strict';
 
-var GenericResource = _dereq_("./../generic-resource");
+var AbstractClientResource = _dereq_("./../abstract-client-resource");
 
 /**
  * No-Op callback
@@ -529,348 +537,322 @@ function noop() {}
 /**
  * Process Definition Resource
  * @class
- * @classdesc A process definition resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.ProcessDefinition
- * @constructor
+ * @memberof CamSDK.client.resource
+ * @augments CamSDK.client.AbstractClientResource
  */
-var ProcessDefinition = GenericResource.extend();
+var ProcessDefinition = AbstractClientResource.extend(
+/** @lends  CamSDK.client.resource.ProcessDefinition.prototype */
+{
+  /**
+   * Suspends the process definition instance
+   *
+   * @param  {Object.<String, *>} [params]
+   * @param  {requestCallback}    [done]
+   */
+  suspend: function(params, done) {
+    // allows to pass only a callback
+    if (typeof params === 'function') {
+      done = params;
+      params = {};
+    }
+    params = params || {};
+    done = done || noop;
+
+    return this.http.post(this.path, {
+      done: done
+    });
+  },
 
 
-/**
- * API path for the process definition resource
- * @type {String}
- */
-ProcessDefinition.path = 'process-definition';
-
-/**
- * Get a list of process definitions
- * @param  {Object} [params]                      Query parameters as follow
- * @param  {String} [params.name]                 Filter by name.
- * @param  {String} [params.nameLike]             Filter by names that the parameter is a substring of.
- * @param  {String} [params.deploymentId]         Filter by the deployment the id belongs to.
- * @param  {String} [params.key]                  Filter by key, i.e. the id in the BPMN 2.0 XML. Exact match.
- * @param  {String} [params.keyLike]              Filter by keys that the parameter is a substring of.
- * @param  {String} [params.category]             Filter by category. Exact match.
- * @param  {String} [params.categoryLike]         Filter by categories that the parameter is a substring of.
- * @param  {String} [params.ver]                  Filter by version.
- * @param  {String} [params.latest]               Only include those process definitions that are latest versions.
- *                                                Values may be "true" or "false".
- * @param  {String} [params.resourceName]         Filter by the name of the process definition resource. Exact match.
- * @param  {String} [params.resourceNameLike]     Filter by names of those process definition resources that the parameter is a substring of.
- * @param  {String} [params.startableBy]          Filter by a user name who is allowed to start the process.
- * @param  {String} [params.active]               Only include active process definitions.
- *                                                Values may be "true" or "false".
- * @param  {String} [params.suspended]            Only include suspended process definitions.
- *                                                Values may be "true" or "false".
- * @param  {String} [params.incidentId]           Filter by the incident id.
- * @param  {String} [params.incidentType]         Filter by the incident type.
- * @param  {String} [params.incidentMessage]      Filter by the incident message. Exact match.
- * @param  {String} [params.incidentMessageLike]  Filter by the incident message that the parameter is a substring of.
- *
- * @param  {String} [params.sortBy]               Sort the results lexicographically by a given criterion.
- *                                                Valid values are category, "key", "id", "name", "version" and "deploymentId".
- *                                                Must be used in conjunction with the "sortOrder" parameter.
- *
- * @param  {String} [params.sortOrder]            Sort the results in a given order.
- *                                                Values may be asc for ascending "order" or "desc" for descending order.
- *                                                Must be used in conjunction with the sortBy parameter.
- *
- * @param  {Integer} [params.firstResult]         Pagination of results. Specifies the index of the first result to return.
- * @param  {Integer} [params.maxResults]          Pagination of results. Specifies the maximum number of results to return.
- *                                                Will return less results, if there are no more results left.
-
- * @param  {requestCallback} [done]       ...
- *
- * @example
- * CamSDK.resource('process-definition').list({
- *   nameLike: 'Process'
- * }, function(err, results) {
- *   // ...
- * });
- */
-ProcessDefinition.list = function(params, done) {
-  GenericResource.list.apply(this, arguments);
-  // GenericResource.list.call(this, params, function() {
-  //   var e = new Error();
-  //   console.info('ProcessDefinition.list', e.stack);
-  //   done.apply(this, arguments);
-  // });
-};
+  /**
+   * Retrieves the statistics of a process definition.
+   *
+   * @param  {Function} [done]
+   */
+  stats: function(done) {
+    return this.http.post(this.path, {
+      done: done || noop
+    });
+  },
 
 
+  /**
+   * Retrieves the BPMN 2.0 XML document of a process definition.
+   *
+   * @param  {Function} [done]
+   */
+  xml: function(done) {
+    return this.http.post(this.path, {
+      done: done || noop
+    });
+  },
 
-/**
- * Fetch the variables of a process definition
- * @param  {Object.<String, *>} data
- * @param  {String}             [data.id]     of the process
- * @param  {String}             [data.key]    of the process
- * @param  {Array}              [data.names]  of variables to be fetched
- * @param  {Function}           [done]
- */
-ProcessDefinition.formVariables = function(data, done) {
-  var pointer = '';
-  if (data.key) {
-    pointer = 'key/'+ data.key;
+
+  /**
+   * Starts a process instance from a process definition.
+   *
+   * @param  {Object} [varname]
+   * @param  {Function} [done]
+   */
+  start: function(done) {
+    return this.http.post(this.path, {
+      data: {},
+      done: done
+    });
   }
-  else if (data.id) {
-    pointer = data.id;
+},
+/** @lends  CamSDK.client.resource.ProcessDefinition */
+{
+  /**
+   * API path for the process instance resource
+   */
+  path: 'process-definition',
+
+
+  /**
+   * Get a list of process definitions
+   * @param  {Object} [params]                      Query parameters as follow
+   * @param  {String} [params.name]                 Filter by name.
+   * @param  {String} [params.nameLike]             Filter by names that the parameter is a substring of.
+   * @param  {String} [params.deploymentId]         Filter by the deployment the id belongs to.
+   * @param  {String} [params.key]                  Filter by key, i.e. the id in the BPMN 2.0 XML. Exact match.
+   * @param  {String} [params.keyLike]              Filter by keys that the parameter is a substring of.
+   * @param  {String} [params.category]             Filter by category. Exact match.
+   * @param  {String} [params.categoryLike]         Filter by categories that the parameter is a substring of.
+   * @param  {String} [params.ver]                  Filter by version.
+   * @param  {String} [params.latest]               Only include those process definitions that are latest versions.
+   *                                                Values may be "true" or "false".
+   * @param  {String} [params.resourceName]         Filter by the name of the process definition resource. Exact match.
+   * @param  {String} [params.resourceNameLike]     Filter by names of those process definition resources that the parameter is a substring of.
+   * @param  {String} [params.startableBy]          Filter by a user name who is allowed to start the process.
+   * @param  {String} [params.active]               Only include active process definitions.
+   *                                                Values may be "true" or "false".
+   * @param  {String} [params.suspended]            Only include suspended process definitions.
+   *                                                Values may be "true" or "false".
+   * @param  {String} [params.incidentId]           Filter by the incident id.
+   * @param  {String} [params.incidentType]         Filter by the incident type.
+   * @param  {String} [params.incidentMessage]      Filter by the incident message. Exact match.
+   * @param  {String} [params.incidentMessageLike]  Filter by the incident message that the parameter is a substring of.
+   *
+   * @param  {String} [params.sortBy]               Sort the results lexicographically by a given criterion.
+   *                                                Valid values are category, "key", "id", "name", "version" and "deploymentId".
+   *                                                Must be used in conjunction with the "sortOrder" parameter.
+   *
+   * @param  {String} [params.sortOrder]            Sort the results in a given order.
+   *                                                Values may be asc for ascending "order" or "desc" for descending order.
+   *                                                Must be used in conjunction with the sortBy parameter.
+   *
+   * @param  {Integer} [params.firstResult]         Pagination of results. Specifies the index of the first result to return.
+   * @param  {Integer} [params.maxResults]          Pagination of results. Specifies the maximum number of results to return.
+   *                                                Will return less results, if there are no more results left.
+
+   * @param  {requestCallback} [done]
+   *
+   * @example
+   * CamSDK.resource('process-definition').list({
+   *   nameLike: 'Process'
+   * }, function(err, results) {
+   *   //
+   * });
+   */
+  list: function(params, done) {
+    AbstractClientResource.list.apply(this, arguments);
+  },
+
+
+  /**
+   * Fetch the variables of a process definition
+   * @param  {Object.<String, *>} data
+   * @param  {String}             [data.id]     of the process
+   * @param  {String}             [data.key]    of the process
+   * @param  {Array}              [data.names]  of variables to be fetched
+   * @param  {Function}           [done]
+   */
+  formVariables: function(data, done) {
+    var pointer = '';
+    if (data.key) {
+      pointer = 'key/'+ data.key;
+    }
+    else if (data.id) {
+      pointer = data.id;
+    }
+    else {
+      return done(new Error('Process definition task variables needs either a key or an id.'));
+    }
+
+    return this.http.get(this.path +'/'+ pointer +'/form-variables', {
+      data: {
+        variableNames: (data.names || []).join(',')
+      },
+      done: done || function() {}
+    });
+  },
+
+
+  /**
+   * Fetch the variables of a process definition
+   *
+   * @param  {Object.<String, *>} data
+   * @param  {String}             [data.id]     of the process
+   * @param  {String}             [data.key]    of the process
+   * @param  {Array}              [data.names]  of variables to be fetched
+   * @param  {Function}           [done]
+   */
+  submitForm: function(data, done) {
+    var pointer = '';
+    if (data.key) {
+      pointer = 'key/'+ data.key;
+    }
+    else if (data.id) {
+      pointer = data.id;
+    }
+    else {
+      return done(new Error('Process definition task variables needs either a key or an id.'));
+    }
+
+    return this.http.post(this.path +'/'+ pointer +'/submit-form', {
+      data: {
+        variables: data.variables
+      },
+      done: done || function() {}
+    });
+  },
+
+
+  /**
+   * Retrieves the form of a process definition.
+   * @param  {Function} [done]
+   */
+  startForm: function(data, done) {
+    var path = this.path +'/'+ (data.key ? 'key/'+ data.key : data.id) +'/startForm';
+    return this.http.get(path, {
+      done: done || noop
+    });
+  },
+
+
+  /**
+   * Submits the form of a process definition.
+   *
+   * @param  {Object} [data]
+   * @param  {Function} [done]
+   */
+  submit: function(data, done) {
+    var path = this.path;
+    if (data.key) {
+      path += '/key/'+ data.key;
+    }
+    else {
+      path += '/'+ data.id;
+    }
+    path += '/submit-form';
+
+    return this.http.post(path, {
+      data: data,
+      done: done
+    });
+  },
+
+
+  /**
+   * Suspends one or more process definitions
+   *
+   * @param  {String|String[]}    ids
+   * @param  {Object.<String, *>} [params]
+   * @param  {requestCallback}    [done]
+   */
+  suspend: function(ids, params, done) {
+    // allows to pass only a callback
+    if (typeof params === 'function') {
+      done = params;
+      params = {};
+    }
+    params = params || {};
+    done = done || noop;
+    // allows to pass a single ID
+    ids = Array.isArray(ids) ? ids : [ids];
+
+    return this.http.post(this.path, {
+      done: done
+    });
   }
-  else {
-    return done(new Error('Process definition task variables needs either a key or an id.'));
-  }
-
-  return this.http.get(this.path +'/'+ pointer +'/form-variables', {
-    data: {
-      variableNames: (data.names || []).join(',')
-    },
-    done: done || function() {}
-  });
-};
-
-
-
-/**
- * Fetch the variables of a process definition
- * @param  {Object.<String, *>} data
- * @param  {String}             [data.id]     of the process
- * @param  {String}             [data.key]    of the process
- * @param  {Array}              [data.names]  of variables to be fetched
- * @param  {Function}           [done]
- */
-ProcessDefinition.submitForm = function(data, done) {
-  var pointer = '';
-  if (data.key) {
-    pointer = 'key/'+ data.key;
-  }
-  else if (data.id) {
-    pointer = data.id;
-  }
-  else {
-    return done(new Error('Process definition task variables needs either a key or an id.'));
-  }
-
-  return this.http.post(this.path +'/'+ pointer +'/submit-form', {
-    data: {
-      variables: data.variables
-    },
-    done: done || function() {}
-  });
-};
-
-
-/**
- * Suspends the process definition instance
- * @param  {Object.<String, *>} [params] ...
- * @param  {requestCallback}    [done]   ...
- */
-ProcessDefinition.prototype.suspend = function(params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
-  }
-  params = params || {};
-  done = done || noop;
-
-  return this.http.post(this.path, {
-    done: done
-  });
-};
-
-
-
-/**
- * Suspends one or more process definitions
- * @param  {String|String[]}    ids      ...
- * @param  {Object.<String, *>} [params] ...
- * @param  {requestCallback}    [done]   ...
- */
-ProcessDefinition.suspend = function(ids, params, done) {
-  // allows to pass only a callback
-  if (typeof params === 'function') {
-    done = params;
-    params = {};
-  }
-  params = params || {};
-  done = done || noop;
-  // allows to pass a single ID
-  ids = Array.isArray(ids) ? ids : [ids];
-
-  return this.http.post(this.path, {
-    done: done
-  });
-};
-
-/**
- * Retrieves the statistics of a process definition.
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.prototype.stats = function(done) {
-  return this.http.post(this.path, {
-    done: done || noop
-  });
-};
-
-/**
- * Retrieves the BPMN 2.0 XML document of a process definition.
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.prototype.xml = function(done) {
-  return this.http.post(this.path, {
-    done: done || noop
-  });
-};
-
-/**
- * Retrieves the form of a process definition.
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.startForm = function(data, done) {
-  var path = this.path +'/'+ (data.key ? 'key/'+ data.key : data.id) +'/startForm';
-  return this.http.get(path, {
-    done: done || noop
-  });
-};
-
-// ProcessDefinition.prototype.startForm = function(data, done) {
-//   data.id = this.id;
-//   return ProcessDefinition.startForm(data, done);
-// };
-
-/**
- * Submits the form of a process definition.
- * @param  {Object} [data]    ...
- * @param  {Function} [done]  ...
- */
-ProcessDefinition.submit = function(data, done) {
-  var path = this.path;
-  if (data.key) {
-    path += '/key/'+ data.key;
-  }
-  else {
-    path += '/'+ data.id;
-  }
-  path += '/submit-form';
-
-  return this.http.post(path, {
-    data: data,
-    done: done
-  });
-};
-
-/**
- * Starts a process instance from a process definition.
- * @param  {Object} [varname]  ...
- * @param  {Function} [done]   ...
- */
-ProcessDefinition.prototype.start = function(done) {
-  return this.http.post(this.path, {
-    data: {},
-    done: done
-  });
-};
+});
 
 
 module.exports = ProcessDefinition;
 
 
-},{"./../generic-resource":1}],6:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":1}],6:[function(_dereq_,module,exports){
 'use strict';
 
-var GenericResource = _dereq_("./../generic-resource");
+var AbstractClientResource = _dereq_("./../abstract-client-resource");
 
 
 
 
 /**
  * Process Instance Resource
+ *
  * @class
- * @classdesc A process instance resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.ProcessInstance
- * @constructor
+ * @memberof CamSDK.client.resource
+ * @augments CamSDK.client.AbstractClientResource
  */
-var ProcessInstance = GenericResource.extend();
+var ProcessInstance = AbstractClientResource.extend(
+/** @lends  CamSDK.client.resource.ProcessInstance.prototype */
+{
+
+},
+
+/** @lends  CamSDK.client.resource.ProcessInstance */
+{
+  /**
+   * API path for the process instance resource
+   */
+  path: 'process-instance',
 
 
-/**
- * API path for the process instance resource
- * @type {String}
- */
-ProcessInstance.path = 'process-instance';
+  /**
+   * Creates a process instance from a process definition
+   *
+   * @param  {Object}   params
+   * @param  {String}   [params.id]
+   * @param  {String}   [params.key]
+   * @param  {Object.<String, *>} [params.variables]
+   * @param  {requestCallback} [done]
+   */
+  create: function(params, done) {
+    return this.http.post(params, done);
+  },
 
 
-
-/**
- * Creates a process instance from a process definition
- * @param  {Object}   params                        [description]
- * @param  {String}   [params.id]                   [description]
- * @param  {String}   [params.key]                  [description]
- * @param  {Object.<String, *>} [params.variables]  [description]
- * @param  {requestCallback} [done]                 [description]
- */
-ProcessInstance.create = function(params, done) {
-  return this.http.post(params, done);
-};
-
-
-
-/**
- * Get a list of process instances
- * @param  {Object}   params   [description]
- * @param  {requestCallback} [done] [description]
- */
-ProcessInstance.list = function(params, done) {
-  return this.list(params, done);
-};
+  /**
+   * Get a list of process instances
+   *
+   * @param  {Object}   params
+   * @param  {requestCallback} [done]
+   */
+  list: function(params, done) {
+    return this.list(params, done);
+  }
+});
 
 
 module.exports = ProcessInstance;
 
-
-},{"./../generic-resource":1}],7:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":1}],7:[function(_dereq_,module,exports){
 'use strict';
 
-var GenericResource = _dereq_("./../generic-resource");
-
-
-
-/**
- * Session Resource
- * @class
- * @classdesc A variable resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.Session
- * @constructor
- */
-var Session = GenericResource.extend();
-
-/**
- * Path used by the resource to perform HTTP queries
- * @type {String}
- */
-Session.path = '';
-
-
-module.exports = Session;
-
-},{"./../generic-resource":1}],8:[function(_dereq_,module,exports){
-'use strict';
-
-var GenericResource = _dereq_("./../generic-resource");
+var AbstractClientResource = _dereq_('./../abstract-client-resource');
 
 
 
 /**
  * Task Resource
  * @class
- * @classdesc A Task resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.Task
- * @constructor
+ * @memberof CamSDK.client.resource
+ * @augments CamSDK.client.AbstractClientResource
  */
-var Task = GenericResource.extend();
+var Task = AbstractClientResource.extend();
 
 /**
  * Path used by the resource to perform HTTP queries
@@ -881,7 +863,7 @@ Task.path = 'task';
 
 /**
  * Fetch a list of tasks
- * @param {Object} [params]                                 ...
+ * @param {Object} [params]
  * @param {String} [params.processInstanceId]               Restrict to tasks that belong to process instances with the given id.
  * @param {String} [params.processInstanceBusinessKey]      Restrict to tasks that belong to process instances with the given business key.
  * @param {String} [params.processInstanceBusinessKeyLike]  Restrict to tasks that have a process instance business key that has the parameter value as a substring.
@@ -949,17 +931,20 @@ Task.path = 'task';
  * @param {String} [params.firstResult]                     Pagination of results. Specifies the index of the first result to return.
  * @param {String} [params.maxResults]                      Pagination of results. Specifies the maximum number of results to return.
  *                                                          Will return less results, if there are no more results left.
- * @param {Function} done   ...
+ * @param {Function} done
  */
 Task.list = function(params, done) {
-  return GenericResource.list.apply(this, arguments);
+  return this.http.get(this.path, {
+    data: params,
+    done: done
+  });
 };
 
 
 /**
  * Assign the task instance to a user
  *
- * @param {String} id [description]
+ * @param {String} id
  * @param {requestCallback} [done]
  */
 Task.prototype.assign = function(id, done) {};
@@ -968,7 +953,7 @@ Task.prototype.assign = function(id, done) {};
 /**
  * Delegate the task instance to a user
  *
- * @param {String} id [description]
+ * @param {String} id
  * @param {requestCallback} [done]
  */
 Task.prototype.delegate = function(done) {};
@@ -1010,22 +995,20 @@ Task.prototype.complete = function(done) {};
 module.exports = Task;
 
 
-},{"./../generic-resource":1}],9:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":1}],8:[function(_dereq_,module,exports){
 'use strict';
 
-var GenericResource = _dereq_("./../generic-resource");
+var AbstractClientResource = _dereq_("./../abstract-client-resource");
 
 
 
 /**
  * Variable Resource
  * @class
- * @classdesc A variable resource
- * @augments CamSDK.GenericResource
- * @exports CamSDK.Variable
- * @constructor
+ * @memberof CamSDK.client.resource
+ * @augments CamSDK.client.AbstractClientResource
  */
-var Variable = GenericResource.extend();
+var Variable = AbstractClientResource.extend();
 
 /**
  * Path used by the resource to perform HTTP queries
@@ -1036,19 +1019,28 @@ Variable.path = 'variable-instance';
 module.exports = Variable;
 
 
-},{"./../generic-resource":1}],10:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":1}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var Events = _dereq_('./events');
-
 
 function noop() {}
 
 /**
  * Abstract class for classes
- * @exports CamSDK.BaseClass
- * @constructor
- * @mixes CamSDK.Events
+ *
+ * @class
+ * @memberof CamSDK
+ *
+ * @borrows CamSDK.Events.on                        as on
+ * @borrows CamSDK.Events.once                      as once
+ * @borrows CamSDK.Events.off                       as off
+ * @borrows CamSDK.Events.trigger                   as trigger
+ *
+ * @borrows CamSDK.Events.on                        as prototype.on
+ * @borrows CamSDK.Events.once                      as prototype.once
+ * @borrows CamSDK.Events.off                       as prototype.off
+ * @borrows CamSDK.Events.trigger                   as prototype.trigger
  */
 function BaseClass() {
   this.initialize();
@@ -1060,9 +1052,11 @@ function BaseClass() {
 /**
  * Creates a new Resource Class, very much inspired from Backbone.Model.extend.
  * [Backbone helpers]{@link http://backbonejs.org/docs/backbone.html}
- * @param  {?Object.<String, *>} protoProps   ...
- * @param  {Object.<String, *>} [staticProps] ...
- * @return {CamSDK.BaseClass}           ...
+ *
+ *
+ * @param  {?Object.<String, *>} protoProps
+ * @param  {Object.<String, *>} [staticProps]
+ * @return {CamSDK.BaseClass}
  */
 BaseClass.extend = function(protoProps, staticProps) {
   protoProps = protoProps || {};
@@ -1099,7 +1093,9 @@ BaseClass.extend = function(protoProps, staticProps) {
 
 /**
  * Aimed to be overriden in order to initialize an instance.
- * @type {Function}
+ *
+ * @memberof CamSDK.BaseClass.prototype
+ * @method initialize
  */
 BaseClass.prototype.initialize = noop;
 
@@ -1110,7 +1106,7 @@ Events.attach(BaseClass);
 
 module.exports = BaseClass;
 
-},{"./events":11}],11:[function(_dereq_,module,exports){
+},{"./events":10}],10:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1135,8 +1131,8 @@ var Events = {};
 
 /**
  * Converts an object into array
- * @param  {*} obj  ...
- * @return {Array}  ...
+ * @param  {*} obj
+ * @return {Array}
  */
 function toArray(obj) {
   var a, arr = [];
@@ -1149,8 +1145,8 @@ function toArray(obj) {
 /**
  * Returns a function that will be executed
  * at most one time, no matter how often you call it.
- * @param  {Function} func ...
- * @return {Function}      ...
+ * @param  {Function} func
+ * @return {Function}
  */
 function once(func) {
   var ran = false, memo;
@@ -1166,8 +1162,8 @@ function once(func) {
 
 /**
  * Ensure an object to have the needed _events property
- * @param  {*} obj        ...
- * @param  {String} name  ...
+ * @param  {*} obj
+ * @param  {String} name
  */
 function ensureEvents(obj, name) {
   obj._events = obj._events || {};
@@ -1177,7 +1173,7 @@ function ensureEvents(obj, name) {
 
 /**
  * Add the relevant Events methods to an object
- * @param  {*} obj  ...
+ * @param  {*} obj
  */
 Events.attach = function(obj) {
   obj.on      = this.on;
@@ -1190,8 +1186,8 @@ Events.attach = function(obj) {
 
 /**
  * Bind a callback to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} callback  ...
+ * @param  {String}   eventName
+ * @param  {Function} callback
  */
 Events.on = function(eventName, callback) {
   ensureEvents(this, eventName);
@@ -1204,8 +1200,8 @@ Events.on = function(eventName, callback) {
 
 /**
  * Bind a callback who will only be called once to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} callback  ...
+ * @param  {String}   eventName
+ * @param  {Function} callback
  */
 Events.once = function(eventName, callback) {
   var self = this;
@@ -1220,8 +1216,8 @@ Events.once = function(eventName, callback) {
 
 /**
  * Unbind one or all callbacks originally bound to `eventName`
- * @param  {String}   eventName ...
- * @param  {Function} [callback]  ...
+ * @param  {String}   eventName
+ * @param  {Function} [callback]
  */
 Events.off = function(eventName, callback) {
   ensureEvents(this, eventName);
@@ -1245,8 +1241,8 @@ Events.off = function(eventName, callback) {
 
 /**
  * Call the functions bound to `eventName`
- * @param  {String} eventName ...
- * @param {...*} [params]     ...
+ * @param  {String} eventName
+ * @param {...*} [params]
  */
 Events.trigger = function() {
   var args = toArray(arguments);
@@ -1264,7 +1260,780 @@ Events.trigger = function() {
 
 module.exports = Events;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
+'use strict';
+/* global CamSDK: false */
+
+/**
+ * For all API client related
+ * @namespace CamSDK.form
+ */
+
+var $ = _dereq_('./dom-lib');
+
+var VariableManager = _dereq_('./variable-manager');
+
+var InputFieldHandler = _dereq_('./controls/input-field-handler');
+
+var ChoicesFieldHandler = _dereq_('./controls/choices-field-handler');
+
+var BaseClass = _dereq_('./../base-class');
+
+
+
+/**
+ * A class to help handling embedded forms
+ *
+ * @class
+ * @memberof CamSDk.form
+ *
+ * @param {Object.<String,*>} options
+ * @param {Cam}               options.client
+ * @param {String}            [options.taskId]
+ * @param {String}            [options.processDefinitionId]
+ * @param {String}            [options.processDefinitionKey]
+ * @param {Element}           [options.formContainer]
+ * @param {Element}           [options.formElement]
+ * @param {String}            [options.formUrl]
+ */
+function CamundaForm(options) {
+  if(!options) {
+    throw new Error("CamundaForm need to be initialized with options.");
+  }
+
+  if (options.client) {
+    this.client = options.client;
+  }
+  else {
+    this.client = new CamSDK.Client(options.clientConfig || {});
+  }
+
+  if (!options.taskId && !options.processDefinitionId && !options.processDefinitionKey) {
+    throw new Error("Cannot initialize Taskform: either 'taskId' or 'processDefinitionId' or 'processDefinitionKey' must be provided");
+  }
+  this.taskId = options.taskId;
+  this.processDefinitionId = options.processDefinitionId;
+  this.processDefinitionKey = options.processDefinitionKey;
+
+  this.formElement = options.formElement;
+  this.containerElement = options.containerElement;
+  this.formUrl = options.formUrl;
+
+  if(!this.formElement && !this.containerElement) {
+    throw new Error("CamundaForm needs to be initilized with either 'formElement' or 'containerElement'");
+  }
+
+  if(!this.formElement && !this.formUrl) {
+    throw new Error("Camunda form needs to be intialized with either 'formElement' or 'formUrl'");
+  }
+
+  /**
+   * A VariableManager instance
+   * @type {VariableManager}
+   */
+  this.variableManager = new VariableManager({
+    client: this.client
+  });
+
+  /**
+   * An array of FormFieldHandlers
+   * @type {FormFieldHandlers[]}
+   */
+  this.formFieldHandlers = options.formFieldHandlers || [
+    InputFieldHandler,
+    ChoicesFieldHandler
+  ];
+
+  this.fields = [];
+
+  this.options = options;
+
+  this.initialize(options.initialized);
+}
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.initializeHandler = function(FieldHandler) {
+  var self = this;
+  var selector = FieldHandler.selector;
+  $(selector, self.formElement).each(function() {
+    self.fields.push(new FieldHandler(this, self.variableManager));
+  });
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.initialize = function(done) {
+  done = done || function() {};
+  var self = this;
+
+  // check whether form needs to be loaded first
+  if(this.formUrl) {
+    this.client.http.load(this.formUrl, {
+      done: function(err, result) {
+        if(err) {
+          return done(err);
+        }
+
+        self.renderForm(result);
+
+        self.initializeForm(done);
+
+      }
+    });
+  } else {
+    this.initializeForm(done);
+  }
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.renderForm = function(formHtmlSource) {
+
+  // apppend the form html to the container element,
+  // we also wrap the formHtmlSource to limit the risks of breaking
+  // the structure of the document
+  $(this.containerElement).html('').append('<div class="injected-form-wrapper">'+formHtmlSource+'</div>');
+
+  // extract and validate form element
+  this.formElement = $("form", this.containerElement);
+  if(this.formElement.length !== 1) {
+    throw new Error("Form must provide exaclty one element <form ..>");
+  }
+
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.initializeForm = function(done) {
+  var self = this;
+  for(var FieldHandler in this.formFieldHandlers) {
+    this.initializeHandler(this.formFieldHandlers[FieldHandler]);
+  }
+
+  this.fetchVariables(function(err, result) {
+    if (err) {
+      throw err;
+    }
+
+    // merge the variables
+    self.mergeVariables(result);
+
+    // apply the variables to the form fields
+    self.applyVariables();
+
+    // invoke callback
+    done();
+  });
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.submit = function(callback) {
+
+  // get values from form fields
+  this.retrieveVariables();
+
+  // submit the form variables
+  this.submitVariables(function(err, result) {
+    if(err) {
+      return callback(err);
+    }
+
+    callback(null, result);
+  });
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.fetchVariables = function(done) {
+  done = done || function(){};
+  var data = {
+    names: this.variableManager.variableNames()
+  };
+
+  // pass either the taskId, processDefinitionId or processDefinitionKey
+  if (this.taskId) {
+    data.id = this.taskId;
+    this.client.resource('task').formVariables(data, done);
+  }
+  else {
+    data.id = this.processDefinitionId;
+    data.key = this.processDefinitionKey;
+    this.client.resource('process-definition').formVariables(data, done);
+  }
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.submitVariables = function(done) {
+  done = done || function() {};
+
+  var vars = this.variableManager.variables;
+
+  var variableData = {};
+  for(var v in vars) {
+    // only submit dirty variables
+    if(!!vars[v].isDirty) {
+      variableData[v] = {
+        value: vars[v].value,
+        type: vars[v].type
+      };
+    }
+  }
+
+  var data = { variables: variableData };
+
+  // pass either the taskId, processDefinitionId or processDefinitionKey
+  if (this.taskId) {
+    data.id = this.taskId;
+    this.client.resource('task').submitForm(data, done);
+  }
+  else {
+    data.id = this.processDefinitionId;
+    data.key = this.processDefinitionKey;
+    this.client.resource('process-definition').submitForm(data, done);
+  }
+
+
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.mergeVariables = function(variables) {
+
+  var vars = this.variableManager.variables;
+
+  for (var v in variables) {
+    if (vars[v]) {
+      for (var p in variables[v]) {
+        vars[v][p] = vars[v][p] || variables[v][p];
+      }
+    }
+    else {
+      vars[v] = variables[v];
+    }
+  }
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.applyVariables = function() {
+
+  for (var i in this.fields) {
+    this.fields[i].applyValue();
+  }
+
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.retrieveVariables = function() {
+
+  for (var i in this.fields) {
+    this.fields[i].getValue();
+  }
+
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm
+ */
+CamundaForm.$ = $;
+
+CamundaForm.VariableManager = VariableManager;
+CamundaForm.fields = {};
+CamundaForm.fields.InputFieldHandler = InputFieldHandler;
+
+/**
+ * @memberof CamSDK.form.CamundaForm
+ * @borrows CamSDK.BaseClass.extend as extend
+ * @name extend
+ * @type {Function}
+ */
+CamundaForm.extend = BaseClass.extend;
+
+module.exports = CamundaForm;
+
+
+},{"./../base-class":9,"./controls/choices-field-handler":14,"./controls/input-field-handler":15,"./dom-lib":16,"./variable-manager":19}],12:[function(_dereq_,module,exports){
+'use strict';
+
+module.exports = {
+  DIRECTIVE_CAM_FORM : 'cam-form',
+  DIRECTIVE_CAM_VARIABLE_NAME : 'cam-variable-name',
+  DIRECTIVE_CAM_VARIABLE_TYPE : 'cam-variable-type'
+};
+
+},{}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var BaseClass = _dereq_('../../base-class');
+var $ = _dereq_('./../dom-lib');
+
+function noop() {}
+
+/**
+ * An abstract class for the form field controls
+ *
+ * @class AbstractFormField
+ * @abstract
+ * @memberof CamSDK.form
+ *
+ */
+function AbstractFormField(element, variableManager) {
+  this.element = $( element );
+  this.variableManager = variableManager;
+
+  this.variableName = null;
+
+  this.initialize();
+}
+
+/**
+ * @memberof CamSDK.form.AbstractFormField
+ * @abstract
+ * @name selector
+ * @type {String}
+ */
+AbstractFormField.selector = null;
+
+
+/**
+ * @memberof CamSDK.form.AbstractFormField
+ * @borrows CamSDK.BaseClass.extend as extend
+ * @name extend
+ * @type {Function}
+ */
+AbstractFormField.extend = BaseClass.extend;
+
+
+/**
+ * @memberof CamSDK.form.AbstractFormField.prototype
+ * @abstract
+ * @method initialize
+ */
+AbstractFormField.prototype.initialize = noop;
+
+
+/**
+ * Applies the stored value to a field element.
+ *
+ * @memberof CamSDK.form.AbstractFormField.prototype
+ * @abstract
+ * @method applyValue
+ *
+ * @return {CamSDK.form.AbstractFormField} Chainable method
+ */
+AbstractFormField.prototype.applyValue = noop;
+
+
+/**
+ * @memberof CamSDK.form.AbstractFormField.prototype
+ * @abstract
+ * @method getValue
+ */
+AbstractFormField.prototype.getValue = noop;
+
+module.exports = AbstractFormField;
+
+
+},{"../../base-class":9,"./../dom-lib":16}],14:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('./../constants'),
+    AbstractFormField = _dereq_('./abstract-form-field'),
+    $ = _dereq_('./../dom-lib');
+
+
+/**
+ * A field control handler for choices
+ * @class
+ * @memberof CamSDK.form
+ * @augments {CamSDK.form.AbstractFormField}
+ */
+var ChoicesFieldHandler = AbstractFormField.extend(
+/** @lends CamSDK.form.ChoicesFieldHandler.prototype */
+{
+  /**
+   * Prepares an instance
+   */
+  initialize: function() {
+    // read variable definitions from markup
+    var variableName = this.variableName = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_NAME);
+    var variableType = this.variableType = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_TYPE);
+
+    // crate variable
+    this.variableManager.createVariable({
+      name: variableName,
+      type: variableType
+    });
+
+    // remember the original value found in the element for later checks
+    this.originalValue = this.element.val() || '';
+
+    this.previousValue = this.originalValue;
+
+    // remember variable name
+    this.variableName = variableName;
+
+    this.getValue();
+  },
+
+  /**
+   * Applies the stored value to a field element.
+   *
+   * @return {CamSDK.form.ChoicesFieldHandler} Chainable method.
+   */
+  applyValue: function() {
+    this.previousValue = this.element.val() || '';
+    var variableValue = this.variableManager.variableValue(this.variableName);
+    if (variableValue !== this.previousValue) {
+      // write value to html control
+      this.element.val(variableValue);
+    }
+
+    return this;
+  },
+
+  /**
+   * Retrieves the value from a field element and stores it
+   *
+   * @return {*} when multiple choices are possible an array of values, otherwise a single value
+   */
+  getValue: function() {
+    // read value from html control
+    var value;
+    var multiple = this.element.prop('multiple');
+
+    if (multiple) {
+      value = [];
+      this.element.find('option:selected').each(function() {
+        value.push($(this).val());
+      });
+    }
+    else {
+      value = this.element.val();
+    }
+
+    // write value to variable
+    this.variableManager.variableValue(this.variableName, value);
+
+    return value;
+  }
+
+},
+/** @lends CamSDK.form.ChoicesFieldHandler */
+{
+  selector: 'select['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'
+
+});
+
+module.exports = ChoicesFieldHandler;
+
+
+},{"./../constants":12,"./../dom-lib":16,"./abstract-form-field":13}],15:[function(_dereq_,module,exports){
+'use strict';
+
+var constants = _dereq_('./../constants'),
+    AbstractFormField = _dereq_('./abstract-form-field'),
+    $ = _dereq_('./../dom-lib');
+
+
+
+/**
+ * A field control handler for simple text / string values
+ * @class
+ * @memberof CamSDK.form
+ * @augments {CamSDK.form.AbstractFormField}
+ */
+var InputFieldHandler = AbstractFormField.extend(
+/** @lends CamSDK.form.InputFieldHandler.prototype */
+{
+  /**
+   * Prepares an instance
+   */
+  initialize: function() {
+    // read variable definitions from markup
+    var variableName = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_NAME);
+    var variableType = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_TYPE);
+
+    // crate variable
+    this.variableManager.createVariable({
+      name: variableName,
+      type: variableType
+    });
+
+    // remember the original value found in the element for later checks
+    this.originalValue = this.element.val();
+
+    this.previousValue = this.originalValue;
+
+    // remember variable name
+    this.variableName = variableName;
+
+    this.getValue();
+  },
+
+  /**
+   * Applies the stored value to a field element.
+   *
+   * @return {CamSDK.form.InputFieldHandler} Chainable method
+   */
+  applyValue: function() {
+    this.previousValue = this.element.val() || '';
+    var variableValue = this.variableManager.variableValue(this.variableName);
+    if (variableValue !== this.previousValue) {
+      // write value to html control
+      this.element.val(variableValue);
+      this.element.trigger('camFormVariableApplied', variableValue);
+    }
+
+    return this;
+  },
+
+  /**
+   * Retrieves the value from an <input>
+   * element and stores it in the Variable Manager
+   *
+   * @return {*}
+   */
+  getValue: function() {
+    // read value from html control
+    var value = this.element.val();
+    // write value to variable
+    this.variableManager.variableValue(this.variableName, value);
+
+    return value;
+  }
+
+},
+/** @lends CamSDK.form.InputFieldHandler */
+{
+
+  selector: 'input['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'+
+           ',textarea['+ constants.DIRECTIVE_CAM_VARIABLE_NAME +']'
+
+});
+
+module.exports = InputFieldHandler;
+
+
+},{"./../constants":12,"./../dom-lib":16,"./abstract-form-field":13}],16:[function(_dereq_,module,exports){
+(function (global){
+'use strict';
+
+(function(factory) {
+  /* global global: false */
+  factory(typeof window !== 'undefined' ? window : global);
+}(function(root) {
+  root = root || {};
+  module.exports = root.jQuery ||
+                   (root.angular ? root.angular.element : false) ||
+                   root.Zepto;
+}));
+
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],17:[function(_dereq_,module,exports){
+
+
+module.exports = _dereq_('./camunda-form');
+
+},{"./camunda-form":11}],18:[function(_dereq_,module,exports){
+'use strict';
+
+var INTEGER_PATTERN = /^-?[\d]+$/;
+
+var FLOAT_PATTERN = /^(0|(-?(((0|[1-9]\d*)\.\d+)|([1-9]\d*))))([eE][-+]?[0-9]+)?$/;
+
+var BOOLEAN_PATTERN = /^(true|false)$/;
+
+var DATE_PATTERN = /^(\d{2}|\d{4})(?:\-)([0]{1}\d{1}|[1]{1}[0-2]{1})(?:\-)([0-2]{1}\d{1}|[3]{1}[0-1]{1})T(?:\s)?([0-1]{1}\d{1}|[2]{1}[0-3]{1}):([0-5]{1}\d{1}):([0-5]{1}\d{1})?$/;
+
+
+function isInteger(value) {
+  return INTEGER_PATTERN.test(value);
+}
+
+function isFloat(value) {
+  return FLOAT_PATTERN.test(value);
+}
+
+function isBoolean(value) {
+  return BOOLEAN_PATTERN.test(value);
+}
+
+function isDate(value) {
+  return DATE_PATTERN.test(value);
+}
+
+var convertToType = function(value, type) {
+
+  if(typeof value === 'string') {
+    value = value.trim();
+  }
+
+  if(type === "String") {
+    return value;
+
+  } else if(type === "Integer") {
+    if(isInteger(value)) {
+      return parseInt(value);
+    } else {
+      throw Error("Value '"+value+"' is not an Integer");
+    }
+
+  } else if(type === "Float") {
+    if(isFloat(value)) {
+      return parseFloat(value);
+    } else {
+      throw Error("Value '"+value+"' is not a Float");
+    }
+    return isFloat(value);
+
+  } else if(type === "Boolean") {
+    if(isBoolean(value)) {
+      return "true" === value;
+    } else {
+      throw Error("Value '"+value+"' is not a Boolean");
+    }
+
+  } else if(type === "Date") {
+    if(isDate(value)) {
+      return value;
+    } else {
+      throw Error("Value '"+value+"' is not a Date");
+    }
+  }
+
+};
+
+module.exports = convertToType;
+
+},{}],19:[function(_dereq_,module,exports){
+'use strict';
+
+var convertToType = _dereq_('./type-util');
+
+/**
+ * @class
+ * the variable manager is responsible for managing access to variables.
+ *
+ * Variable Datatype
+ *
+ * A variable has the following properties:
+ *
+ *   name: the name of the variable
+ *
+ *   type: the type of the variable. The type is a "backend type"
+ *
+ *
+ */
+function VariableManager() {
+
+  /** @member object containing the form fields. Initially empty. */
+  this.variables = { };
+
+}
+
+VariableManager.prototype.createVariable = function(variable) {
+  if(!this.variables[variable.name]) {
+    this.variables[variable.name] = variable;
+  } else {
+    throw new Error('Cannot add variable with name '+variable.name+': already exists.');
+  }
+};
+
+VariableManager.prototype.destroyVariable = function(variableName) {
+  if(!!this.variables[variableName]) {
+    delete this.variables[variableName];
+  } else {
+    throw new Error('Cannot remove variable with name '+variableName+': variable does not exist.');
+  }
+};
+
+VariableManager.prototype.variable = function(variableName) {
+  return this.variables[variableName];
+};
+
+VariableManager.prototype.variableValue = function(variableName, value) {
+
+  var variable = this.variable(variableName);
+
+  if(typeof value === 'undefined' || value === null) {
+    value = null;
+
+  } else if(value === '' && variable.type !== 'String') {
+    // convert empty string to null for all types except String
+    value = null;
+
+  } else {
+    // convert string value into model value
+    value = convertToType(value, variable.type);
+
+  }
+
+  if(arguments.length === 2) {
+    variable.isDirty = true;
+    if(variable.value === value) {
+      variable.isDirty = false;
+    }
+    variable.value = value;
+  }
+
+  return variable.value;
+};
+
+VariableManager.prototype.variableNames = function() {
+  // since we support IE 8+ (http://kangax.github.io/compat-table/es5/)
+  return Object.keys(this.variables);
+};
+
+module.exports = VariableManager;
+
+
+},{"./type-util":18}],20:[function(_dereq_,module,exports){
+/** @namespace CamSDK */
+
+module.exports = {
+  Client: _dereq_('./api-client'),
+  Form: _dereq_('./forms')
+};
+
+
+},{"./api-client":3,"./forms":17}],21:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -2315,7 +3084,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":13,"reduce":14}],13:[function(_dereq_,module,exports){
+},{"emitter":22,"reduce":23}],22:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2481,7 +3250,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -2506,6 +3275,6 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}]},{},[3])
-(3)
+},{}]},{},[20])
+(20)
 });
