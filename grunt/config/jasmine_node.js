@@ -1,4 +1,6 @@
 module.exports = function() {
+  'use strict';
+
   return {
     options: {
       forceExit: true,

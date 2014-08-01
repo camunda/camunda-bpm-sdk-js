@@ -1,5 +1,8 @@
 module.exports = function() {
+  'use strict';
+
   var singleRun = false;
+
   return {
     options: {
       singleRun: singleRun,
