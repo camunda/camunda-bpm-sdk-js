@@ -349,7 +349,8 @@ HttpClient.prototype.post = function(path, options) {
     .send(options.data || {});
 
   req.end(function(err, response) {
-    if (err || !response.ok) {
+    // TODO: investigate the possible problems related to response without content
+    if (err || (!response.ok && !response.noContent)) {
       err = err || response.error || new Error('The request on '+ url +' failed');
       self.trigger('error', err);
       return done(err);
@@ -1117,6 +1118,37 @@ Task.unclaim = function(taskId, done) {
     done: done
   });
 };
+
+
+/**
+ * Complete a task and update process variables using a form submit.
+ * There are two difference between this method and the complete method:
+ *
+ * If the task is in state PENDING - ie. has been delegated before,
+ * it is not completed but resolved. Otherwise it will be completed.
+ *
+ * If the task has Form Field Metadata defined,
+ * the process engine will perform backend validation for any form fields which have validators defined.
+ * See the Generated Task Forms section of the User Guide for more information.
+ *
+ * @param  {Object}   data
+ * @param  {Function} done
+ */
+Task.submitForm = function(data, done) {
+  if (!data.id) {
+    return done(new Error('Task submitForm needs a task id.'));
+  }
+
+  return this.http.post(this.path +'/'+ data.id +'/submit-form', {
+    data: {
+      variables: data.variables
+    },
+    done: done || function() {}
+  });
+};
+
+
+
 
 
 

@@ -655,7 +655,8 @@ HttpClient.prototype.post = function(path, options) {
     .send(options.data || {});
 
   req.end(function(err, response) {
-    if (err || !response.ok) {
+    // TODO: investigate the possible problems related to response without content
+    if (err || (!response.ok && !response.noContent)) {
       err = err || response.error || new Error('The request on '+ url +' failed');
       self.trigger('error', err);
       return done(err);
