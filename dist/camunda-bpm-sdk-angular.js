@@ -39,15 +39,21 @@ var ngModule = angular.module('cam.embedded.forms', []);
  * that updates to a HTML Control made through the camunda form
  * infrastructure are propagated over ngModel bindings.
  */
-ngModule.directive('camVariableName', [function() {
+ngModule.directive('camVariableName', ['$rootScope', function($rootScope) {
   return {
     require: 'ngModel',
     link: function(scope, elm, attrs, ctrl) {
 
       elm.on('camFormVariableApplied', function(evt, value) {
-        scope.$apply(function() {
+        var phase = $rootScope.$$phase;
+        // only apply if not already in digest / apply
+        if(phase !== '$apply' && phase !== '$digest') {
+          scope.$apply(function() {
+            ctrl.$setViewValue(value);
+          });
+        } else {
           ctrl.$setViewValue(value);
-        });
+        }
       });
 
     }
@@ -325,7 +331,8 @@ function toDone(response, done) {
     response.body = JSON.parse(response.text);
   }
 
-  done(null, response.body ? response.body : (response.text ? response.text : response));
+  // TODO: investigate the possibility of getting a response without content
+  done(null, response.body ? response.body : (response.text ? response.text : ''));
 }
 
 /**
@@ -337,8 +344,9 @@ HttpClient.prototype.post = function(path, options) {
   var self = this;
   var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
-    .post(url);
-  req.send(options.data || {});
+    .post(url)
+    .set('Accept', 'application/hal+json, application/json')
+    .send(options.data || {});
 
   req.end(function(err, response) {
     if (err || !response.ok) {
@@ -1004,59 +1012,133 @@ Task.path = 'task';
 Task.list = function(params, done) {
   return this.http.get(this.path, {
     data: params,
+    done: function(err, data) {
+      if (err) {
+        return done(err);
+      }
+
+      // to ease the use of task data, we compile them here
+      var tasks = data._embedded.task || data._embedded.tasks;
+      var procDefs = data._embedded.processDefinition;
+
+      for (var t in tasks) {
+        var task = tasks[t];
+        task._embedded = task._embedded || {};
+        for (var p in procDefs) {
+          if (procDefs[p].id === task.processDefinitionId) {
+            task._embedded.processDefinition = procDefs[p];
+            break;
+          }
+        }
+      }
+
+      done(null, data);
+    }
+  });
+};
+
+
+
+/**
+ * Change the assignee of a task to a specific user.
+ *
+ * Note: The difference with claim a task is that
+ * this method does not check if the task already has a user assigned to it
+ *
+ * Note: The response of this call is empty.
+ *
+ * @param  {String}   taskId
+ * @param  {String}   userId
+ * @param  {Function} done
+ */
+Task.assignee = function(taskId, userId, done) {
+  return this.http.post(this.path +'/'+ taskId +'/assignee', {
+    data: {
+      userId: userId
+    },
+    done: done
+  });
+};
+
+
+
+/**
+ * Delegate a task to another user.
+ *
+ * Note: The response of this call is empty.
+ *
+ * @param  {String}   taskId
+ * @param  {String}   userId
+ * @param  {Function} done
+ */
+Task.delegate = function(taskId, userId, done) {
+  return this.http.post(this.path +'/'+ taskId +'/delegate', {
+    data: {
+      userId: userId
+    },
     done: done
   });
 };
 
 
 /**
- * Assign the task instance to a user
+ * Claim a task for a specific user.
  *
- * @param {String} id
- * @param {requestCallback} [done]
+ * Note: The difference with set a assignee is that
+ * here a check is performed to see if the task already has a user assigned to it.
+ *
+ * Note: The response of this call is empty.
+ *
+ * @param  {String}   taskId
+ * @param  {String}   userId
+ * @param  {Function} done
  */
-Task.prototype.assign = function(id, done) {};
+Task.claim = function(taskId, userId, done) {
+  return this.http.post(this.path +'/'+ taskId +'/claim', {
+    data: {
+      userId: userId
+    },
+    done: done
+  });
+};
+
 
 
 /**
- * Delegate the task instance to a user
+ * Resets a task's assignee. If successful, the task is not assigned to a user.
  *
- * @param {String} id
- * @param {requestCallback} [done]
- */
-Task.prototype.delegate = function(done) {};
-
-
-/**
- * Allow a user to claim (assign to hisself) a task instance
+ * Note: The response of this call is empty.
  *
- * @param {requestCallback} [done]
+ * @param  {String}   taskId
+ * @param  {Function} done
  */
-Task.prototype.claim = function(done) {};
+Task.unclaim = function(taskId, done) {
+  return this.http.post(this.path +'/'+ taskId +'/unclaim', {
+    done: done
+  });
+};
 
 
-/**
- * Allow a user to unclaim (unassign to hisself) a task instance
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.unclaim = function(done) {};
 
+Task.formVariables = function(data, done) {
+  var pointer = '';
+  if (data.key) {
+    pointer = 'key/'+ data.key;
+  }
+  else if (data.id) {
+    pointer = data.id;
+  }
+  else {
+    return done(new Error('Task variables needs either a key or an id.'));
+  }
 
-/**
- * Set a task instance as resolved
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.resolve = function(done) {};
-
-
-/**
- * Set a task instance as completed
- *
- * @param {requestCallback} [done]
- */
-Task.prototype.complete = function(done) {};
+  return this.http.get(this.path +'/'+ pointer +'/form-variables', {
+    data: {
+      variableNames: (data.names || []).join(',')
+    },
+    done: done || function() {}
+  });
+};
 
 
 
