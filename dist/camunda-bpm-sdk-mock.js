@@ -217,87 +217,101 @@ for (i = 0; i < 600; i++) {
   };
 }
 
-_store.pile = {};
-_.each([
-  {
-    id: uuid(),
-    name: 'No filter',
-    description: 'All the things to be done.',
-    filters: [
-      // {
-      //   key: 'assignee',
-      //   value: '{self}'
-      // }
-    ],
-    color: '#AFB3E2'
-  },
-  {
-    id: uuid(),
-    name: 'Mines',
-    description: 'All the tasks who were assigned to me.',
-    filters: [
-      {
-        key: 'assignee',
-        value: '{self}'
-      }
-    ],
-    color: '#AFB3E2'
-  },
-  {
-    id: uuid(),
-    name: 'Overdue',
-    description: 'Tasks who should already have been finished.',
-    filters: [
-      {
-        key: 'dueBefore',
-        // operator: 'smaller',
-        value: '{now}'
-      }
-    ],
-    color: '#FFB4B4'
-  },
-  {
-    id: uuid(),
-    name: 'Due in 3 days',
-    description: '',
-    filters: [
-      {
-        key: 'dueBefore',
-        // operator: 'smaller',
-        value: '{now} + ({day} * 3)'
-      }
-    ],
-    color: '#FFD2D2'
-  },
-  {
-    id: uuid(),
-    name: 'Group A',
-    description: '',
-    filters: [
-      {
-        key: 'candidateGroup',
-        // operator: 'has',
-        value: 'group-a'
-      }
-    ],
-    color: ''
-  },
-  {
-    id: uuid(),
-    name: 'Group B',
-    description: '',
-    filters: [
-      {
-        key: 'candidateGroup',
-        // operator: 'has',
-        value: 'group-a'
-      }
-    ],
-    color: ''
-  }
-], function(pile) {
-  _store.pile[pile.id] = pile;
-});
+_store.filter = {};
+var localStoredPiles = localStorage.getItem('filter');
+if (localStoredPiles) {
+  log('filters from localStorage');
+  _store.filter = JSON.parse(localStoredPiles);
+}
+else {
+  _.each([
+    {
+      // id: uuid(),
+      id: 'no-filter',
+      name: 'No filter',
+      description: 'All the things to be done.',
+      filters: [
+        // {
+        //   key: 'assignee',
+        //   value: '{self}'
+        // }
+      ],
+      color: '#AFB3E2'
+    },
+    {
+      // id: uuid(),
+      id: 'mines',
+      name: 'Mines',
+      description: 'All the tasks who were assigned to me.',
+      filters: [
+        {
+          key: 'assignee',
+          value: '{self}'
+        }
+      ],
+      color: '#AFB3E2'
+    },
+    {
+      // id: uuid(),
+      id: 'overdue',
+      name: 'Overdue',
+      description: 'Tasks who should already have been finished.',
+      filters: [
+        {
+          key: 'dueBefore',
+          // operator: 'smaller',
+          value: '{now}'
+        }
+      ],
+      color: '#FFB4B4'
+    },
+    {
+      // id: uuid(),
+      id: '3-days-left',
+      name: 'Due in 3 days',
+      description: '',
+      filters: [
+        {
+          key: 'dueBefore',
+          // operator: 'smaller',
+          value: '{now} + ({day} * 3)'
+        }
+      ],
+      color: '#FFD2D2'
+    },
+    {
+      // id: uuid(),
+      id: 'group-a',
+      name: 'Group A',
+      description: '',
+      filters: [
+        {
+          key: 'candidateGroup',
+          // operator: 'has',
+          value: 'group-a'
+        }
+      ],
+      color: ''
+    },
+    {
+      // id: uuid(),
+      id: 'group-b',
+      name: 'Group B',
+      description: '',
+      filters: [
+        {
+          key: 'candidateGroup',
+          // operator: 'has',
+          value: 'group-a'
+        }
+      ],
+      color: ''
+    }
+  ], function(filter) {
+    _store.filter[filter.id] = filter;
+  });
+  localStorage.setItem('filter', JSON.stringify(_store.filter));
+}
 
 
 _store.processInstanceFormVariables = {};
@@ -549,8 +563,8 @@ HttpClientMock.prototype.get = function(path, options) {
       results = genericGet(pathParts[0], _store.processInstance, options.data);
       break;
 
-    case 'pile':
-      results = genericGet(pathParts[0], _store.pile, options.data);
+    case 'filter':
+      results = genericGet(pathParts[0], _store.filter, options.data);
       break;
 
     // case 'session':
@@ -600,8 +614,8 @@ HttpClientMock.prototype.del = function(data, options) {
 };
 module.exports = HttpClientMock;
 
-}).call(this,_dereq_("JkpR2F"))
-},{"./../events":3,"./http-client":2,"JkpR2F":8,"fixturer":4,"underscore":13,"underscore.string":12,"uuid":15}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("+NscNm"))
+},{"+NscNm":8,"./../events":3,"./http-client":2,"fixturer":4,"underscore":13,"underscore.string":12,"uuid":15}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
