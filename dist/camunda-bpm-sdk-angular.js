@@ -793,11 +793,11 @@ var ProcessDefinition = AbstractClientResource.extend(
    *
    * @param  {Function} [done]
    */
-  xml: function(done) {
-    return this.http.post(this.path, {
-      done: done || noop
-    });
-  },
+  // xml: function(id, done) {
+  //   return this.http.post(this.path + +'/xml', {
+  //     done: done || noop
+  //   });
+  // },
 
 
   /**
@@ -937,6 +937,18 @@ var ProcessDefinition = AbstractClientResource.extend(
    */
   startForm: function(data, done) {
     var path = this.path +'/'+ (data.key ? 'key/'+ data.key : data.id) +'/startForm';
+    return this.http.get(path, {
+      done: done || noop
+    });
+  },
+
+
+  /**
+   * Retrieves the form of a process definition.
+   * @param  {Function} [done]
+   */
+  xml: function(data, done) {
+    var path = this.path +'/'+ (data.key ? 'key/'+ data.key : data.id) +'/xml';
     return this.http.get(path, {
       done: done || noop
     });
@@ -1162,7 +1174,7 @@ Task.list = function(params, done) {
         task._embedded = task._embedded || {};
         for (var p in procDefs) {
           if (procDefs[p].id === task.processDefinitionId) {
-            task._embedded.processDefinition = procDefs[p];
+            task._embedded.processDefinition = [procDefs[p]];
             break;
           }
         }
