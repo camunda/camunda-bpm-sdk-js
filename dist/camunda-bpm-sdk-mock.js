@@ -226,86 +226,159 @@ if (localStoredPiles) {
 else {
   _.each([
     {
-      // id: uuid(),
-      id: 'no-filter',
+      id: uuid(),
+      resourceType: 'task',
       name: 'No filter',
-      description: 'All the things to be done.',
-      filters: [
-        // {
-        //   key: 'assignee',
-        //   value: '{self}'
-        // }
-      ],
-      color: '#AFB3E2'
+      owner: 'jonny1',
+      query: [],
+      properties: {
+        variables: [
+          {
+            name: 'varA',
+            label: 'Variable A'
+          },
+          {
+            name: 'varB',
+            label: 'Variable B'
+          }
+        ],
+        description: 'All the things to be done.',
+        color: '#AFB3E2'
+      }
     },
     {
-      // id: uuid(),
-      id: 'mine',
-      name: 'Mine',
-      description: 'All the tasks who were assigned to me.',
-      filters: [
+      id: uuid(),
+      resourceType: 'task',
+      name: 'My tasks',
+      owner: 'jonny1',
+      query: [
         {
           key: 'assignee',
           value: '{self}'
         }
       ],
-      color: '#AFB3E2'
+      properties: {
+        variables: [
+          {
+            name: 'varA',
+            label: 'Variable A'
+          },
+          {
+            name: 'varB',
+            label: 'Variable B'
+          }
+        ],
+        description: 'All the tasks who were assigned to me.',
+        color: '#AFB3E2'
+      }
     },
     {
-      // id: uuid(),
-      id: 'overdue',
+      id: uuid(),
+      resourceType: 'task',
       name: 'Overdue',
-      description: 'Tasks who should already have been finished.',
-      filters: [
+      owner: 'jonny1',
+      query: [
         {
           key: 'dueBefore',
           // operator: 'smaller',
           value: '{now}'
         }
       ],
-      color: '#FFB4B4'
+      properties: {
+        variables: [
+          {
+            name: 'varA',
+            label: 'Variable A'
+          },
+          {
+            name: 'varB',
+            label: 'Variable B'
+          }
+        ],
+        description: 'Tasks who should already have been finished.',
+        color: '#FFB4B4'
+      }
     },
     {
-      // id: uuid(),
-      id: '3-days-left',
+      id: uuid(),
+      resourceType: 'task',
       name: 'Due in 3 days',
-      description: '',
-      filters: [
+      owner: 'jonny1',
+      query: [
         {
           key: 'dueBefore',
           // operator: 'smaller',
           value: '{now} + ({day} * 3)'
         }
       ],
-      color: '#FFD2D2'
+      properties: {
+        variables: [
+          {
+            name: 'varA',
+            label: 'Variable A'
+          },
+          {
+            name: 'varB',
+            label: 'Variable B'
+          }
+        ],
+        description: '',
+        color: '#FFD2D2'
+      }
     },
     {
-      // id: uuid(),
-      id: 'group-a',
+      id: uuid(),
+      resourceType: 'task',
       name: 'Group A',
-      description: '',
-      filters: [
+      owner: 'jonny1',
+      query: [
         {
           key: 'candidateGroup',
           // operator: 'has',
           value: 'group-a'
         }
       ],
-      color: ''
+      properties: {
+        variables: [
+          {
+            name: 'varA',
+            label: 'Variable A'
+          },
+          {
+            name: 'varB',
+            label: 'Variable B'
+          }
+        ],
+        description: '',
+        color: ''
+      }
     },
     {
-      // id: uuid(),
-      id: 'group-b',
+      id: uuid(),
+      resourceType: 'task',
       name: 'Group B',
-      description: '',
-      filters: [
+      owner: 'jonny1',
+      query: [
         {
           key: 'candidateGroup',
           // operator: 'has',
           value: 'group-a'
         }
       ],
-      color: ''
+      properties: {
+        variables: [
+          {
+            name: 'varA',
+            label: 'Variable A'
+          },
+          {
+            name: 'varB',
+            label: 'Variable B'
+          }
+        ],
+        description: '',
+        color: ''
+      }
     }
   ], function(filter) {
     _store.filter[filter.id] = filter;
