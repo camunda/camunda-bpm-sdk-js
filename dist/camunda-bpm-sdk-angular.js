@@ -1451,7 +1451,7 @@ module.exports = BaseClass;
 'use strict';
 
 /**
- * Events handling utility who can be used on
+ * Events handling utility which can be used on
  * any kind of object to provide `on`, `once`, `off`
  * and `trigger` functions.
  *
@@ -1620,6 +1620,10 @@ var ChoicesFieldHandler = _dereq_('./controls/choices-field-handler');
 
 var BaseClass = _dereq_('./../base-class');
 
+var constants = _dereq_('./constants');
+
+var Events = _dereq_('./../events');
+
 
 
 /**
@@ -1687,7 +1691,12 @@ function CamundaForm(options) {
 
   this.fields = [];
 
+  this.scripts = [];
+
   this.options = options;
+
+  // init event support
+  Events.attach(this);
 
   this.initialize(options.initialized);
 }
@@ -1760,9 +1769,20 @@ CamundaForm.prototype.renderForm = function(formHtmlSource) {
  */
 CamundaForm.prototype.initializeForm = function(done) {
   var self = this;
+
+  // handle form scripts
+  this.initializeFormScripts();
+
+  // initialize field handlers
   for(var FieldHandler in this.formFieldHandlers) {
     this.initializeHandler(this.formFieldHandlers[FieldHandler]);
   }
+
+  // execute the scripts
+  this.executeFormScripts();
+
+  // fire form loaded
+  this.trigger('form-loaded');
 
   this.fetchVariables(function(err, result) {
     if (err) {
@@ -1772,30 +1792,70 @@ CamundaForm.prototype.initializeForm = function(done) {
     // merge the variables
     self.mergeVariables(result);
 
+    // fire variables fetched
+    self.trigger('variables-fetched');
+
     // apply the variables to the form fields
     self.applyVariables();
+
+    // fire variables applied
+    self.trigger('variables-applied');
 
     // invoke callback
     done();
   });
 };
 
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.initializeFormScripts = function() {
+  var formScriptElements = $( 'script['+constants.DIRECTIVE_CAM_SCRIPT+']', this.formElement);
+  for(var i = 0; i<formScriptElements.length; i++) {
+    this.scripts.push(formScriptElements[i].text);
+  }
+};
 
+CamundaForm.prototype.executeFormScripts = function() {
+  for(var i = 0; i<this.scripts.length; i++) {
+    this.executeFormScript(this.scripts[i]);
+  }
+};
+
+CamundaForm.prototype.executeFormScript = function(script) {
+  (function(camForm) {
+
+    /* jshint evil: true */
+    eval(script);
+    /* jshint evil: false */
+
+  })(this);
+};
 
 /**
  * @memberof CamSDK.form.CamundaForm.prototype
  */
 CamundaForm.prototype.submit = function(callback) {
 
+  // fire submit event (event handler may prevent submit from being performed)
+  this.submitPrevented = false;
+  this.trigger('submit');
+  if (!!this.submitPrevented) {
+    return;
+  }
+
   // get values from form fields
   this.retrieveVariables();
 
+  var self = this;
   // submit the form variables
   this.submitVariables(function(err, result) {
     if(err) {
+      self.trigger('submit-failed', err);
       return callback(err);
     }
 
+    self.trigger('submit-success');
     callback(null, result);
   });
 };
@@ -1929,13 +1989,14 @@ CamundaForm.extend = BaseClass.extend;
 module.exports = CamundaForm;
 
 
-},{"./../base-class":15,"./controls/choices-field-handler":20,"./controls/input-field-handler":21,"./dom-lib":22,"./variable-manager":24}],18:[function(_dereq_,module,exports){
+},{"./../base-class":15,"./../events":16,"./constants":18,"./controls/choices-field-handler":20,"./controls/input-field-handler":21,"./dom-lib":22,"./variable-manager":24}],18:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
   DIRECTIVE_CAM_FORM : 'cam-form',
   DIRECTIVE_CAM_VARIABLE_NAME : 'cam-variable-name',
-  DIRECTIVE_CAM_VARIABLE_TYPE : 'cam-variable-type'
+  DIRECTIVE_CAM_VARIABLE_TYPE : 'cam-variable-type',
+  DIRECTIVE_CAM_SCRIPT : 'cam-script'
 };
 
 },{}],19:[function(_dereq_,module,exports){
