@@ -347,7 +347,7 @@ HttpClient.prototype.del = function(data, options) {
 
 module.exports = HttpClient;
 
-},{"./../events":14,"superagent":25}],3:[function(_dereq_,module,exports){
+},{"./../events":14,"superagent":26}],3:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1871,9 +1871,7 @@ CamundaForm.prototype.initialize = function(done) {
         }
 
         self.renderForm(result);
-
         self.initializeForm(done);
-
       }
     });
   } else {
@@ -1921,7 +1919,7 @@ CamundaForm.prototype.initializeForm = function(done) {
   this.executeFormScripts();
 
   // fire form loaded
-  this.trigger('form-loaded');
+  this.fireEvent('form-loaded');
 
   this.fetchVariables(function(err, result) {
     if (err) {
@@ -1932,13 +1930,13 @@ CamundaForm.prototype.initializeForm = function(done) {
     self.mergeVariables(result);
 
     // fire variables fetched
-    self.trigger('variables-fetched');
+    self.fireEvent('variables-fetched');
 
     // apply the variables to the form fields
     self.applyVariables();
 
     // fire variables applied
-    self.trigger('variables-applied');
+    self.fireEvent('variables-applied');
 
     // invoke callback
     done();
@@ -1978,7 +1976,7 @@ CamundaForm.prototype.submit = function(callback) {
 
   // fire submit event (event handler may prevent submit from being performed)
   this.submitPrevented = false;
-  this.trigger('submit');
+  this.fireEvent('submit');
   if (!!this.submitPrevented) {
     return;
   }
@@ -1990,11 +1988,11 @@ CamundaForm.prototype.submit = function(callback) {
   // submit the form variables
   this.submitVariables(function(err, result) {
     if(err) {
-      self.trigger('submit-failed', err);
+      self.fireEvent('submit-failed', err);
       return callback(err);
     }
 
-    self.trigger('submit-success');
+    self.fireEvent('submit-success');
     callback(null, result);
   });
 };
@@ -2106,7 +2104,12 @@ CamundaForm.prototype.retrieveVariables = function() {
 
 };
 
-
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.fireEvent = function(eventName, obj) {
+  this.trigger(eventName, obj);
+};
 
 /**
  * @memberof CamSDK.form.CamundaForm
@@ -2570,13 +2573,11 @@ module.exports = VariableManager;
 
 module.exports = {
   Client: _dereq_('./api-client'),
-  Form: _dereq_('./forms')
+  Form:   _dereq_('./forms'),
+  utils:  _dereq_('./utils')
 };
 
 
-<<<<<<< HEAD
-},{"./api-client":3,"./forms":21}],25:[function(_dereq_,module,exports){
-=======
 },{"./api-client":3,"./forms":21,"./utils":25}],25:[function(_dereq_,module,exports){
 'use strict';
 
@@ -2655,7 +2656,6 @@ utils.series = function(tasks, callback) {
 };
 
 },{}],26:[function(_dereq_,module,exports){
->>>>>>> 998d458... merge commit
 /**
  * Module dependencies.
  */
@@ -3706,7 +3706,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":26,"reduce":27}],26:[function(_dereq_,module,exports){
+},{"emitter":27,"reduce":28}],27:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -3872,7 +3872,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.

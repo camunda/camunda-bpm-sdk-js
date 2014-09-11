@@ -12,5 +12,25 @@
   {{modelProperty}}
   </p>
 
+  <script cam-script type="text/form-script">
+
+    // scope must be defined
+    if(typeof $scope !== 'object') {
+      throw Error('Expecting "$scope" to be defined');
+    }
+
+    // inject must be available
+    if(typeof inject !== 'function') {
+      throw Error('Expecting "inject" to be defined');
+    }
+
+    camForm.on('variables-applied', function() {
+      if(!$scope.modelProperty) {
+        throw Error('Expecting "$scope.modelProperty" to be defined');
+      }
+    });
+
+  </script>
+
 </form>
 

@@ -4,11 +4,12 @@
 // exposify: CamSDK.Form
 var CamundaForm = _dereq_('./../../forms/camunda-form');
 
+var angular = (window.angular);
+
 var CamundaFormAngular = CamundaForm.extend(
 {
 
   renderForm: function(formHtmlSource) {
-
     // first add the form to the DOM:
     CamundaForm.prototype.renderForm.apply(this, arguments);
 
@@ -19,6 +20,63 @@ var CamundaFormAngular = CamundaForm.extend(
     var scope = self.formElement.scope();
     injector.invoke(['$compile', function($compile) {
       $compile(self.formElement)(scope);
+    }]);
+  },
+
+  executeFormScript: function(script) {
+
+    // overrides executeFormScript to make sure the following variables / functions are available to script implementations
+    // $scope
+    // inject
+
+    var injector = this.formElement.injector();
+    var scope = this.formElement.scope();
+
+    (function(camForm, $scope) {
+
+      // hook to create the service with injection
+      var inject = function(extensions) {
+        // if result is an array or function we expect
+        // an injectable service
+        if (angular.isFunction(extensions) || angular.isArray(extensions)) {
+          injector.instantiate(extensions, { $scope: scope });
+        } else {
+          throw new Error('Must call inject(array|fn)');
+        }
+      };
+
+      /* jshint evil: true */
+      eval(script);
+      /* jshint evil: false */
+
+    })(this, scope);
+
+  },
+
+  fireEvent: function() {
+
+    // overrides fireEvent to make sure event listener is invoked in an apply phase
+
+    var self = this;
+    var args = arguments;
+    var scope = this.formElement.scope();
+
+    var doFireEvent = function() {
+      CamundaForm.prototype.fireEvent.apply(self, args);
+    };
+
+    var injector = self.formElement.injector();
+    injector.invoke(['$rootScope', function($rootScope) {
+      var phase = $rootScope.$$phase;
+        // only apply if not already in digest / apply
+        if(phase !== '$apply' && phase !== '$digest') {
+          scope.$apply(function() {
+            doFireEvent();
+          });
+        } else {
+          doFireEvent();
+        }
+
     }]);
   }
 });
@@ -1945,9 +2003,7 @@ CamundaForm.prototype.initialize = function(done) {
         }
 
         self.renderForm(result);
-
         self.initializeForm(done);
-
       }
     });
   } else {
@@ -1995,7 +2051,7 @@ CamundaForm.prototype.initializeForm = function(done) {
   this.executeFormScripts();
 
   // fire form loaded
-  this.trigger('form-loaded');
+  this.fireEvent('form-loaded');
 
   this.fetchVariables(function(err, result) {
     if (err) {
@@ -2006,13 +2062,13 @@ CamundaForm.prototype.initializeForm = function(done) {
     self.mergeVariables(result);
 
     // fire variables fetched
-    self.trigger('variables-fetched');
+    self.fireEvent('variables-fetched');
 
     // apply the variables to the form fields
     self.applyVariables();
 
     // fire variables applied
-    self.trigger('variables-applied');
+    self.fireEvent('variables-applied');
 
     // invoke callback
     done();
@@ -2052,7 +2108,7 @@ CamundaForm.prototype.submit = function(callback) {
 
   // fire submit event (event handler may prevent submit from being performed)
   this.submitPrevented = false;
-  this.trigger('submit');
+  this.fireEvent('submit');
   if (!!this.submitPrevented) {
     return;
   }
@@ -2064,11 +2120,11 @@ CamundaForm.prototype.submit = function(callback) {
   // submit the form variables
   this.submitVariables(function(err, result) {
     if(err) {
-      self.trigger('submit-failed', err);
+      self.fireEvent('submit-failed', err);
       return callback(err);
     }
 
-    self.trigger('submit-success');
+    self.fireEvent('submit-success');
     callback(null, result);
   });
 };
@@ -2180,7 +2236,12 @@ CamundaForm.prototype.retrieveVariables = function() {
 
 };
 
-
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.fireEvent = function(eventName, obj) {
+  this.trigger(eventName, obj);
+};
 
 /**
  * @memberof CamSDK.form.CamundaForm
