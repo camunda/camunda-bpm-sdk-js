@@ -607,33 +607,24 @@ Authorization.path = 'authorization';
 
 /**
  * Fetch a list of authorizations
- * @param {Object} params
  *
- * @param {Object} [params.id]
- *                                              Filter by the id of the authorization.
- * @param {Object} [params.type]
- *                                              Filter by the type of the authorization.
- * @param {Object} [params.userIdIn]
- *                                              Filter by a comma-separated list of userIds
- * @param {Object} [params.groupIdIn]
- *                                              Filter by a comma-separated list of groupIds
- * @param {Object} [params.resourceType]
- *                                              Filter by resource type
- * @param {Object} [params.resourceId]
- *                                              Filter by resource id.
- * @param {Object} [params.sortBy]
- *                                              Sort the results lexicographically by a given criterion.
- *                                              Valid values are resourceType and resourceId.
- *                                              Must be used in conjunction with the sortOrder parameter.
- * @param {Object} [params.sortOrder]
- *                                              Sort the results in a given order.
- *                                              Values may be asc for ascending order or desc for descending order.
- *                                              Must be used in conjunction with the sortBy parameter.
- * @param {Object} [params.firstResult]
- *                                              Pagination of results. Specifies the index of the first result to return.
- * @param {Object} [params.maxResults]
- *                                              Pagination of results. Specifies the maximum number of results to return.
- *                                              Will return less results if there are no more results left.
+ * @param {Object} params
+ * @param {Object} [params.id]            Authorization by the id of the authorization.
+ * @param {Object} [params.type]          Authorization by the type of the authorization.
+ * @param {Object} [params.userIdIn]      Authorization by a comma-separated list of userIds
+ * @param {Object} [params.groupIdIn]     Authorization by a comma-separated list of groupIds
+ * @param {Object} [params.resourceType]  Authorization by resource type
+ * @param {Object} [params.resourceId]    Authorization by resource id.
+ * @param {Object} [params.sortBy]        Sort the results lexicographically by a given criterion.
+ *                                        Valid values are resourceType and resourceId.
+ *                                        Must be used with the sortOrder parameter.
+ * @param {Object} [params.sortOrder]     Sort the results in a given order.
+ *                                        Values may be "asc" or "desc".
+ *                                        Must be used in conjunction with the sortBy parameter.
+ * @param {Object} [params.firstResult]   Pagination of results.
+ *                                        Specifies the index of the first result to return.
+ * @param {Object} [params.maxResults]    Pagination of results.
+ *                                        Specifies the maximum number of results to return.
  * @param {Function} done
  */
 Authorization.list = function(params, done) {
@@ -647,13 +638,59 @@ Authorization.list = function(params, done) {
 
 /**
  * Retrieve a single authorization
- * @param  {uuid}     authorizationId   of the authorization to be requested
+ *
+ * @param  {uuid}     authorizationId     of the authorization to be requested
  * @param  {Function} done
  */
 Authorization.get = function(authorizationId, done) {
   return this.http.get(this.path +'/'+ authorizationId, {
     done: done
   });
+};
+
+
+/**
+ * Creates an authorization
+ *
+ * @param  {Object}   authorization       is an object representation of an authorization
+ * @param  {Function} done
+ */
+Authorization.create = function(authorization, done) {
+  return this.http.post(this.path +'/create', {
+    data: authorization,
+    done: done
+  });
+};
+
+
+/**
+ * Update an authorization
+ *
+ * @param  {Object}   authorization       is an object representation of an authorization
+ * @param  {Function} done
+ */
+Authorization.update = function(authorization, done) {
+  return this.http.put(this.path +'/'+ authorization.id, {
+    data: authorization,
+    done: done
+  });
+};
+
+
+
+/**
+ * Save an authorization
+ *
+ * @see Authorization.create
+ * @see Authorization.update
+ *
+ * @param  {Object}   authorization   is an object representation of an authorization,
+ *                                    if it has an id property, the authorization will be updated,
+ *                                    otherwise created
+ * @param  {Function} done
+ */
+Authorization.save = function(authorization, done) {
+  return Authorization[authorization.id ? 'update' : 'create'](authorization, done);
 };
 
 
@@ -817,6 +854,7 @@ Filter.path = 'filter';
 
 /**
  * Retrieve a single filter
+ *
  * @param  {uuid}     filterId   of the filter to be requested
  * @param  {Function} done
  */
@@ -824,6 +862,50 @@ Filter.get = function(filterId, done) {
   return this.http.get(this.path +'/'+ filterId, {
     done: done
   });
+};
+
+
+/**
+ * Creates a filter
+ *
+ * @param  {Object}   filter   is an object representation of a filter
+ * @param  {Function} done
+ */
+Filter.create = function(filter, done) {
+  return this.http.post(this.path, {
+    data: filter,
+    done: done
+  });
+};
+
+
+/**
+ * Update a filter
+ *
+ * @param  {Object}   filter   is an object representation of a filter
+ * @param  {Function} done
+ */
+Filter.update = function(filter, done) {
+  return this.http.put(this.path +'/'+ filter.id, {
+    data: filter,
+    done: done
+  });
+};
+
+
+
+/**
+ * Save a filter
+ *
+ * @see Filter.create
+ * @see Filter.update
+ *
+ * @param  {Object}   filter   is an object representation of a filter, if it has
+ *                             an id property, the filter will be updated, otherwise created
+ * @param  {Function} done
+ */
+Filter.save = function(filter, done) {
+  return Filter[filter.id ? 'update' : 'create'](filter, done);
 };
 
 
@@ -915,9 +997,46 @@ var ProcessDefinition = AbstractClientResource.extend(
   path: 'process-definition',
 
 
+
+
+  /**
+   * Retrieve a single process definition
+   *
+   * @param  {uuid}     id    of the process definition to be requested
+   * @param  {Function} done
+   */
+  get: function(id, done) {
+
+    // var pointer = '';
+    // if (data.key) {
+    //   pointer = 'key/'+ data.key;
+    // }
+    // else if (data.id) {
+    //   pointer = data.id;
+    // }
+
+    return this.http.get(this.path +'/'+ id, {
+      done: done
+    });
+  },
+
+
+  /**
+   * Retrieve a single process definition
+   *
+   * @param  {String}   key    of the process definition to be requested
+   * @param  {Function} done
+   */
+  getByKey: function(key, done) {
+    return this.http.get(this.path +'/key/'+ key, {
+      done: done
+    });
+  },
+
+
   /**
    * Get a list of process definitions
-   * @param  {Object} [params]                      Query parameters as follow
+   * @param  {Object} params                        Query parameters as follow
    * @param  {String} [params.name]                 Filter by name.
    * @param  {String} [params.nameLike]             Filter by names that the parameter is a substring of.
    * @param  {String} [params.deploymentId]         Filter by the deployment the id belongs to.

@@ -21,6 +21,20 @@ npm install
 grunt auto-build
 ```
 
+### Testing
+
+#### Karma
+
+```sh
+grunt karma
+```
+
+#### Jamsine node
+
+```sh
+jasmine-node --autotest --watch lib -m /*Spec\.js$/ test/jasmine_node
+```
+
 ### Issues
 
 https://app.camunda.com/jira/browse/CAM/component/12351
