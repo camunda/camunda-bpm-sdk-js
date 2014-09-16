@@ -9,6 +9,51 @@ describe('The SDK utilities', function() {
     }).not.toThrow();
   });
 
+  describe('HAL tools', function() {
+    describe('solveHALEmbedded()', function() {
+      var HALResponse = {
+        _embedded: {
+          objA: [
+            {
+              id: 'obj-a-id-1',
+              title: 'Obj A'
+            },
+            {
+              id: 'obj-a-id-2',
+              title: 'Obj B'
+            },
+            {
+              id: 'obj-a-id-3',
+              title: 'Obj C'
+            }
+          ],
+          objB: [
+            {objAId: 'obj-a-id-1', _embedded: null},
+            {objAId: 'obj-a-id-2', objCId: 'obviously-not-present'},
+            {objAId: 'obj-a-id-3'}
+          ]
+        }
+      };
+
+
+      it('remap the response object', function() {
+        var remapped;
+
+        expect(function() {
+          remapped = sdkUtils.solveHALEmbedded(HALResponse);
+        }).not.toThrow();
+
+        expect(remapped._embedded.objB[0]._embedded.objA[0].id)
+          .toBe(remapped._embedded.objB[0].objAId);
+
+        expect(remapped._embedded.objB[1]._embedded.objA[0].id)
+          .toBe(remapped._embedded.objB[1].objAId);
+
+        expect(remapped._embedded.objB[2]._embedded.objA[0].id)
+          .toBe(remapped._embedded.objB[2].objAId);
+      });
+    });
+  });
 
   describe('control flow', function() {
     describe('series()', function() {
