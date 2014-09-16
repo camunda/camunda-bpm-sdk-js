@@ -126,11 +126,12 @@ module.exports = CamundaFormAngular;
 
 module.exports = {
   Client: _dereq_('./../api-client'),
-  Form: _dereq_('./forms')
+  Form: _dereq_('./forms'),
+  utils: _dereq_('./../utils')
 };
 
 
-},{"./../api-client":6,"./forms":2}],4:[function(_dereq_,module,exports){
+},{"./../api-client":6,"./../utils":26,"./forms":2}],4:[function(_dereq_,module,exports){
 'use strict';
 
 // var HttpClient = require('./http-client');
@@ -358,6 +359,7 @@ module.exports = AbstractClientResource;
 
 var request = _dereq_('superagent');
 var Events = _dereq_('./../events');
+var utils = _dereq_('./../utils');
 var noop = function() {};
 
 /**
@@ -385,8 +387,13 @@ function toDone(response, done) {
   // and the "raw" content in property named "text"
   // and.. it does not parse the response if it does not have
   // the "application/json" type.
-  if (response.type === 'application/hal+json' && !response.body) {
-    response.body = JSON.parse(response.text);
+  if (response.type === 'application/hal+json') {
+    if (!response.body) {
+      response.body = JSON.parse(response.text);
+    }
+
+    // and process embedded resources
+    response.body = utils.solveHALEmbedded(response.body);
   }
 
   // TODO: investigate the possibility of getting a response without content
@@ -409,7 +416,7 @@ HttpClient.prototype.post = function(path, options) {
   req.end(function(err, response) {
     // TODO: investigate the possible problems related to response without content
     if (err || (!response.ok && !response.noContent)) {
-      err = err || response.error || new Error('The request on '+ url +' failed');
+      err = err || response.error || new Error('The POST request on '+ url +' failed');
       self.trigger('error', err);
       return done(err);
     }
@@ -435,6 +442,7 @@ HttpClient.prototype.load = function(url, options) {
   options = options || {};
   var done = options.done || noop;
   var self = this;
+
   var req = request
     .get(url)
     .set('Accept', 'application/hal+json, application/json')
@@ -442,7 +450,7 @@ HttpClient.prototype.load = function(url, options) {
 
   req.end(function(err, response) {
     if (err || !response.ok) {
-      err = err || response.error || new Error('The request on '+ url +' failed');
+      err = err || response.error || new Error('The GET request on '+ url +' failed');
       self.trigger('error', err);
       return done(err);
     }
@@ -455,12 +463,26 @@ HttpClient.prototype.load = function(url, options) {
 /**
  * Performs a PUT HTTP request
  */
-HttpClient.prototype.put = function(data, options) {
-  data = data || {};
+HttpClient.prototype.put = function(path, options) {
   options = options || {};
   var done = options.done || noop;
+  var self = this;
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
 
-  // toDone(response, done);
+  var req = request
+    .put(url)
+    .set('Accept', 'application/hal+json, application/json')
+    .send(options.data || {});
+
+  req.end(function(err, response) {
+    if (err || !response.ok) {
+      err = err || response.error || new Error('The PUT request on '+ url +' failed');
+      self.trigger('error', err);
+      return done(err);
+    }
+
+    toDone(response, done);
+  });
 };
 
 
@@ -468,18 +490,31 @@ HttpClient.prototype.put = function(data, options) {
 /**
  * Performs a DELETE HTTP request
  */
-HttpClient.prototype.del = function(data, options) {
-  var instance = this.instance;
-  data = data || {};
+HttpClient.prototype.del = function(path, options) {
   options = options || {};
   var done = options.done || noop;
+  var self = this;
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
 
-  // toDone(response, done);
+  var req = request
+    .del(url)
+    .set('Accept', 'application/hal+json, application/json')
+    .send(options.data || {});
+
+  req.end(function(err, response) {
+    if (err || !response.ok) {
+      err = err || response.error || new Error('The DELETE request on '+ url +' failed');
+      self.trigger('error', err);
+      return done(err);
+    }
+
+    toDone(response, done);
+  });
 };
 
 module.exports = HttpClient;
 
-},{"./../events":17,"superagent":26}],6:[function(_dereq_,module,exports){
+},{"./../events":17,"./../utils":26,"superagent":27}],6:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -890,7 +925,7 @@ module.exports = CaseInstance;
 },{"./../abstract-client-resource":4}],11:[function(_dereq_,module,exports){
 'use strict';
 
-var AbstractClientResource = _dereq_("./../abstract-client-resource");
+var AbstractClientResource = _dereq_('./../abstract-client-resource');
 
 
 
@@ -903,11 +938,10 @@ var AbstractClientResource = _dereq_("./../abstract-client-resource");
 var Filter = AbstractClientResource.extend();
 
 /**
- * API path for the process definition resource
+ * API path for the filter resource
  * @type {String}
  */
 Filter.path = 'filter';
-
 
 
 /**
@@ -924,13 +958,64 @@ Filter.get = function(filterId, done) {
 
 
 /**
+ * Retrieve some filters
+ *
+ * @param  {Object}   data
+ * @param  {Integer}  [data.firstResult]
+ * @param  {Integer}  [data.maxResults]
+ * @param  {String}   [data.sortBy]
+ * @param  {String}   [data.sortOrder]
+ * @param  {Function} done
+ */
+Filter.list = function(data, done) {
+  return this.http.get(this.path, {
+    done: done
+  });
+};
+
+
+/**
+ * Get the tasks result of filter
+ *
+ * @param  {(Object.<String, *>|uuid)}  data  uuid of a filter or parameters
+ * @param  {uuid}     [data.id]               uuid of the filter to be requested
+ * @param  {Integer}  [data.firstResult]
+ * @param  {Integer}  [data.maxResults]
+ * @param  {String}   [data.sortBy]
+ * @param  {String}   [data.sortOrder]
+ * @param  {Function} done
+ */
+Filter.getTasks = function(data, done) {
+  var path = this.path +'/';
+
+  if (typeof data === 'string') {
+    path = path + data +'/list';
+    data = {};
+  }
+  else {
+    path = path + data.id +'/list';
+    delete data.id;
+  }
+
+  // those parameters have to be passed in the query and not body
+  path += '?firstResult='+ (data.firstResult || 0);
+  path += '&maxResults='+ (data.maxResults || 15);
+
+  return this.http.post(path, {
+    data: data,
+    done: done
+  });
+};
+
+
+/**
  * Creates a filter
  *
  * @param  {Object}   filter   is an object representation of a filter
  * @param  {Function} done
  */
 Filter.create = function(filter, done) {
-  return this.http.post(this.path, {
+  return this.http.post(this.path +'/create', {
     data: filter,
     done: done
   });
@@ -964,6 +1049,19 @@ Filter.update = function(filter, done) {
  */
 Filter.save = function(filter, done) {
   return Filter[filter.id ? 'update' : 'create'](filter, done);
+};
+
+
+/**
+ * Delete a filter
+ *
+ * @param  {uuid}     id   of the filter to delete
+ * @param  {Function} done
+ */
+Filter.delete = function(id, done) {
+  return this.http.del(this.path +'/'+ id, {
+    done: done
+  });
 };
 
 
@@ -2696,6 +2794,131 @@ module.exports = VariableManager;
 
 
 },{"./type-util":24}],26:[function(_dereq_,module,exports){
+'use strict';
+
+
+/**
+ * @exports CamSDK.utils
+ */
+var utils = module.exports = {};
+
+utils.solveHALEmbedded = function(results) {
+
+  function isId(str) {
+    if (str.slice(-2) !== 'Id') { return false; }
+
+    var prop = str.slice(0, -2);
+    var embedded = results._embedded;
+    return !!(embedded[prop] && !!embedded[prop].length);
+  }
+
+  function keys(obj) {
+    var arr = Object.keys(obj);
+
+    for (var a in arr) {
+      if (arr[a][0] === '_' || !isId(arr[a])) {
+        arr.splice(a, 1);
+      }
+    }
+
+    return arr;
+  }
+
+  var _embeddedRessources = Object.keys(results._embedded);
+  for (var r in _embeddedRessources) {
+    var name = _embeddedRessources[r];
+
+    for (var i in results._embedded[name]) {
+      results._embedded[name][i]._embedded = results._embedded[name][i]._embedded || {};
+
+      var properties = keys(results._embedded[name][i]);
+
+      for (var p in properties) {
+        var prop = properties[p];
+        if (results._embedded[name][i][prop]) {
+          var embedded = results._embedded[prop.slice(0, -2)];
+          for (var e in embedded) {
+            if (embedded[e].id === results._embedded[name][i][prop]) {
+              results._embedded[name][i]._embedded[prop.slice(0, -2)] = [embedded[e]];
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return results;
+};
+
+
+// the 2 folowing functions were borrowed from async.js
+// https://github.com/caolan/async/blob/master/lib/async.js
+
+function _eachSeries(arr, iterator, callback) {
+  callback = callback || function () {};
+  if (!arr.length) {
+    return callback();
+  }
+  var completed = 0;
+  var iterate = function () {
+    iterator(arr[completed], function (err) {
+      if (err) {
+        callback(err);
+        callback = function () {};
+      }
+      else {
+        completed += 1;
+        if (completed >= arr.length) {
+          callback();
+        }
+        else {
+          iterate();
+        }
+      }
+    });
+  };
+  iterate();
+}
+
+/**
+ * Executes functions in serie
+ *
+ * @param  {(Object.<String, Function>|Array.<Function>)} tasks object or array of functions
+ *                                                              taking a callback
+ *
+ * @param  {Function} callback                                  executed at the end, first argument
+ *                                                              will be an error (if error occured),
+ *                                                              the second depends on "tasks" type
+ *
+ * @example
+ * CamSDK.utils.series({
+ *   a: function(cb) { setTimeout(function() { cb(null, 1); }, 1); },
+ *   b: function(cb) { setTimeout(function() { cb(new Error('Bang!')); }, 1); },
+ *   c: function(cb) { setTimeout(function() { cb(null, 3); }, 1); }
+ * }, function(err, result) {
+ *   // err will be passed
+ *   // result will be { a: 1, b: undefined }
+ * });
+ */
+utils.series = function(tasks, callback) {
+  callback = callback || function () {};
+
+  var results = {};
+  _eachSeries(Object.keys(tasks), function (k, callback) {
+    tasks[k](function (err) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      if (args.length <= 1) {
+        args = args[0];
+      }
+      results[k] = args;
+      callback(err);
+    });
+  }, function (err) {
+    callback(err, results);
+  });
+};
+
+},{}],27:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -3746,7 +3969,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":27,"reduce":28}],27:[function(_dereq_,module,exports){
+},{"emitter":28,"reduce":29}],28:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -3912,7 +4135,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
