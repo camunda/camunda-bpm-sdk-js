@@ -748,7 +748,7 @@ HttpClient.prototype.post = function(path, options) {
   var url = this.config.baseUrl + (path ? '/'+ path : '');
   var req = request
     .post(url)
-    .set('Accept', 'application/hal+json, application/json')
+    .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
   req.end(function(err, response) {
@@ -783,7 +783,7 @@ HttpClient.prototype.load = function(url, options) {
 
   var req = request
     .get(url)
-    .set('Accept', 'application/hal+json, application/json')
+    .set('Accept', 'application/hal+json, application/json; q=0.5')
     .query(options.data || {});
 
   req.end(function(err, response) {
@@ -809,7 +809,7 @@ HttpClient.prototype.put = function(path, options) {
 
   var req = request
     .put(url)
-    .set('Accept', 'application/hal+json, application/json')
+    .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
   req.end(function(err, response) {
@@ -836,7 +836,7 @@ HttpClient.prototype.del = function(path, options) {
 
   var req = request
     .del(url)
-    .set('Accept', 'application/hal+json, application/json')
+    .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
   req.end(function(err, response) {
