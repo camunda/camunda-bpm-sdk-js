@@ -720,22 +720,35 @@ var HttpClient = function(config) {
   this.config = config;
 };
 
-function toDone(response, done) {
-  // superagent puts the parsed data into a property named "body"
-  // and the "raw" content in property named "text"
-  // and.. it does not parse the response if it does not have
-  // the "application/json" type.
-  if (response.type === 'application/hal+json') {
-    if (!response.body) {
-      response.body = JSON.parse(response.text);
+function end(self, done) {
+  return function(err, response) {
+    // TODO: investigate the possible problems related to response without content
+    if (err || (!response.ok && !response.noContent)) {
+      err = err || response.error || new Error('The '+ response.req.method +' request on '+ response.req.url +' failed');
+      if (response.body) {
+        if (response.body.message) {
+          err.message = response.body.message;
+        }
+      }
+      self.trigger('error', err);
+      return done(err);
     }
 
-    // and process embedded resources
-    response.body = utils.solveHALEmbedded(response.body);
-  }
+    // superagent puts the parsed data into a property named "body"
+    // and the "raw" content in property named "text"
+    // and.. it does not parse the response if it does not have
+    // the "application/json" type.
+    if (response.type === 'application/hal+json') {
+      if (!response.body) {
+        response.body = JSON.parse(response.text);
+      }
 
-  // TODO: investigate the possibility of getting a response without content
-  done(null, response.body ? response.body : (response.text ? response.text : ''));
+      // and process embedded resources
+      response.body = utils.solveHALEmbedded(response.body);
+    }
+
+    done(null, response.body ? response.body : (response.text ? response.text : ''));
+  };
 }
 
 /**
@@ -751,16 +764,7 @@ HttpClient.prototype.post = function(path, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
-  req.end(function(err, response) {
-    // TODO: investigate the possible problems related to response without content
-    if (err || (!response.ok && !response.noContent)) {
-      err = err || response.error || new Error('The POST request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 
@@ -786,15 +790,7 @@ HttpClient.prototype.load = function(url, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .query(options.data || {});
 
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      err = err || response.error || new Error('The GET request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 
@@ -812,15 +808,7 @@ HttpClient.prototype.put = function(path, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      err = err || response.error || new Error('The PUT request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 
@@ -839,15 +827,7 @@ HttpClient.prototype.del = function(path, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      err = err || response.error || new Error('The DELETE request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 module.exports = HttpClient;

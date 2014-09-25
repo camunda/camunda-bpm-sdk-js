@@ -249,22 +249,35 @@ var HttpClient = function(config) {
   this.config = config;
 };
 
-function toDone(response, done) {
-  // superagent puts the parsed data into a property named "body"
-  // and the "raw" content in property named "text"
-  // and.. it does not parse the response if it does not have
-  // the "application/json" type.
-  if (response.type === 'application/hal+json') {
-    if (!response.body) {
-      response.body = JSON.parse(response.text);
+function end(self, done) {
+  return function(err, response) {
+    // TODO: investigate the possible problems related to response without content
+    if (err || (!response.ok && !response.noContent)) {
+      err = err || response.error || new Error('The '+ response.req.method +' request on '+ response.req.url +' failed');
+      if (response.body) {
+        if (response.body.message) {
+          err.message = response.body.message;
+        }
+      }
+      self.trigger('error', err);
+      return done(err);
     }
 
-    // and process embedded resources
-    response.body = utils.solveHALEmbedded(response.body);
-  }
+    // superagent puts the parsed data into a property named "body"
+    // and the "raw" content in property named "text"
+    // and.. it does not parse the response if it does not have
+    // the "application/json" type.
+    if (response.type === 'application/hal+json') {
+      if (!response.body) {
+        response.body = JSON.parse(response.text);
+      }
 
-  // TODO: investigate the possibility of getting a response without content
-  done(null, response.body ? response.body : (response.text ? response.text : ''));
+      // and process embedded resources
+      response.body = utils.solveHALEmbedded(response.body);
+    }
+
+    done(null, response.body ? response.body : (response.text ? response.text : ''));
+  };
 }
 
 /**
@@ -280,16 +293,7 @@ HttpClient.prototype.post = function(path, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
-  req.end(function(err, response) {
-    // TODO: investigate the possible problems related to response without content
-    if (err || (!response.ok && !response.noContent)) {
-      err = err || response.error || new Error('The POST request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 
@@ -315,15 +319,7 @@ HttpClient.prototype.load = function(url, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .query(options.data || {});
 
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      err = err || response.error || new Error('The GET request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 
@@ -341,15 +337,7 @@ HttpClient.prototype.put = function(path, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      err = err || response.error || new Error('The PUT request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 
@@ -368,15 +356,7 @@ HttpClient.prototype.del = function(path, options) {
     .set('Accept', 'application/hal+json, application/json; q=0.5')
     .send(options.data || {});
 
-  req.end(function(err, response) {
-    if (err || !response.ok) {
-      err = err || response.error || new Error('The DELETE request on '+ url +' failed');
-      self.trigger('error', err);
-      return done(err);
-    }
-
-    toDone(response, done);
-  });
+  req.end(end(self, done));
 };
 
 module.exports = HttpClient;
@@ -652,6 +632,21 @@ Authorization.update = function(authorization, done) {
 Authorization.save = function(authorization, done) {
   return Authorization[authorization.id ? 'update' : 'create'](authorization, done);
 };
+
+
+
+/**
+ * Delete an authorization
+ *
+ * @param  {uuid}     id   of the authorization to delete
+ * @param  {Function} done
+ */
+Authorization.delete = function(id, done) {
+  return this.http.del(this.path +'/'+ id, {
+    done: done
+  });
+};
+
 
 
 module.exports = Authorization;
@@ -1373,10 +1368,10 @@ Task.path = 'task';
  * @param {String} [params.candidateGroups]                 Restrict to tasks that are offered to any of the given candidate groups. Takes a comma-separated list of group names, so for example developers,support,sales.
  * @param {String} [params.active]                          Only include active tasks. Values may be true or false. suspended Only include suspended tasks.
  *                                                          Values may be "true" or "false".
- * @param {String} [params.taskVariables]                   Only include tasks that have variables with certain values. Variable filtering expressions are comma-separated and are structured as follows:
+ * @param {String} [params.taskVariables]                   Only include tasks that have variables with certain values. Variable tasking expressions are comma-separated and are structured as follows:
  *                                                          A valid parameter value has the form key_operator_value. key is the variable name, op is the comparison operator to be used and value the variable value. Note: Values are always treated as String objects on server side. Valid operator values are: eq - equals; neq - not equals; gt - greater than; gteq - greater than or equals; lt - lower than; lteq - lower than or equals; like. key and value may not contain underscore or comma characters.
  * @param {String} [params.processVariables]                Only include tasks that belong to process instances that have variables with certain values.
- *                                                          Variable filtering expressions are comma-separated and are structured as follows:
+ *                                                          Variable tasking expressions are comma-separated and are structured as follows:
  *                                                          A valid parameter value has the form key_operator_value. "key" is the variable name, "op" is the comparison operator to be used and value the variable value.
  *                                                          Note: Values are always treated as String objects on server side.
  *                                                          Valid operator values are: "eq" - equals; "neq" - not equals; "gt" - greater than; "gteq" - greater than or equals; "lt" - lower than; "lteq" - lower than or equals; like.
@@ -1434,6 +1429,50 @@ Task.get = function(taskId, done) {
 };
 
 
+
+
+/**
+ * Creates a task
+ *
+ * @param  {Object}   task   is an object representation of a task
+ * @param  {Function} done
+ */
+// Task.create = function(task, done) {
+//   return this.http.post(this.path +'/create', {
+//     data: task,
+//     done: done
+//   });
+// };
+
+
+/**
+ * Update a task
+ *
+ * @param  {Object}   task   is an object representation of a task
+ * @param  {Function} done
+ */
+Task.update = function(task, done) {
+  return this.http.put(this.path +'/'+ task.id, {
+    data: task,
+    done: done
+  });
+};
+
+
+
+// /**
+//  * Save a task
+//  *
+//  * @see Task.create
+//  * @see Task.update
+//  *
+//  * @param  {Object}   task   is an object representation of a task, if it has
+//  *                             an id property, the task will be updated, otherwise created
+//  * @param  {Function} done
+//  */
+// Task.save = function(task, done) {
+//   return Task[task.id ? 'update' : 'create'](task, done);
+// };
 
 /**
  * Change the assignee of a task to a specific user.
