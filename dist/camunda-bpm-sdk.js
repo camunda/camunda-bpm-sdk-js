@@ -359,6 +359,24 @@ HttpClient.prototype.del = function(path, options) {
   req.end(end(self, done));
 };
 
+
+
+/**
+ * Performs a OPTIONS HTTP request
+ */
+HttpClient.prototype.options = function(path, options) {
+  options = options || {};
+  var done = options.done || noop;
+  var self = this;
+  var url = this.config.baseUrl + (path ? '/'+ path : '');
+
+  var req = request('OPTIONS', url)
+    .set('Accept', 'application/hal+json, application/json; q=0.5');
+
+  req.end(end(self, done));
+};
+
+
 module.exports = HttpClient;
 
 },{"./../events":14,"./../utils":25,"superagent":26}],3:[function(_dereq_,module,exports){
@@ -922,6 +940,25 @@ Filter.save = function(filter, done) {
  */
 Filter.delete = function(id, done) {
   return this.http.del(this.path +'/'+ id, {
+    done: done
+  });
+};
+
+
+/**
+ * Performs an authorizations lookup on the resource or entity
+ *
+ * @param  {uuid}     [id]   of the filter to get authorizations for
+ * @param  {Function} done
+ */
+Filter.authorizations = function(id, done) {
+  if (arguments.length === 1) {
+    return this.http.options(this.path, {
+      done: id
+    });
+  }
+
+  return this.http.options(this.path +'/'+ id, {
     done: done
   });
 };
