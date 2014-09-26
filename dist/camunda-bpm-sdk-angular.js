@@ -37,6 +37,8 @@ var CamundaFormAngular = CamundaForm.extend(
 
     // finally compile the form with angular and linked to the current scope
     var injector = self.formElement.injector();
+    if (!injector) { return; }
+
     var scope = self.formElement.scope();
     injector.invoke(['$compile', function($compile) {
       $compile(self.formElement)(scope);
@@ -87,6 +89,8 @@ var CamundaFormAngular = CamundaForm.extend(
     };
 
     var injector = self.formElement.injector();
+    if (!injector) { return; }
+
     injector.invoke(['$rootScope', function($rootScope) {
       var phase = $rootScope.$$phase;
         // only apply if not already in digest / apply
