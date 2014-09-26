@@ -44,7 +44,7 @@ tasklist uses the Form SDKs [AngularJS integration][angularjs].
 
 * [Custom JavaScript][javascript]
 * [The Form Lifecycle and Events][lifecycle]
-* Working with complex Variable Types
+* [Working with Serialized Java Objects][complex-data]
 
 
 
@@ -57,3 +57,5 @@ tasklist uses the Form SDKs [AngularJS integration][angularjs].
 [getting-started]: getting-started.md
 [lifecycle]: lifecycle.md
 [javascript]: javascript.md
+[complex-data]: complex-data.md
+

@@ -691,8 +691,8 @@ HttpClientMock.prototype.del = function(data, options) {
 };
 module.exports = HttpClientMock;
 
-}).call(this,_dereq_("FWaASH"))
-},{"./../events":3,"./http-client":2,"FWaASH":8,"fixturer":9,"underscore":14,"underscore.string":13,"uuid":16}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("JkpR2F"))
+},{"./../events":3,"./http-client":2,"JkpR2F":9,"fixturer":5,"underscore":14,"underscore.string":13,"uuid":16}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
@@ -1112,6 +1112,426 @@ utils.series = function(tasks, callback) {
 };
 
 },{}],5:[function(_dereq_,module,exports){
+(function (root, factory) {
+  /* global define: false, exports: false, require: false */
+  'use strict';
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define(['underscore', 'underscore.string'], factory);
+  }
+  else if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory(_dereq_('underscore'), _dereq_('underscore.string'));
+  }
+  else {
+    // Browser globals (root is window)
+    root.fixturer = factory(root._, root._.string);
+  }
+}(this, function (_, str) {
+  'use strict';
+  /**
+   * Fixture tools
+   * @exports {function} fixturer
+   */
+  _.str = str;
+
+  /**
+   * The text used for example string generation
+   * @private
+   */
+  var _loremIpsum = [
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet. Ut convallis libero in urna ultrices accumsan. Donec sed odio eros. Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.',
+    'Vivamus fermentum semper porta. Nunc diam velit, adipiscing ut tristique vitae, sagittis vel odio. Maecenas convallis ullamcorper ultricies. Curabitur ornare, ligula semper consectetur sagittis, nisi diam iaculis velit, id fringilla sem nunc vel mi. Nam dictum, odio nec pretium volutpat, arcu ante placerat erat, non tristique elit urna et turpis. Quisque mi metus, ornare sit amet fermentum et, tincidunt et orci. Fusce eget orci a orci congue vestibulum. Ut dolor diam, elementum et vestibulum eu, porttitor vel elit. Curabitur venenatis pulvinar tellus gravida ornare. Sed et erat faucibus nunc euismod ultricies ut id justo. Nullam cursus suscipit nisi, et ultrices justo sodales nec. Fusce venenatis facilisis lectus ac semper. Aliquam at massa ipsum. Quisque bibendum purus convallis nulla ultrices ultricies. Nullam aliquam, mi eu aliquam tincidunt, purus velit laoreet tortor, viverra pretium nisi quam vitae mi. Fusce vel volutpat elit. Nam sagittis nisi dui.',
+    'Suspendisse lectus leo, consectetur in tempor sit amet, placerat quis neque. Etiam luctus porttitor lorem, sed suscipit est rutrum non. Curabitur lobortis nisl a enim congue semper. Aenean commodo ultrices imperdiet. Vestibulum ut justo vel sapien venenatis tincidunt. Phasellus eget dolor sit amet ipsum dapibus condimentum vitae quis lectus. Aliquam ut massa in turpis dapibus convallis. Praesent elit lacus, vestibulum at malesuada et, ornare et est. Ut augue nunc, sodales ut euismod non, adipiscing vitae orci. Mauris ut placerat justo. Mauris in ultricies enim. Quisque nec est eleifend nulla ultrices egestas quis ut quam. Donec sollicitudin lectus a mauris pulvinar id aliquam urna cursus. Cras quis ligula sem, vel elementum mi. Phasellus non ullamcorper urna.',
+    'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. In euismod ultrices facilisis. Vestibulum porta sapien adipiscing augue congue id pretium lectus molestie. Proin quis dictum nisl. Morbi id quam sapien, sed vestibulum sem. Duis elementum rutrum mauris sed convallis. Proin vestibulum magna mi. Aenean tristique hendrerit magna, ac facilisis nulla hendrerit ut. Sed non tortor sodales quam auctor elementum. Donec hendrerit nunc eget elit pharetra pulvinar. Suspendisse id tempus tortor. Aenean luctus, elit commodo laoreet commodo, justo nisi consequat massa, sed vulputate quam urna quis eros. Donec vel.'
+  ].join('\n\n');
+
+  /**
+   * Lists of names used for name generation
+   * @private
+   */
+  var _names = {
+    first: {
+      female: [
+        'Sara',
+        'Faye',
+        'Omega',
+        'Tracee',
+        'Dominica',
+        'Evie',
+        'Madge',
+        'Faustina',
+        'Alline',
+        'Minnie',
+        'Jeneva',
+        'Stacia',
+        'Margarett',
+        'Ma',
+        'Edythe',
+        'Kathleen',
+        'Shoshana',
+        'Kristal',
+        'Vicenta',
+        'Chan',
+        'Yolando',
+        'Despina',
+        'Janis',
+        'Dionna',
+        'Lurlene',
+        'Nadia',
+        'Samella',
+        'Olimpia',
+        'Manie',
+        'Lashonda',
+        'Karol',
+        'Tamela',
+        'Sabine',
+        'Olene',
+        'Kacie',
+        'Lavelle',
+        'Keitha',
+        'Kathyrn',
+        'Florence',
+        'Marylynn',
+        'Shalanda',
+        'Oneida',
+        'Anita',
+        'Azalee',
+        'Eilene',
+        'Kassandra',
+        'Margo',
+        'Thi',
+        'Eleonore',
+        'Myrtle'
+      ],
+      male: [
+        'Raymond',
+        'Don',
+        'Refugio',
+        'Luis',
+        'Karl',
+        'Fredrick',
+        'Benito',
+        'Barton',
+        'Shayne',
+        'Donny',
+        'Clifton',
+        'Greg',
+        'Lindsay',
+        'Kevin',
+        'Mikel',
+        'Freddy',
+        'Marvin',
+        'Edmundo',
+        'Zachary',
+        'Eusebio',
+        'Mel',
+        'Lenny',
+        'Abe',
+        'Kenneth',
+        'Dale',
+        'David',
+        'Gene',
+        'Mose',
+        'Lynn',
+        'Sean',
+        'Troy',
+        'Marion',
+        'Lowell',
+        'Reed',
+        'Antwan',
+        'Giuseppe',
+        'Carrol',
+        'Jay',
+        'Cordell',
+        'Bryce',
+        'Roy',
+        'Jamel',
+        'Grover',
+        'Carmine',
+        'Manual',
+        'Sylvester',
+        'Brendon',
+        'Jude',
+        'Burt',
+        'Renaldo'
+      ]
+    },
+    last: [
+      'Lax',
+      'Reynoso',
+      'Tilly',
+      'Klug',
+      'Ernst',
+      'Vrabel',
+      'Banda',
+      'Lansberry',
+      'Lehmkuhl',
+      'Hanning',
+      'Oda',
+      'Trask',
+      'Russom',
+      'Angelos',
+      'Krawczyk',
+      'Dahmen',
+      'Keys',
+      'Cairo',
+      'Bothe',
+      'Novak',
+      'Austin',
+      'Subia',
+      'Serino',
+      'Backer',
+      'Reinert',
+      'Wasson',
+      'Lou',
+      'Lasso',
+      'Cape',
+      'Cockerham',
+      'Rapier',
+      'Armijo',
+      'Frisch',
+      'Jess',
+      'Kimbler',
+      'Haney',
+      'Shumaker',
+      'Anstett',
+      'Rusher',
+      'Voss',
+      'Eccles',
+      'Linzey',
+      'Cane',
+      'Claunch',
+      'Rouleau',
+      'Huneke',
+      'Marceau',
+      'Leisy',
+      'Mondy',
+      'Justis'
+    ]
+  };
+
+  /**
+   * Lists of genders used for name generation
+   * @private
+   */
+  var _genders = [
+    // I know... this isn't correct...
+    'female',
+    'male'
+  ];
+
+  /**
+   * Generates an object of functions to be called from the templates
+   * @private
+   * @returns {Object.<string, Function>}
+   */
+  function _functions() {
+    var functions = {};
+    _.each([
+      'loremIpsum',
+      'random',
+      'randomItem',
+      'randomString',
+      'randomDate',
+      'evilScript',
+      'evilLink',
+      'personName',
+      'thingName'
+    ], function(name) {
+      functions[name] = fixturer[name];
+    });
+    return functions;
+  }
+
+
+  /**
+   * A fixture generation tools
+   * @param {Object.<string, *>} definition - A hash of in which replacements are being made
+   * @param {Number} [count]                - The number of fixture objects to be generated
+   * @returns {Object|array}                - The fixture(s)
+   */
+  var fixturer = function(definition, count) {
+    count = count || 1;
+    if (count > 1) {
+      var fixtures = [];
+      for (var c = 0; c < count; c++) {
+        fixtures.push(fixturer(definition));
+      }
+      return fixtures;
+    }
+
+    var fixture;
+
+    if (_.isString(definition)) {
+      fixture = _.template(definition, _functions());
+    }
+    else if (_.isArray(definition)) {
+      fixture = _.map(definition, function(item) {
+        return fixturer(item);
+      });
+    }
+    else if (_.isObject(definition)) {
+      fixture = {};
+      _.each(definition, function(item, name) {
+        fixture[name] = fixturer(item);
+      });
+    }
+    else {
+      fixture = definition;
+    }
+
+    if (_.isString(fixture)) {
+      var prefix = /^::(bool|number)::(.*)/.exec(fixture);
+      if (prefix) {
+        switch (prefix[1]) {
+          case 'bool':
+            fixture = !!prefix[2];
+            if (prefix[2] === '0') {
+              fixture = false;
+            }
+            break;
+          case 'number':
+            fixture = parseFloat(prefix[2] || 0, 10);
+            break;
+        }
+      }
+    }
+
+    return fixture;
+  };
+
+  /**
+   * Example text generation
+   * @returns {string} - A string to be used for fixtures
+   */
+  fixturer.loremIpsum = function() {
+    var words = _loremIpsum.split(/\s/);
+    return words.slice(0, fixturer.random(10, words.length - 1)).join(' ');
+  };
+
+  /**
+   * Generates a random string
+   * @param  {integer} length of the generated string
+   * @param  {string} chars   allowed to be used
+   * @return {string}         a random string
+   */
+  fixturer.randomString = function(length, chars) {
+    chars = chars || '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var result = '';
+    for (var i = length; i > 0; --i) {
+      result += chars[Math.round(Math.random() * (chars.length - 1))];
+    };
+    return result;
+  }
+
+  /**
+   * Creates a random number
+   * @param {Number} min        - the minimal value return
+   * @param {Number} max        - the maximal value return
+   * @param {Number} precision  - the floating precision
+   * @returns {Number}
+   */
+  fixturer.random = function(min, max, precision) {
+    min = min || 0;
+    max = max || 100;
+    precision = precision || 0;
+    var rand = Math.random();
+    // not really elegant...
+    var diff = max - min;
+    var factor = Math.pow(10, precision);
+
+    return Math.round((min + (diff * rand)) * factor) / factor;
+  };
+
+  /**
+   * Generates a random date between `start` and `end`
+   * @param  {date} [start] for the `oldest` possible value
+   * @param  {date} [end]   for the `newest` possible value
+   * @return {date}
+   */
+  fixturer.randomDate = function randomDate(start, end) {
+    start = start || (new Date(1981, 1, 9));
+    end = end || (new Date(2021, 1, 9));
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  };
+
+  /**
+   * Evil code generation
+   * @returns {string} - A string with some evil code in it
+   */
+  fixturer.evilScript = function() {
+    return '<script>document.write(\'So screwed!\');</script>';
+  };
+
+  /**
+   * Evil link generation
+   * @returns {string} - A string with some evil link in it
+   */
+  fixturer.evilLink = function() {
+    return '<a href="http://evil.com>evil link</a>';
+  };
+
+
+  /**
+   * Pick one or more random items from an array
+   * @param {array} array - the source array
+   * @param {number} count - the number of items, 1 by default
+   * @returns {*}
+   */
+  fixturer.randomItem = function(array, count) {
+    count = count || 1;
+    var items = [];
+
+    for (var c = 0; c < count; c++) {
+      items.push(array[[fixturer.random(0, array.length - 1)]]);
+    }
+
+    if (count === 1) {
+      return items[0];
+    }
+    return items;
+  };
+
+  /**
+   * Person name generation
+   * @param {bool} first      - if strictly `false`, no first name part
+   * @param {bool} last       - if strictly `false`, no last name part
+   * @param {bool} middle     - if truthy, adds a middle name part
+   * @param {string} gender   - can be 'male', 'female', random if not defined
+   * @returns {string}        - A string with some evil code in it
+   */
+  fixturer.personName = function(first, last, middle, gender) {
+    gender = gender || fixturer.randomItem(_genders);
+    var name = [];
+    if (first !== false) {
+      name.push(fixturer.randomItem(_names.first[gender]));
+    }
+    if (middle) {
+      name.push(fixturer.randomItem(_names.first[gender]));
+    }
+    if (last !== false) {
+      name.push(fixturer.randomItem(_names.last));
+    }
+    return name.join(' ');
+  };
+
+  fixturer.thingName = function(count) {
+    count = count || 1;
+    var name = [];
+    var words = _loremIpsum.split(/\s/);
+    for (var w = 0; w < count; w++) {
+      name.push(fixturer.randomItem(words));
+    }
+    return name.join(' ');
+  };
+
+  return fixturer;
+}));
+
+},{"underscore":14,"underscore.string":13}],6:[function(_dereq_,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -1128,22 +1548,35 @@ exports.INSPECT_MAX_BYTES = 50
 Buffer.poolSize = 8192
 
 /**
- * If `Buffer._useTypedArrays`:
+ * If `TYPED_ARRAY_SUPPORT`:
  *   === true    Use Uint8Array implementation (fastest)
- *   === false   Use Object implementation (compatible down to IE6)
+ *   === false   Use Object implementation (most compatible, even IE6)
+ *
+ * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
+ * Opera 11.6+, iOS 4.2+.
+ *
+ * Note:
+ *
+ * - Implementation must support adding new properties to `Uint8Array` instances.
+ *   Firefox 4-29 lacked support, fixed in Firefox 30+.
+ *   See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
+ *
+ *  - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
+ *
+ *  - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
+ *    incorrect length in some situations.
+ *
+ * We detect these buggy browsers and set `TYPED_ARRAY_SUPPORT` to `false` so they will
+ * get the Object implementation, which is slower but will work correctly.
  */
-Buffer._useTypedArrays = (function () {
-  // Detect if browser supports Typed Arrays. Supported browsers are IE 10+, Firefox 4+,
-  // Chrome 7+, Safari 5.1+, Opera 11.6+, iOS 4.2+. If the browser does not support adding
-  // properties to `Uint8Array` instances, then that's the same as no `Uint8Array` support
-  // because we need to be able to add all the node Buffer API methods. This is an issue
-  // in Firefox 4-29. Now fixed: https://bugzilla.mozilla.org/show_bug.cgi?id=695438
+var TYPED_ARRAY_SUPPORT = (function () {
   try {
     var buf = new ArrayBuffer(0)
     var arr = new Uint8Array(buf)
     arr.foo = function () { return 42 }
-    return 42 === arr.foo() &&
-        typeof arr.subarray === 'function' // Chrome 9-10 lack `subarray`
+    return 42 === arr.foo() && // typed array instances can be augmented
+        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
+        new Uint8Array(1).subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
   } catch (e) {
     return false
   }
@@ -1167,28 +1600,23 @@ function Buffer (subject, encoding, noZero) {
 
   var type = typeof subject
 
-  // Workaround: node's base64 implementation allows for non-padded strings
-  // while base64-js does not.
-  if (encoding === 'base64' && type === 'string') {
-    subject = stringtrim(subject)
-    while (subject.length % 4 !== 0) {
-      subject = subject + '='
-    }
-  }
-
   // Find the length
   var length
   if (type === 'number')
-    length = coerce(subject)
-  else if (type === 'string')
+    length = subject > 0 ? subject >>> 0 : 0
+  else if (type === 'string') {
+    if (encoding === 'base64')
+      subject = base64clean(subject)
     length = Buffer.byteLength(subject, encoding)
-  else if (type === 'object')
-    length = coerce(subject.length) // assume that object is array-like
-  else
+  } else if (type === 'object' && subject !== null) { // assume object is array-like
+    if (subject.type === 'Buffer' && isArray(subject.data))
+      subject = subject.data
+    length = +subject.length > 0 ? Math.floor(+subject.length) : 0
+  } else
     throw new Error('First argument needs to be a number, array or string.')
 
   var buf
-  if (Buffer._useTypedArrays) {
+  if (TYPED_ARRAY_SUPPORT) {
     // Preferred: Return an augmented `Uint8Array` instance for best performance
     buf = Buffer._augment(new Uint8Array(length))
   } else {
@@ -1199,7 +1627,7 @@ function Buffer (subject, encoding, noZero) {
   }
 
   var i
-  if (Buffer._useTypedArrays && typeof subject.byteLength === 'number') {
+  if (TYPED_ARRAY_SUPPORT && typeof subject.byteLength === 'number') {
     // Speed optimization -- use set if we're copying from a typed array
     buf._set(subject)
   } else if (isArrayish(subject)) {
@@ -1213,7 +1641,7 @@ function Buffer (subject, encoding, noZero) {
     }
   } else if (type === 'string') {
     buf.write(subject, 0, encoding)
-  } else if (type === 'number' && !Buffer._useTypedArrays && !noZero) {
+  } else if (type === 'number' && !TYPED_ARRAY_SUPPORT && !noZero) {
     for (i = 0; i < length; i++) {
       buf[i] = 0
     }
@@ -1245,7 +1673,7 @@ Buffer.isEncoding = function (encoding) {
 }
 
 Buffer.isBuffer = function (b) {
-  return !!(b !== null && b !== undefined && b._isBuffer)
+  return !!(b != null && b._isBuffer)
 }
 
 Buffer.byteLength = function (str, encoding) {
@@ -1520,7 +1948,7 @@ Buffer.prototype.copy = function (target, target_start, start, end) {
 
   var len = end - start
 
-  if (len < 100 || !Buffer._useTypedArrays) {
+  if (len < 100 || !TYPED_ARRAY_SUPPORT) {
     for (var i = 0; i < len; i++) {
       target[i + target_start] = this[i + start]
     }
@@ -1592,10 +2020,29 @@ function utf16leSlice (buf, start, end) {
 
 Buffer.prototype.slice = function (start, end) {
   var len = this.length
-  start = clamp(start, len, 0)
-  end = clamp(end, len, len)
+  start = ~~start
+  end = end === undefined ? len : ~~end
 
-  if (Buffer._useTypedArrays) {
+  if (start < 0) {
+    start += len;
+    if (start < 0)
+      start = 0
+  } else if (start > len) {
+    start = len
+  }
+
+  if (end < 0) {
+    end += len
+    if (end < 0)
+      end = 0
+  } else if (end > len) {
+    end = len
+  }
+
+  if (end < start)
+    end = start
+
+  if (TYPED_ARRAY_SUPPORT) {
     return Buffer._augment(this.subarray(start, end))
   } else {
     var sliceLen = end - start
@@ -2054,7 +2501,7 @@ Buffer.prototype.inspect = function () {
  */
 Buffer.prototype.toArrayBuffer = function () {
   if (typeof Uint8Array !== 'undefined') {
-    if (Buffer._useTypedArrays) {
+    if (TYPED_ARRAY_SUPPORT) {
       return (new Buffer(this)).buffer
     } else {
       var buf = new Uint8Array(this.length)
@@ -2130,28 +2577,21 @@ Buffer._augment = function (arr) {
   return arr
 }
 
+var INVALID_BASE64_RE = /[^+\/0-9A-z]/g
+
+function base64clean (str) {
+  // Node strips out invalid characters like \n and \t from the string, base64-js does not
+  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+  while (str.length % 4 !== 0) {
+    str = str + '='
+  }
+  return str
+}
+
 function stringtrim (str) {
   if (str.trim) return str.trim()
   return str.replace(/^\s+|\s+$/g, '')
-}
-
-// slice(start, end)
-function clamp (index, len, defaultValue) {
-  if (typeof index !== 'number') return defaultValue
-  index = ~~index;  // Coerce to integer.
-  if (index >= len) return len
-  if (index >= 0) return index
-  index += len
-  if (index >= 0) return index
-  return 0
-}
-
-function coerce (length) {
-  // Coerce length to a number (possibly NaN), round up
-  // in case it's fractional (e.g. 123.456) then do a
-  // double negate to coerce a NaN to 0. Easy, right?
-  length = ~~Math.ceil(+length)
-  return length < 0 ? 0 : length
 }
 
 function isArray (subject) {
@@ -2262,7 +2702,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":6,"ieee754":7}],6:[function(_dereq_,module,exports){
+},{"base64-js":7,"ieee754":8}],7:[function(_dereq_,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -2384,7 +2824,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -2470,7 +2910,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -2535,427 +2975,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],9:[function(_dereq_,module,exports){
-(function (root, factory) {
-  /* global define: false, exports: false, require: false */
-  'use strict';
-  if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
-    define(['underscore', 'underscore.string'], factory);
-  }
-  else if (typeof exports === 'object') {
-    // Node. Does not work with strict CommonJS, but
-    // only CommonJS-like environments that support module.exports,
-    // like Node.
-    module.exports = factory(_dereq_('underscore'), _dereq_('underscore.string'));
-  }
-  else {
-    // Browser globals (root is window)
-    root.fixturer = factory(root._, root._.string);
-  }
-}(this, function (_, str) {
-  'use strict';
-  /**
-   * Fixture tools
-   * @exports {function} fixturer
-   */
-  _.str = str;
-
-  /**
-   * The text used for example string generation
-   * @private
-   */
-  var _loremIpsum = [
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. Praesent et diam eget libero egestas mattis sit amet vitae augue. Nam tincidunt congue enim, ut porta lorem lacinia consectetur. Donec ut libero sed arcu vehicula ultricies a non tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut gravida lorem. Ut turpis felis, pulvinar a semper sed, adipiscing id dolor. Pellentesque auctor nisi id magna consequat sagittis. Curabitur dapibus enim sit amet elit pharetra tincidunt feugiat nisl imperdiet. Ut convallis libero in urna ultrices accumsan. Donec sed odio eros. Donec viverra mi quis quam pulvinar at malesuada arcu rhoncus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In rutrum accumsan ultricies. Mauris vitae nisi at sem facilisis semper ac in est.',
-    'Vivamus fermentum semper porta. Nunc diam velit, adipiscing ut tristique vitae, sagittis vel odio. Maecenas convallis ullamcorper ultricies. Curabitur ornare, ligula semper consectetur sagittis, nisi diam iaculis velit, id fringilla sem nunc vel mi. Nam dictum, odio nec pretium volutpat, arcu ante placerat erat, non tristique elit urna et turpis. Quisque mi metus, ornare sit amet fermentum et, tincidunt et orci. Fusce eget orci a orci congue vestibulum. Ut dolor diam, elementum et vestibulum eu, porttitor vel elit. Curabitur venenatis pulvinar tellus gravida ornare. Sed et erat faucibus nunc euismod ultricies ut id justo. Nullam cursus suscipit nisi, et ultrices justo sodales nec. Fusce venenatis facilisis lectus ac semper. Aliquam at massa ipsum. Quisque bibendum purus convallis nulla ultrices ultricies. Nullam aliquam, mi eu aliquam tincidunt, purus velit laoreet tortor, viverra pretium nisi quam vitae mi. Fusce vel volutpat elit. Nam sagittis nisi dui.',
-    'Suspendisse lectus leo, consectetur in tempor sit amet, placerat quis neque. Etiam luctus porttitor lorem, sed suscipit est rutrum non. Curabitur lobortis nisl a enim congue semper. Aenean commodo ultrices imperdiet. Vestibulum ut justo vel sapien venenatis tincidunt. Phasellus eget dolor sit amet ipsum dapibus condimentum vitae quis lectus. Aliquam ut massa in turpis dapibus convallis. Praesent elit lacus, vestibulum at malesuada et, ornare et est. Ut augue nunc, sodales ut euismod non, adipiscing vitae orci. Mauris ut placerat justo. Mauris in ultricies enim. Quisque nec est eleifend nulla ultrices egestas quis ut quam. Donec sollicitudin lectus a mauris pulvinar id aliquam urna cursus. Cras quis ligula sem, vel elementum mi. Phasellus non ullamcorper urna.',
-    'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. In euismod ultrices facilisis. Vestibulum porta sapien adipiscing augue congue id pretium lectus molestie. Proin quis dictum nisl. Morbi id quam sapien, sed vestibulum sem. Duis elementum rutrum mauris sed convallis. Proin vestibulum magna mi. Aenean tristique hendrerit magna, ac facilisis nulla hendrerit ut. Sed non tortor sodales quam auctor elementum. Donec hendrerit nunc eget elit pharetra pulvinar. Suspendisse id tempus tortor. Aenean luctus, elit commodo laoreet commodo, justo nisi consequat massa, sed vulputate quam urna quis eros. Donec vel.'
-  ].join('\n\n');
-
-  /**
-   * Lists of names used for name generation
-   * @private
-   */
-  var _names = {
-    first: {
-      female: [
-        'Sara',
-        'Faye',
-        'Omega',
-        'Tracee',
-        'Dominica',
-        'Evie',
-        'Madge',
-        'Faustina',
-        'Alline',
-        'Minnie',
-        'Jeneva',
-        'Stacia',
-        'Margarett',
-        'Ma',
-        'Edythe',
-        'Kathleen',
-        'Shoshana',
-        'Kristal',
-        'Vicenta',
-        'Chan',
-        'Yolando',
-        'Despina',
-        'Janis',
-        'Dionna',
-        'Lurlene',
-        'Nadia',
-        'Samella',
-        'Olimpia',
-        'Manie',
-        'Lashonda',
-        'Karol',
-        'Tamela',
-        'Sabine',
-        'Olene',
-        'Kacie',
-        'Lavelle',
-        'Keitha',
-        'Kathyrn',
-        'Florence',
-        'Marylynn',
-        'Shalanda',
-        'Oneida',
-        'Anita',
-        'Azalee',
-        'Eilene',
-        'Kassandra',
-        'Margo',
-        'Thi',
-        'Eleonore',
-        'Myrtle'
-      ],
-      male: [
-        'Raymond',
-        'Don',
-        'Refugio',
-        'Luis',
-        'Karl',
-        'Fredrick',
-        'Benito',
-        'Barton',
-        'Shayne',
-        'Donny',
-        'Clifton',
-        'Greg',
-        'Lindsay',
-        'Kevin',
-        'Mikel',
-        'Freddy',
-        'Marvin',
-        'Edmundo',
-        'Zachary',
-        'Eusebio',
-        'Mel',
-        'Lenny',
-        'Abe',
-        'Kenneth',
-        'Dale',
-        'David',
-        'Gene',
-        'Mose',
-        'Lynn',
-        'Sean',
-        'Troy',
-        'Marion',
-        'Lowell',
-        'Reed',
-        'Antwan',
-        'Giuseppe',
-        'Carrol',
-        'Jay',
-        'Cordell',
-        'Bryce',
-        'Roy',
-        'Jamel',
-        'Grover',
-        'Carmine',
-        'Manual',
-        'Sylvester',
-        'Brendon',
-        'Jude',
-        'Burt',
-        'Renaldo'
-      ]
-    },
-    last: [
-      'Lax',
-      'Reynoso',
-      'Tilly',
-      'Klug',
-      'Ernst',
-      'Vrabel',
-      'Banda',
-      'Lansberry',
-      'Lehmkuhl',
-      'Hanning',
-      'Oda',
-      'Trask',
-      'Russom',
-      'Angelos',
-      'Krawczyk',
-      'Dahmen',
-      'Keys',
-      'Cairo',
-      'Bothe',
-      'Novak',
-      'Austin',
-      'Subia',
-      'Serino',
-      'Backer',
-      'Reinert',
-      'Wasson',
-      'Lou',
-      'Lasso',
-      'Cape',
-      'Cockerham',
-      'Rapier',
-      'Armijo',
-      'Frisch',
-      'Jess',
-      'Kimbler',
-      'Haney',
-      'Shumaker',
-      'Anstett',
-      'Rusher',
-      'Voss',
-      'Eccles',
-      'Linzey',
-      'Cane',
-      'Claunch',
-      'Rouleau',
-      'Huneke',
-      'Marceau',
-      'Leisy',
-      'Mondy',
-      'Justis'
-    ]
-  };
-
-  /**
-   * Lists of genders used for name generation
-   * @private
-   */
-  var _genders = [
-    // I know... this isn't correct...
-    'female',
-    'male'
-  ];
-
-  /**
-   * Generates an object of functions to be called from the templates
-   * @private
-   * @returns {Object.<string, Function>}
-   */
-  function _functions() {
-    var functions = {};
-    _.each([
-      'loremIpsum',
-      'random',
-      'randomItem',
-      'randomString',
-      'randomDate',
-      'evilScript',
-      'evilLink',
-      'personName',
-      'thingName'
-    ], function(name) {
-      functions[name] = fixturer[name];
-    });
-    return functions;
-  }
-
-
-  /**
-   * A fixture generation tools
-   * @param {Object.<string, *>} definition - A hash of in which replacements are being made
-   * @param {Number} [count]                - The number of fixture objects to be generated
-   * @returns {Object|array}                - The fixture(s)
-   */
-  var fixturer = function(definition, count) {
-    count = count || 1;
-    if (count > 1) {
-      var fixtures = [];
-      for (var c = 0; c < count; c++) {
-        fixtures.push(fixturer(definition));
-      }
-      return fixtures;
-    }
-
-    var fixture;
-
-    if (_.isString(definition)) {
-      fixture = _.template(definition, _functions());
-    }
-    else if (_.isArray(definition)) {
-      fixture = _.map(definition, function(item) {
-        return fixturer(item);
-      });
-    }
-    else if (_.isObject(definition)) {
-      fixture = {};
-      _.each(definition, function(item, name) {
-        fixture[name] = fixturer(item);
-      });
-    }
-    else {
-      fixture = definition;
-    }
-
-    if (_.isString(fixture)) {
-      var prefix = /^::(bool|number)::(.*)/.exec(fixture);
-      if (prefix) {
-        switch (prefix[1]) {
-          case 'bool':
-            fixture = !!prefix[2];
-            if (prefix[2] === '0') {
-              fixture = false;
-            }
-            break;
-          case 'number':
-            fixture = parseFloat(prefix[2] || 0, 10);
-            break;
-        }
-      }
-    }
-
-    return fixture;
-  };
-
-  /**
-   * Example text generation
-   * @returns {string} - A string to be used for fixtures
-   */
-  fixturer.loremIpsum = function() {
-    var words = _loremIpsum.split(/\s/);
-    return words.slice(0, fixturer.random(10, words.length - 1)).join(' ');
-  };
-
-  /**
-   * Generates a random string
-   * @param  {integer} length of the generated string
-   * @param  {string} chars   allowed to be used
-   * @return {string}         a random string
-   */
-  fixturer.randomString = function(length, chars) {
-    chars = chars || '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    var result = '';
-    for (var i = length; i > 0; --i) {
-      result += chars[Math.round(Math.random() * (chars.length - 1))];
-    };
-    return result;
-  }
-
-  /**
-   * Creates a random number
-   * @param {Number} min        - the minimal value return
-   * @param {Number} max        - the maximal value return
-   * @param {Number} precision  - the floating precision
-   * @returns {Number}
-   */
-  fixturer.random = function(min, max, precision) {
-    min = min || 0;
-    max = max || 100;
-    precision = precision || 0;
-    var rand = Math.random();
-    // not really elegant...
-    var diff = max - min;
-    var factor = Math.pow(10, precision);
-
-    return Math.round((min + (diff * rand)) * factor) / factor;
-  };
-
-  /**
-   * Generates a random date between `start` and `end`
-   * @param  {date} [start] for the `oldest` possible value
-   * @param  {date} [end]   for the `newest` possible value
-   * @return {date}
-   */
-  fixturer.randomDate = function randomDate(start, end) {
-    start = start || (new Date(1981, 1, 9));
-    end = end || (new Date(2021, 1, 9));
-    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-  };
-
-  /**
-   * Evil code generation
-   * @returns {string} - A string with some evil code in it
-   */
-  fixturer.evilScript = function() {
-    return '<script>document.write(\'So screwed!\');</script>';
-  };
-
-  /**
-   * Evil link generation
-   * @returns {string} - A string with some evil link in it
-   */
-  fixturer.evilLink = function() {
-    return '<a href="http://evil.com>evil link</a>';
-  };
-
-
-  /**
-   * Pick one or more random items from an array
-   * @param {array} array - the source array
-   * @param {number} count - the number of items, 1 by default
-   * @returns {*}
-   */
-  fixturer.randomItem = function(array, count) {
-    count = count || 1;
-    var items = [];
-
-    for (var c = 0; c < count; c++) {
-      items.push(array[[fixturer.random(0, array.length - 1)]]);
-    }
-
-    if (count === 1) {
-      return items[0];
-    }
-    return items;
-  };
-
-  /**
-   * Person name generation
-   * @param {bool} first      - if strictly `false`, no first name part
-   * @param {bool} last       - if strictly `false`, no last name part
-   * @param {bool} middle     - if truthy, adds a middle name part
-   * @param {string} gender   - can be 'male', 'female', random if not defined
-   * @returns {string}        - A string with some evil code in it
-   */
-  fixturer.personName = function(first, last, middle, gender) {
-    gender = gender || fixturer.randomItem(_genders);
-    var name = [];
-    if (first !== false) {
-      name.push(fixturer.randomItem(_names.first[gender]));
-    }
-    if (middle) {
-      name.push(fixturer.randomItem(_names.first[gender]));
-    }
-    if (last !== false) {
-      name.push(fixturer.randomItem(_names.last));
-    }
-    return name.join(' ');
-  };
-
-  fixturer.thingName = function(count) {
-    count = count || 1;
-    var name = [];
-    var words = _loremIpsum.split(/\s/);
-    for (var w = 0; w < count; w++) {
-      name.push(fixturer.randomItem(words));
-    }
-    return name.join(' ');
-  };
-
-  return fixturer;
-}));
-
-},{"underscore":14,"underscore.string":13}],10:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -6443,6 +6463,6 @@ uuid.BufferClass = BufferClass;
 module.exports = uuid;
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"./rng":15,"buffer":5}]},{},[1])
+},{"./rng":15,"buffer":6}]},{},[1])
 (1)
 });

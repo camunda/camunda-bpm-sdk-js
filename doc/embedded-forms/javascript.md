@@ -106,7 +106,7 @@ useful to declare additional variables programmatically:
     camForm.on('form-loaded', function() {
       // this callback is executed *before* the variables is loaded from the server.
       // if we declare a variable here, it's value will be fetched as well
-      variableManager.createVariable({ name: 'customVariable' });
+      variableManager.fetchVariable('customVariable');
     });
 
     camForm.on('variables-fetched', function() {
@@ -175,7 +175,7 @@ It shows how custom scripting can be used for
 
     camForm.on('form-loaded', function() {
       // declare a new variable so that it's value is fetched from the backend
-      variableManager.createVariable({ name: 'customVariable' });
+      variableManager.fetchVariable('customVariable');
     });
 
     camForm.on('variables-fetched', function() {

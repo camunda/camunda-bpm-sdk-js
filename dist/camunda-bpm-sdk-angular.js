@@ -2302,10 +2302,17 @@ CamundaForm.prototype.submitVariables = function(done) {
   var variableData = {};
   for(var v in vars) {
     // only submit dirty variables
-    if(!!vars[v].isDirty) {
+    // LIMITATION: dirty checking is not performed for complex object variables
+    if(!!vars[v].isDirty || vars[v].type === 'Object') {
+      var val = vars[v].value;
+      // if variable is JSON, serialize
+      if(this.variableManager.isJsonVariable(v)) {
+        val = JSON.stringify(val);
+      }
       variableData[v] = {
-        value: vars[v].value,
-        type: vars[v].type
+        value: val,
+        type: vars[v].type,
+        serializationConfig: vars[v].serializationConfig
       };
     }
   }
@@ -2344,6 +2351,11 @@ CamundaForm.prototype.mergeVariables = function(variables) {
     else {
       vars[v] = variables[v];
     }
+    // check whether the variable provides JSON payload. If true, deserialize
+    if(this.variableManager.isJsonVariable(v)) {
+      vars[v].value = JSON.parse(variables[v].value);
+    }
+    this.variableManager.isVariablesFetched = true;
   }
 };
 
@@ -2774,7 +2786,17 @@ function VariableManager() {
   /** @member object containing the form fields. Initially empty. */
   this.variables = { };
 
+  /** @member boolean indicating whether the variables are fetched */
+  this.isVariablesFetched = false;
+
 }
+
+VariableManager.prototype.fetchVariable = function(variable) {
+  if(this.isVariablesFetched) {
+    throw Error('Illegal State: cannot call fetchVariable(), variables already fetched.');
+  }
+  this.createVariable({ name: variable });
+};
 
 VariableManager.prototype.createVariable = function(variable) {
   if(!this.variables[variable.name]) {
@@ -2822,6 +2844,14 @@ VariableManager.prototype.variableValue = function(variableName, value) {
   }
 
   return variable.value;
+};
+
+VariableManager.prototype.isJsonVariable = function(name) {
+  var variable = this.variable(name);
+
+  return !!variable.serializationConfig &&
+     !!variable.serializationConfig.dataFormatId &&
+     0 >= variable.serializationConfig.dataFormatId.indexOf('application/json');
 };
 
 VariableManager.prototype.variableNames = function() {
