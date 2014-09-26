@@ -172,6 +172,7 @@ describe('The input field', function() {
 
     runs(function() {
       camForm.variableManager.variable('stringVar').value = 'secondUpdate';
+      camForm.variableManager.variable('autoBindVar').value = 'autoBindValue';
       camForm.applyVariables();
     });
 
@@ -179,6 +180,9 @@ describe('The input field', function() {
       return scope.modelProperty === "secondUpdate";
     }, 2000);
 
+    waitsFor('auto bind value changed in angular model', function() {
+      return scope.autoBindVar === "autoBindValue";
+    }, 2000);
   });
 
 });
