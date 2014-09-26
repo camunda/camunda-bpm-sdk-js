@@ -36,6 +36,7 @@ In case the variable does not yet exist (for instance in a Start Form), you have
     camForm.variableManager.createVariable({
       name: 'invoiceData',
       type: 'Object',
+      value: '{}',
       serializationConfig: {
         dataFormatId: 'application/json; implementation=tree',
         rootType: 'org.my.project.dto.InvoiceData'
