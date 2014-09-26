@@ -2222,6 +2222,10 @@ CamundaForm.prototype.mergeVariables = function(variables) {
     if(this.variableManager.isJsonVariable(v)) {
       vars[v].value = JSON.parse(variables[v].value);
     }
+    // check whether the variable is a Serialized Java Object. If true, unbox
+    if(this.variableManager.isSerializedObjectVariable(v)) {
+      vars[v].value = vars[v].value.object;
+    }
     this.variableManager.isVariablesFetched = true;
   }
 };
@@ -2267,6 +2271,7 @@ CamundaForm.$ = $;
 CamundaForm.VariableManager = VariableManager;
 CamundaForm.fields = {};
 CamundaForm.fields.InputFieldHandler = InputFieldHandler;
+CamundaForm.fields.ChoicesFieldHandler = ChoicesFieldHandler;
 
 /**
  * @memberof CamSDK.form.CamundaForm
@@ -2286,6 +2291,7 @@ module.exports = {
   DIRECTIVE_CAM_FORM : 'cam-form',
   DIRECTIVE_CAM_VARIABLE_NAME : 'cam-variable-name',
   DIRECTIVE_CAM_VARIABLE_TYPE : 'cam-variable-type',
+  DIRECTIVE_CAM_CHOICES : 'cam-choices',
   DIRECTIVE_CAM_SCRIPT : 'cam-script'
 };
 
@@ -2386,12 +2392,18 @@ var ChoicesFieldHandler = AbstractFormField.extend(
     // read variable definitions from markup
     var variableName = this.variableName = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_NAME);
     var variableType = this.variableType = this.element.attr(constants.DIRECTIVE_CAM_VARIABLE_TYPE);
+    var choicesVariableName = this.choicesVariableName = this.element.attr(constants.DIRECTIVE_CAM_CHOICES);
 
     // crate variable
     this.variableManager.createVariable({
       name: variableName,
       type: variableType
     });
+
+    // fetch choices variable
+    if(!!choicesVariableName) {
+      this.variableManager.fetchVariable(choicesVariableName);
+    }
 
     // remember the original value found in the element for later checks
     this.originalValue = this.element.val() || '';
@@ -2410,11 +2422,43 @@ var ChoicesFieldHandler = AbstractFormField.extend(
    * @return {CamSDK.form.ChoicesFieldHandler} Chainable method.
    */
   applyValue: function() {
+
+    var selectedIndex = this.element[0].selectedIndex;
+    // if cam-choices variable is defined, apply options
+    if(!!this.choicesVariableName) {
+      var choicesVariableValue = this.variableManager.variableValue(this.choicesVariableName);
+      if(!!choicesVariableValue) {
+        // array
+        if (choicesVariableValue instanceof Array) {
+          for(var i = 0; i < choicesVariableValue.length; i++) {
+            var val = choicesVariableValue[i];
+            this.element.append($('<option>', {
+              value: val,
+              text: val
+            }));
+          }
+        // object aka map
+        } else {
+          for (var p in choicesVariableValue) {
+            this.element.append($('<option>', {
+              value: p,
+              text: choicesVariableValue[p]
+            }));
+          }
+        }
+      }
+    }
+
+    // make sure selected index is retained
+    this.element[0].selectedIndex = selectedIndex;
+
+    // select option referenced in cam-variable-name (if any)
     this.previousValue = this.element.val() || '';
     var variableValue = this.variableManager.variableValue(this.variableName);
     if (variableValue !== this.previousValue) {
       // write value to html control
       this.element.val(variableValue);
+      this.element.trigger('camFormVariableApplied', variableValue);
     }
 
     return this;
@@ -2724,6 +2768,15 @@ VariableManager.prototype.isJsonVariable = function(name) {
   return !!variable.serializationConfig &&
      !!variable.serializationConfig.dataFormatId &&
      0 >= variable.serializationConfig.dataFormatId.indexOf('application/json');
+};
+
+VariableManager.prototype.isSerializedObjectVariable = function(name) {
+  var variable = this.variable(name);
+
+  return !!variable &&
+         !!variable.value &&
+         !!variable.value.object &&
+         !!variable.value.type;
 };
 
 VariableManager.prototype.variableNames = function() {
