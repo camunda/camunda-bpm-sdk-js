@@ -2065,11 +2065,13 @@ CamundaForm.prototype.renderForm = function(formHtmlSource) {
   $(this.containerElement).html('').append('<div class="injected-form-wrapper">'+formHtmlSource+'</div>');
 
   // extract and validate form element
-  this.formElement = $("form", this.containerElement);
-  if(this.formElement.length !== 1) {
+  var formElement = this.formElement = $("form", this.containerElement);
+  if(formElement.length !== 1) {
     throw new Error("Form must provide exaclty one element <form ..>");
   }
-
+  if(!formElement.attr('name')) {
+    formElement.attr('name', 'camForm');
+  }
 };
 
 
@@ -2112,7 +2114,7 @@ CamundaForm.prototype.initializeForm = function(done) {
     self.fireEvent('variables-applied');
 
     // invoke callback
-    done();
+    done(self);
   });
 };
 

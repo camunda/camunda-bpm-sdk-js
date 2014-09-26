@@ -5,17 +5,37 @@
 var CamundaForm = _dereq_('./../../forms/camunda-form');
 
 var angular = (window.angular);
+var $ = CamundaForm.$;
+var constants = _dereq_('./../../forms/constants');
+
 
 var CamundaFormAngular = CamundaForm.extend(
 {
 
   renderForm: function(formHtmlSource) {
+    var self = this;
+
     // first add the form to the DOM:
     CamundaForm.prototype.renderForm.apply(this, arguments);
 
-    // second make sure the form is compiled using
-    // angular and linked to the current scope
-    var self = this;
+    // next perform auto-scope binding for all fields which do not have custom bindings
+    function autoBind(key, el) {
+      var element = $(el);
+      if(!element.attr('ng-model')) {
+        var camVarName = element.attr(constants.DIRECTIVE_CAM_VARIABLE_NAME);
+        if(!!camVarName) {
+          element.attr('ng-model', camVarName);
+        }
+      }
+    }
+
+    for(var i = 0; i < this.formFieldHandlers.length; i++) {
+      var handler = this.formFieldHandlers[i];
+      var selector = handler.selector;
+      $(selector, self.formElement).each(autoBind);
+    }
+
+    // finally compile the form with angular and linked to the current scope
     var injector = self.formElement.injector();
     var scope = self.formElement.scope();
     injector.invoke(['$compile', function($compile) {
@@ -25,9 +45,10 @@ var CamundaFormAngular = CamundaForm.extend(
 
   executeFormScript: function(script) {
 
-    // overrides executeFormScript to make sure the following variables / functions are available to script implementations
-    // $scope
-    // inject
+    // overrides executeFormScript to make sure the following variables / functions are available to script implementations:
+
+    // * $scope
+    // * inject
 
     var injector = this.formElement.injector();
     var scope = this.formElement.scope();
@@ -83,7 +104,7 @@ var CamundaFormAngular = CamundaForm.extend(
 
 module.exports = CamundaFormAngular;
 
-},{"./../../forms/camunda-form":18}],2:[function(_dereq_,module,exports){
+},{"./../../forms/camunda-form":18,"./../../forms/constants":19}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var angular = (window.angular),
@@ -2198,11 +2219,13 @@ CamundaForm.prototype.renderForm = function(formHtmlSource) {
   $(this.containerElement).html('').append('<div class="injected-form-wrapper">'+formHtmlSource+'</div>');
 
   // extract and validate form element
-  this.formElement = $("form", this.containerElement);
-  if(this.formElement.length !== 1) {
+  var formElement = this.formElement = $("form", this.containerElement);
+  if(formElement.length !== 1) {
     throw new Error("Form must provide exaclty one element <form ..>");
   }
-
+  if(!formElement.attr('name')) {
+    formElement.attr('name', 'camForm');
+  }
 };
 
 
@@ -2245,7 +2268,7 @@ CamundaForm.prototype.initializeForm = function(done) {
     self.fireEvent('variables-applied');
 
     // invoke callback
-    done();
+    done(self);
   });
 };
 
