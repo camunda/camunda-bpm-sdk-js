@@ -108,7 +108,7 @@ var CamundaFormAngular = CamundaForm.extend(
 
 module.exports = CamundaFormAngular;
 
-},{"./../../forms/camunda-form":18,"./../../forms/constants":19}],2:[function(_dereq_,module,exports){
+},{"./../../forms/camunda-form":19,"./../../forms/constants":20}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var angular = (window.angular),
@@ -156,7 +156,7 @@ module.exports = {
 };
 
 
-},{"./../api-client":6,"./../utils":26,"./forms":2}],4:[function(_dereq_,module,exports){
+},{"./../api-client":6,"./../utils":27,"./forms":2}],4:[function(_dereq_,module,exports){
 'use strict';
 
 // var HttpClient = require('./http-client');
@@ -379,7 +379,7 @@ Events.attach(AbstractClientResource);
 
 module.exports = AbstractClientResource;
 
-},{"./../base-class":16,"./../events":17}],5:[function(_dereq_,module,exports){
+},{"./../base-class":17,"./../events":18}],5:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
@@ -537,7 +537,7 @@ HttpClient.prototype.options = function(path, options) {
 
 module.exports = HttpClient;
 
-},{"./../events":17,"./../utils":26,"superagent":27}],6:[function(_dereq_,module,exports){
+},{"./../events":18,"./../utils":27,"superagent":28}],6:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -617,6 +617,7 @@ CamundaClient.HttpClient = _dereq_('./http-client');
     /* jshint sub: true */
     _resources['authorization']       = _dereq_('./resources/authorization');
     _resources['filter']              = _dereq_('./resources/filter');
+    _resources['history']             = _dereq_('./resources/history');
     _resources['process-definition']  = _dereq_('./resources/process-definition');
     _resources['process-instance']    = _dereq_('./resources/process-instance');
     _resources['task']                = _dereq_('./resources/task');
@@ -697,7 +698,7 @@ module.exports = CamundaClient;
  * @callback noopCallback
  */
 
-},{"./http-client":5,"./resources/authorization":7,"./resources/case-definition":8,"./resources/case-execution":9,"./resources/case-instance":10,"./resources/filter":11,"./resources/process-definition":12,"./resources/process-instance":13,"./resources/task":14,"./resources/variable":15}],7:[function(_dereq_,module,exports){
+},{"./http-client":5,"./resources/authorization":7,"./resources/case-definition":8,"./resources/case-execution":9,"./resources/case-instance":10,"./resources/filter":11,"./resources/history":12,"./resources/process-definition":13,"./resources/process-instance":14,"./resources/task":15,"./resources/variable":16}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var AbstractClientResource = _dereq_("./../abstract-client-resource");
@@ -1132,6 +1133,63 @@ module.exports = Filter;
 
 var AbstractClientResource = _dereq_("./../abstract-client-resource");
 
+
+
+/**
+ * History Resource
+ * @class
+ * @memberof CamSDK.client.resource
+ * @augments CamSDK.client.AbstractClientResource
+ */
+var History = AbstractClientResource.extend();
+
+/**
+ * Path used by the resource to perform HTTP queries
+ * @type {String}
+ */
+History.path = 'history';
+
+
+/**
+ * Query for user operation log entries that fulfill the given parameters.
+ *
+ * @param {Object} params
+ * @param {String} [params.processDefinitionId]   Filter by process definition id.
+ * @param {String} [params.processDefinitionKey]  Filter by process definition key.
+ * @param {String} [params.processInstanceId]     Filter by process instance id.
+ * @param {String} [params.executionId]           Filter by execution id.
+ * @param {String} [params.caseDefinitionId]      Filter by case definition id.
+ * @param {String} [params.caseInstanceId]        Filter by case instance id.
+ * @param {String} [params.caseExecutionId]       Filter by case execution id.
+ * @param {String} [params.taskId]                Only include operations on this task.
+ * @param {String} [params.userId]                Only include operations of this user.
+ * @param {String} [params.operationId]           Filter by the id of the operation. This allows fetching of multiple entries which are part of a composite operation.
+ * @param {String} [params.operationType]         Filter by the type of the operation like Claim or Delegate.
+ * @param {String} [params.entityType]            Filter by the type of the entity that was affected by this operation, possible values are Task, Attachment or IdentityLink.
+ * @param {String} [params.property]              Only include operations that changed this property, e.g. owner or assignee
+ * @param {String} [params.afterTimestamp]        Restrict to entries that were created after the given timestamp. The timestamp must have the format yyyy-MM-dd'T'HH:mm:ss, e.g. 2014-02-25T14:58:37
+ * @param {String} [params.beforeTimestamp]       Restrict to entries that were created before the given timestamp. The timestamp must have the format yyyy-MM-dd'T'HH:mm:ss, e.g. 2014-02-25T14:58:37
+ * @param {String} [params.sortBy]                Sort the results by a given criterion. At the moment the query only supports sorting based on the timestamp.
+ * @param {String} [params.sortOrder]             Sort the results in a given order. Values may be asc for ascending order or desc for descending order. Must be used in conjunction with the sortBy parameter.
+ * @param {String} [params.firstResult]           Pagination of results. Specifies the index of the first result to return.
+ * @param {String} [params.maxResults]            Pagination of results. Specifies the maximum number of results to return. Will return less results if there are no more results left.
+ * @param {Function} done
+ */
+History.userOperation = function(params, done) {
+  return this.http.get(this.path + "/user-operation", {
+      data: params,
+      done: done
+  });
+};
+
+module.exports = History;
+
+
+},{"./../abstract-client-resource":4}],13:[function(_dereq_,module,exports){
+'use strict';
+
+var AbstractClientResource = _dereq_("./../abstract-client-resource");
+
 /**
  * No-Op callback
  */
@@ -1434,7 +1492,7 @@ var ProcessDefinition = AbstractClientResource.extend(
 module.exports = ProcessDefinition;
 
 
-},{"./../abstract-client-resource":4}],13:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":4}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var AbstractClientResource = _dereq_("./../abstract-client-resource");
@@ -1491,7 +1549,7 @@ var ProcessInstance = AbstractClientResource.extend(
 
 module.exports = ProcessInstance;
 
-},{"./../abstract-client-resource":4}],14:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":4}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var AbstractClientResource = _dereq_('./../abstract-client-resource');
@@ -1625,8 +1683,32 @@ Task.get = function(taskId, done) {
   });
 };
 
+/**
+ * Retrieve the comments for a single task
+ * @param  {uuid}     taskId   of the task for which the comments are requested
+ * @param  {Function} done
+ */
+Task.comments = function(taskId, done) {
+  return this.http.get(this.path +'/'+ taskId + "/comment", {
+    done: done
+  });
+};
 
-
+/**
+ * Create a comment for a task.
+ *
+ * @param  {String}   taskId  The id of the task to add the comment to.
+ * @param  {String}   message The message of the task comment to create.
+ * @param  {Function} done
+ */
+Task.createComment = function(taskId, message, done) {
+  return this.http.post(this.path +'/'+ taskId +'/comment/create', {
+    data: {
+      message: message
+    },
+    done: done
+  });
+};
 
 /**
  * Creates a task
@@ -1808,7 +1890,7 @@ Task.formVariables = function(data, done) {
 module.exports = Task;
 
 
-},{"./../abstract-client-resource":4}],15:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":4}],16:[function(_dereq_,module,exports){
 'use strict';
 
 var AbstractClientResource = _dereq_("./../abstract-client-resource");
@@ -1832,7 +1914,7 @@ Variable.path = 'variable-instance';
 module.exports = Variable;
 
 
-},{"./../abstract-client-resource":4}],16:[function(_dereq_,module,exports){
+},{"./../abstract-client-resource":4}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var Events = _dereq_('./events');
@@ -1919,7 +2001,7 @@ Events.attach(BaseClass);
 
 module.exports = BaseClass;
 
-},{"./events":17}],17:[function(_dereq_,module,exports){
+},{"./events":18}],18:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -2073,7 +2155,7 @@ Events.trigger = function() {
 
 module.exports = Events;
 
-},{}],18:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 'use strict';
 /* global CamSDK: false */
 
@@ -2483,7 +2565,7 @@ CamundaForm.extend = BaseClass.extend;
 module.exports = CamundaForm;
 
 
-},{"./../base-class":16,"./../events":17,"./constants":19,"./controls/choices-field-handler":21,"./controls/input-field-handler":22,"./dom-lib":23,"./variable-manager":25}],19:[function(_dereq_,module,exports){
+},{"./../base-class":17,"./../events":18,"./constants":20,"./controls/choices-field-handler":22,"./controls/input-field-handler":23,"./dom-lib":24,"./variable-manager":26}],20:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2494,7 +2576,7 @@ module.exports = {
   DIRECTIVE_CAM_SCRIPT : 'cam-script'
 };
 
-},{}],20:[function(_dereq_,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var BaseClass = _dereq_('../../base-class');
@@ -2567,7 +2649,7 @@ AbstractFormField.prototype.getValue = noop;
 module.exports = AbstractFormField;
 
 
-},{"../../base-class":16,"./../dom-lib":23}],21:[function(_dereq_,module,exports){
+},{"../../base-class":17,"./../dom-lib":24}],22:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./../constants'),
@@ -2699,7 +2781,7 @@ var ChoicesFieldHandler = AbstractFormField.extend(
 module.exports = ChoicesFieldHandler;
 
 
-},{"./../constants":19,"./../dom-lib":23,"./abstract-form-field":20}],22:[function(_dereq_,module,exports){
+},{"./../constants":20,"./../dom-lib":24,"./abstract-form-field":21}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var constants = _dereq_('./../constants'),
@@ -2786,7 +2868,7 @@ var InputFieldHandler = AbstractFormField.extend(
 module.exports = InputFieldHandler;
 
 
-},{"./../constants":19,"./../dom-lib":23,"./abstract-form-field":20}],23:[function(_dereq_,module,exports){
+},{"./../constants":20,"./../dom-lib":24,"./abstract-form-field":21}],24:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -2801,7 +2883,7 @@ module.exports = InputFieldHandler;
 }));
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var INTEGER_PATTERN = /^-?[\d]+$/;
@@ -2872,7 +2954,7 @@ var convertToType = function(value, type) {
 
 module.exports = convertToType;
 
-},{}],25:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var convertToType = _dereq_('./type-util');
@@ -2981,7 +3063,7 @@ VariableManager.prototype.variableNames = function() {
 module.exports = VariableManager;
 
 
-},{"./type-util":24}],26:[function(_dereq_,module,exports){
+},{"./type-util":25}],27:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -3106,7 +3188,7 @@ utils.series = function(tasks, callback) {
   });
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],28:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -4157,7 +4239,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":28,"reduce":29}],28:[function(_dereq_,module,exports){
+},{"emitter":29,"reduce":30}],29:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -4323,7 +4405,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
