@@ -112,7 +112,7 @@ module.exports = CamundaFormAngular;
 'use strict';
 
 var angular = (window.angular),
-    CamundaFormAngular = _dereq_('./camunda-form-anguar');
+    CamundaFormAngular = _dereq_('./camunda-form-angular');
 
 // define embedded forms angular module
 var ngModule = angular.module('cam.embedded.forms', []);
@@ -146,7 +146,7 @@ ngModule.directive('camVariableName', ['$rootScope', function($rootScope) {
 module.exports = CamundaFormAngular;
 
 
-},{"./camunda-form-anguar":1}],3:[function(_dereq_,module,exports){
+},{"./camunda-form-angular":1}],3:[function(_dereq_,module,exports){
 /** @namespace CamSDK */
 
 module.exports = {

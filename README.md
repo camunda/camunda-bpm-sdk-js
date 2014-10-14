@@ -39,6 +39,20 @@ jasmine-node --autotest --watch lib -m /*Spec\.js$/ test/jasmine_node
 
 https://app.camunda.com/jira/browse/CAM/component/12351
 
+## Releasing
+
+To create a release, execute
+```sh
+grunt publish:release --setversion='myVersion'
+```
+
+To create a snapshot release, execute
+```sh
+grunt publish:snapshot --setversion='myVersion'
+```
+
+(--no-bower -> skip bower release)  
+(--no-write -> dryRun mode)
 
 ## License
 

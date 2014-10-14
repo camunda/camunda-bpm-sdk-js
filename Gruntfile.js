@@ -5,6 +5,7 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
   require('time-grunt')(grunt);
 
+  var dryRun = grunt.option("no-write") || false;
   var pkg = require('./package.json');
   var config = {};
 
@@ -14,9 +15,11 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg:              pkg,
 
+    dryRun:           dryRun,
+
     browserify:       require('./grunt/config/browserify')(config),
 
-    clean:            ['documentation', 'dist', '.tmp'],
+    clean:            ['documentation', 'dist', '.tmp', 'staging'],
 
     copy:             require('./grunt/config/copy')(config),
 
@@ -31,6 +34,12 @@ module.exports = function(grunt) {
     watch:            require('./grunt/config/watch')(config),
 
     uglify:           require('./grunt/config/uglify')(config),
+
+    bump:             require('./grunt/config/bump')(config),
+
+    release:          require('./grunt/config/release')(config),
+
+    bowerRelease:     require('./grunt/config/release-bower')(config)
   });
 
   grunt.registerTask('build', function(mode) {
@@ -65,7 +74,55 @@ module.exports = function(grunt) {
     'watch:doc'
   ]);
 
+  grunt.registerTask('publish', function(mode) {
+    mode = mode || 'snapshot';
+    var tasks = [];
+    var releaseBower = !grunt.option('no-bower') || true;
 
+    // check options
+    if (mode !== 'release ' && mode !== 'snapshot' && mode !== 'version') {
+      grunt.fatal('Only snapshot and release targets are allowed for the publish task! mode=' + mode);
+    }
+    grunt.log.writeln('Publishing JS SDK in "'+ mode +'" mode.');
+
+    if ((mode === 'release ' || mode === 'version') && !grunt.option('setversion')) {
+      grunt.fatal('No version specified using the --set-version=VERSION param!')
+    }
+
+    if (grunt.option('no-bower')) {
+      grunt.log.writeln('Skipping bower release.')
+    }
+
+    if (mode === 'snapshot') {
+      tasks = tasks.concat([
+        'build:prod'
+      ]);
+
+      if (releaseBower) {
+        tasks = tasks.concat(['bowerRelease:' + mode]);
+      }
+    } else if (mode === 'version') {
+      // just increase version
+      tasks = tasks.concat([
+        'bump:only',
+        'bump:snapshot' // commit, push
+      ]);
+    } else {
+      // release mode
+      tasks = tasks.concat([
+        'bump:only',
+        'build:prod',
+        'bump:release', // commit, tag, push
+        'release' // npm release
+      ]);
+
+      if (releaseBower) {
+        tasks = tasks.concat(['bowerRelease:' + mode]);
+      }
+    }
+
+    grunt.task.run(tasks);
+  });
 
   grunt.registerTask('default', ['build']);
 };
