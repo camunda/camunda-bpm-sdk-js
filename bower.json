@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "camunda-bpm-sdk-js",
   "description": "Javascript client library for camunda BPM",
   "version": "7.2.0-SNAPSHOT",
@@ -11,6 +10,7 @@
     "url": "https://github.com/camunda/camunda-bpm-sdk-js"
   },
   "keywords": [
+    "camunda",
     "camunda-bpm",
     "sdk"
   ],
