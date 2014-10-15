@@ -41,18 +41,36 @@ https://app.camunda.com/jira/browse/CAM/component/12351
 
 ## Releasing
 
-To create a release, execute
+### Release
+
+To create a release:
+
 ```sh
-grunt publish:release --setversion='myVersion'
+grunt publish:release --setversion='myReleaseVersion'
 ```
 
-To create a snapshot release, execute
+This will update the version, commit and tag it, then publish it to [bower-camunda-bpm-sdk-js](https://github.com/camunda/bower-camunda-bpm-sdk-js)
+
+### Snapshot
+
+To create a snapshot release which just builds current head and publishes it to [bower-camunda-bpm-sdk-js](https://github.com/camunda/bower-camunda-bpm-sdk-js):
+
 ```sh
-grunt publish:snapshot --setversion='myVersion'
+grunt publish:snapshot
 ```
 
-(--no-bower -> skip bower release)  
-(--no-write -> dryRun mode)
+### Version
+
+If you just want to update the current version:
+
+```sh
+grunt publish:version --setversion='myNewVersion'
+```
+
+### Available options
+
+* --no-bower -> skip bower release
+* --no-write -> dryRun mode
 
 ## License
 
