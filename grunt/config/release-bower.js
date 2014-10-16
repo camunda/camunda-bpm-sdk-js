@@ -26,7 +26,8 @@ module.exports = function() {
     snapshot: {
       options: {
         branchName: '<%= pkg.version %>',
-        createTag: false
+        createTag: false,
+        forcePush: true
       },
       files: [
         {
