@@ -60,6 +60,10 @@ module.exports = function(grunt) {
       ]);
     }
 
+    if (mode === 'dev') {
+      tasks.push('copy:builds');
+    }
+
     grunt.task.run(tasks);
   });
 

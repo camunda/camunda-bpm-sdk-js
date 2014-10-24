@@ -1,6 +1,8 @@
 module.exports = function() {
   'use strict';
 
+  var path = require('path');
+
   return {
     options: {},
     assets: {
@@ -14,6 +16,16 @@ module.exports = function() {
         //   ],
         //   dest: 'dist/'
         // }
+      ]
+    },
+    builds: {
+      files: [
+        {
+          cwd: path.resolve(__dirname, '../../dist/'),
+          expand: true,
+          src: '*.js',
+          dest: path.resolve(__dirname, '../../')
+        }
       ]
     }
   };

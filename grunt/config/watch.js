@@ -13,7 +13,8 @@ module.exports = function(config) {
       ],
       tasks: [
         'newer:jshint',
-        'browserify'
+        'browserify',
+        'copy:builds'
       ]
     },
 
