@@ -526,6 +526,32 @@ describe('The input field', function() {
 
   ////////////////////// Boolean Checkbox //////////////////////////
 
+  it('should initialize a boolean value', function() {
+
+    var variableManager = new VariableManager();
+
+    // given:
+
+    // an initialized input handler
+    var element = $(checkboxTemplate)
+      .attr('cam-variable-name', exampleVariableName)
+      .attr('cam-variable-type', 'Boolean');
+
+
+
+    // if:
+
+    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+
+    // I set the value to the variable
+
+    // then:
+    var variable = variableManager.variable(exampleVariableName);
+    expect(variable).toBeDefined();
+    expect(variable.name).toBe(exampleVariableName);
+    expect(variable.type).toBe('Boolean');
+
+  });
 
   it('should get a Boolean value from the checkbox control', function() {
 
@@ -541,7 +567,6 @@ describe('The input field', function() {
     var inputFieldHandler = new InputFieldHandler(element, variableManager);
 
     // if:
-
     // I check the checkbox
     element.prop("checked", exampleVariableBooleanValue);
     // and get the value from the input field
@@ -581,6 +606,64 @@ describe('The input field', function() {
     // the value is set to the form control
     expect(element.prop("checked")).toBe(exampleVariableBooleanValue);
 
+  });
+
+  it('should handle null values with the checkbox control', function() {
+
+    var variableManager = new VariableManager();
+
+    // given:
+
+    // an initialized input handler
+    var element = $(checkboxTemplate)
+      .attr('cam-variable-name', exampleVariableName)
+      .attr('cam-variable-type', 'Boolean');
+
+    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+
+    // if:
+
+    // I set the value to the variable
+    var variable = variableManager.variable(exampleVariableName);
+    variable.value = null;
+    // and apply the input field
+    inputFieldHandler.applyValue();
+
+    // then:
+
+    // the value is set to the form control
+    expect(element.prop("checked")).toBe(false);
+
+  });
+
+  it('should have a boolean value after getting a checkbox input', function() {
+
+    var variableManager = new VariableManager();
+
+    // given:
+
+    // an initialized input handler
+    var element = $(checkboxTemplate)
+      .attr('cam-variable-name', exampleVariableName)
+      .attr('cam-variable-type', 'Boolean');
+
+    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+
+    // I set the value to the variable
+    var variable = variableManager.variable(exampleVariableName);
+    variable.value = null;
+    // and apply the input field
+    inputFieldHandler.applyValue();
+
+    // the value is set to the form control
+    expect(element.prop("checked")).toBe(false);
+    expect(variable.value).toBe(null);
+
+    // if:
+    inputFieldHandler.getValue();
+
+    // then:
+    expect(variable.value).toBe(false);
   });
 
   ////////////////////// Date //////////////////////////
