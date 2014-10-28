@@ -80,7 +80,7 @@ describe('The form', function() {
           client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
-          initialized: function() {
+          done: function(err, result) {
             initialized = true;
           }
         });
@@ -114,7 +114,7 @@ describe('The form', function() {
           client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
-          initialized: function() {
+          done: function(err, result) {
             initialized = true;
           }
         });
@@ -172,7 +172,7 @@ describe('The form', function() {
           client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
-          initialized: function() {
+          done: function(err, result) {
             initialized = true;
           }
         });

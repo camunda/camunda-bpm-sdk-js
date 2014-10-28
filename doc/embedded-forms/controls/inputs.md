@@ -40,12 +40,12 @@ Example:
        cam-variable-type="String" />
 ```
 
-> *Trimming*: Note that the value of the String variable is trimmed before it is submitted to the 
+> *Trimming*: Note that the value of the String variable is trimmed before it is submitted to the
 > process engine: leading and trailing whitespace is removed.
 
 #### Integer
 
-In order to bind the input field to a Java `Integer` variable, the directive 
+In order to bind the input field to a Java `Integer` variable, the directive
 `cam-variable-type="Integer"` must be used.
 
 Example:
@@ -58,7 +58,7 @@ Example:
 
 #### Float
 
-In order to bind the input field to a Java `Float` variable, the directive 
+In order to bind the input field to a Java `Float` variable, the directive
 `cam-variable-type="Float"` must be used.
 
 Example:
@@ -71,7 +71,7 @@ Example:
 
 #### Date
 
-In order to bind the input field to a Java `Date` variable, the directive 
+In order to bind the input field to a Java `Date` variable, the directive
 `cam-variable-type="Date"` must be used.
 
 Example:
@@ -89,7 +89,7 @@ Example value: `2013-01-23T13:42:42`
 
 #### Boolean
 
-In order to bind the input field to a Java `Boolean` variable, the directive 
+In order to bind the input field to a Java `Boolean` variable, the directive
 `cam-variable-type="Boolean"` must be used.
 
 Text input fields of type `Boolean` accept the following string values:
@@ -133,3 +133,27 @@ In the example above, the textarea is bound to the variable named `CUSTOMER_ADDR
 
 The textarea supports the same variable types as the single line text input `<input
 type="text"></input>`.
+
+## Checkbox
+
+Checkboxes are HTML `<input type="checkbox">` controls. Checkbox controls can be used for boolean
+variable types.
+
+### Binding to a Process Variable
+
+A checkbox input can be bound to a process variable using the `cam-variable-type` and
+`cam-variable-name` directives:
+
+```html
+<input type="checkbox"
+       cam-variable-name="IS_VIP_CUSTOMER"
+       cam-variable-type="Boolean" />
+```
+
+In the example above, the checkbox is bound to the variable named `IS_VIP_CUSTOMER` of type
+`Boolean`.
+
+### Supported Variable Types
+
+The checkbox input field only supports boolean variable types. A checked checkbox corresponds to
+the value `true`, an unchecked checkbox corresponds to the value `false`.

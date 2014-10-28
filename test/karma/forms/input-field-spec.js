@@ -12,6 +12,7 @@ describe('The input field', function() {
   var VariableManager = CamSDK.Form.VariableManager;
   var InputFieldHandler = CamSDK.Form.fields.InputFieldHandler;
   var inputFieldTemplate = '<input type="text" />';
+  var checkboxTemplate = '<input type="checkbox" />';
   var textareaTemplate = '<textarea></textarea>';
 
 
@@ -232,13 +233,11 @@ describe('The input field', function() {
 
     // I set the value to a float value
     element.val(exampleVariableFloatValue);
-
     // then
     // getValue throws an exception
     expect(function() {
       inputFieldHandler.getValue();
     }).toThrow();
-
     // and the value in the variable is still null
     expect(variableManager.variable(exampleVariableName).value).toBeNull();
   });
@@ -522,6 +521,65 @@ describe('The input field', function() {
 
     // the value is set to the form control
     expect(element.val()).toBe(exampleVariableBooleanValue.toString());
+
+  });
+
+  ////////////////////// Boolean Checkbox //////////////////////////
+
+
+  it('should get a Boolean value from the checkbox control', function() {
+
+    var variableManager = new VariableManager();
+
+    // given:
+
+    // an initialized input handler
+    var element = $(checkboxTemplate)
+      .attr('cam-variable-name', exampleVariableName)
+      .attr('cam-variable-type', 'Boolean');
+
+    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+
+    // if:
+
+    // I check the checkbox
+    element.prop("checked", exampleVariableBooleanValue);
+    // and get the value from the input field
+    inputFieldHandler.getValue();
+
+    // then:
+
+    // the value in the variable manager is a boolean
+    expect(variableManager.variable(exampleVariableName).value)
+      .toBe(exampleVariableBooleanValue);
+
+  });
+
+  it('should set a Boolean value to the checkbox control', function() {
+
+    var variableManager = new VariableManager();
+
+    // given:
+
+    // an initialized input handler
+    var element = $(checkboxTemplate)
+      .attr('cam-variable-name', exampleVariableName)
+      .attr('cam-variable-type', 'Boolean');
+
+    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+
+    // if:
+
+    // I set the value to the variable
+    var variable = variableManager.variable(exampleVariableName);
+    variable.value = exampleVariableBooleanValue;
+    // and apply the input field
+    inputFieldHandler.applyValue();
+
+    // then:
+
+    // the value is set to the form control
+    expect(element.prop("checked")).toBe(exampleVariableBooleanValue);
 
   });
 
