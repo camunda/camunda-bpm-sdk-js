@@ -87,6 +87,60 @@ Example:
 Currently only the ISO Date Format `yyyy-MM-dd'T'HH:mm:ss` is supported.
 Example value: `2013-01-23T13:42:42`
 
+##### Using a Date Picker
+
+You can use the [angular UI datepicker](http://angular-ui.github.io/bootstrap/)
+directive to offer a datepicker for the date input field. The complete markup of the input field
+including the datepicker button is shown below.
+
+```html
+<p class="input-group">
+  <input type="text"
+         cam-variable-name="CONTRACT_START_DATE"
+         cam-variable-type="Date"
+         class="form-control"
+         datepicker-popup="yyyy-MM-dd'T'HH:mm:ss"
+         is-open="dateFieldOpened" />
+  <span class="input-group-btn">
+    <button type="button"
+            class="btn btn-default"
+            ng-click="open($event)">
+      <i class="glyphicon glyphicon-calendar"></i>
+    </button>
+  </span>
+</p>
+```
+
+In addition to the HTML markup, the following javascript must be included in the form file
+(see [Custom JavaScript][javascript]):
+
+```html
+<script cam-script type="text/form-script">
+  $scope.open = function($event) {
+    $event.preventDefault();
+    $event.stopPropagation();
+
+    $scope.dateFieldOpened = true;
+  };
+</script>
+```
+
+The attributes of the datepicker component are explained below:
+
+* Additional attributes of the input element:
+ * `datepicker-popup="yyyy-MM-dd'T'HH:mm:ss"`: This attribute sets the format of the date which
+   is returned by the datepicker. It must be the ISO Date Format.
+ * `is-open="dateFieldOpened"`: This attribute contains the name of the variable, which
+   indicates the open status of the datepicker. It must be the same variable, which is set to
+   true in the `open` function in the javascript snippet. If a form contains multiple
+   datepickers, they must have different values for this attribute.
+* Attributes of the datepicker button:
+ * `ng-click="open($event)"`: This attribute contains the name of the function which is called
+   when the datepicker button is clicked. It must be the function name of the javascript snippet
+   which sets the `is-open` variable to true. If a form contains multiple date pickers, they
+   must have different function names, or the name of the `is-open` variable must be passed to
+   the function.
+
 #### Boolean
 
 In order to bind the input field to a Java `Boolean` variable, the directive
@@ -157,3 +211,5 @@ In the example above, the checkbox is bound to the variable named `IS_VIP_CUSTOM
 
 The checkbox input field only supports boolean variable types. A checked checkbox corresponds to
 the value `true`, an unchecked checkbox corresponds to the value `false`.
+
+[javascript]: ../javascript.md
