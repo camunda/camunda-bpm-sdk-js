@@ -29,6 +29,15 @@ grunt auto-build
 grunt karma
 ```
 
+Alternatively, you can use the specific targets
+
+```sh
+grunt karma:dev-form
+# or
+grunt karma:dev-form-angularjs
+```
+
+
 #### Jamsine node
 
 ```sh
