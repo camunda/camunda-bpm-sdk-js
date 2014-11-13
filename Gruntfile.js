@@ -84,12 +84,12 @@ module.exports = function(grunt) {
     var releaseBower = !grunt.option('no-bower') || true;
 
     // check options
-    if (mode !== 'release ' && mode !== 'snapshot' && mode !== 'version') {
+    if (mode !== 'release' && mode !== 'snapshot' && mode !== 'version') {
       grunt.fatal('Only snapshot and release targets are allowed for the publish task! mode=' + mode);
     }
     grunt.log.writeln('Publishing JS SDK in "'+ mode +'" mode.');
 
-    if ((mode === 'release ' || mode === 'version') && !grunt.option('setversion')) {
+    if ((mode === 'release' || mode === 'version') && !grunt.option('setversion')) {
       grunt.fatal('No version specified using the --set-version=VERSION param!')
     }
 
