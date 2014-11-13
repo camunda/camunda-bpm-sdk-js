@@ -218,173 +218,165 @@ for (i = 0; i < 600; i++) {
 }
 
 _store.filter = {};
-var localStoredPiles = localStorage.getItem('filter');
-if (localStoredPiles) {
-  log('filters from localStorage');
-  _store.filter = JSON.parse(localStoredPiles);
-}
-else {
-  _.each([
-    {
-      id: uuid(),
-      resourceType: 'task',
-      name: 'No filter',
-      owner: 'jonny1',
-      query: [],
-      properties: {
-        variables: [
-          {
-            name: 'varA',
-            label: 'Variable A'
-          },
-          {
-            name: 'varB',
-            label: 'Variable B'
-          }
-        ],
-        description: 'All the things to be done.',
-        color: '#AFB3E2'
-      }
-    },
-    {
-      id: uuid(),
-      resourceType: 'task',
-      name: 'My tasks',
-      owner: 'jonny1',
-      query: [
+_.each([
+  {
+    id: uuid(),
+    resourceType: 'task',
+    name: 'No filter',
+    owner: 'jonny1',
+    query: [],
+    properties: {
+      variables: [
         {
-          key: 'assignee',
-          value: '{self}'
+          name: 'varA',
+          label: 'Variable A'
+        },
+        {
+          name: 'varB',
+          label: 'Variable B'
         }
       ],
-      properties: {
-        variables: [
-          {
-            name: 'varA',
-            label: 'Variable A'
-          },
-          {
-            name: 'varB',
-            label: 'Variable B'
-          }
-        ],
-        description: 'All the tasks who were assigned to me.',
-        color: '#AFB3E2'
-      }
-    },
-    {
-      id: uuid(),
-      resourceType: 'task',
-      name: 'Overdue',
-      owner: 'jonny1',
-      query: [
-        {
-          key: 'dueBefore',
-          // operator: 'smaller',
-          value: '{now}'
-        }
-      ],
-      properties: {
-        variables: [
-          {
-            name: 'varA',
-            label: 'Variable A'
-          },
-          {
-            name: 'varB',
-            label: 'Variable B'
-          }
-        ],
-        description: 'Tasks who should already have been finished.',
-        color: '#FFB4B4'
-      }
-    },
-    {
-      id: uuid(),
-      resourceType: 'task',
-      name: 'Due in 3 days',
-      owner: 'jonny1',
-      query: [
-        {
-          key: 'dueBefore',
-          // operator: 'smaller',
-          value: '{now} + ({day} * 3)'
-        }
-      ],
-      properties: {
-        variables: [
-          {
-            name: 'varA',
-            label: 'Variable A'
-          },
-          {
-            name: 'varB',
-            label: 'Variable B'
-          }
-        ],
-        description: '',
-        color: '#FFD2D2'
-      }
-    },
-    {
-      id: uuid(),
-      resourceType: 'task',
-      name: 'Group A',
-      owner: 'jonny1',
-      query: [
-        {
-          key: 'candidateGroup',
-          // operator: 'has',
-          value: 'group-a'
-        }
-      ],
-      properties: {
-        variables: [
-          {
-            name: 'varA',
-            label: 'Variable A'
-          },
-          {
-            name: 'varB',
-            label: 'Variable B'
-          }
-        ],
-        description: '',
-        color: ''
-      }
-    },
-    {
-      id: uuid(),
-      resourceType: 'task',
-      name: 'Group B',
-      owner: 'jonny1',
-      query: [
-        {
-          key: 'candidateGroup',
-          // operator: 'has',
-          value: 'group-a'
-        }
-      ],
-      properties: {
-        variables: [
-          {
-            name: 'varA',
-            label: 'Variable A'
-          },
-          {
-            name: 'varB',
-            label: 'Variable B'
-          }
-        ],
-        description: '',
-        color: ''
-      }
+      description: 'All the things to be done.',
+      color: '#AFB3E2'
     }
-  ], function(filter) {
-    _store.filter[filter.id] = filter;
-  });
-  localStorage.setItem('filter', JSON.stringify(_store.filter));
-}
+  },
+  {
+    id: uuid(),
+    resourceType: 'task',
+    name: 'My tasks',
+    owner: 'jonny1',
+    query: [
+      {
+        key: 'assignee',
+        value: '{self}'
+      }
+    ],
+    properties: {
+      variables: [
+        {
+          name: 'varA',
+          label: 'Variable A'
+        },
+        {
+          name: 'varB',
+          label: 'Variable B'
+        }
+      ],
+      description: 'All the tasks who were assigned to me.',
+      color: '#AFB3E2'
+    }
+  },
+  {
+    id: uuid(),
+    resourceType: 'task',
+    name: 'Overdue',
+    owner: 'jonny1',
+    query: [
+      {
+        key: 'dueBefore',
+        // operator: 'smaller',
+        value: '{now}'
+      }
+    ],
+    properties: {
+      variables: [
+        {
+          name: 'varA',
+          label: 'Variable A'
+        },
+        {
+          name: 'varB',
+          label: 'Variable B'
+        }
+      ],
+      description: 'Tasks who should already have been finished.',
+      color: '#FFB4B4'
+    }
+  },
+  {
+    id: uuid(),
+    resourceType: 'task',
+    name: 'Due in 3 days',
+    owner: 'jonny1',
+    query: [
+      {
+        key: 'dueBefore',
+        // operator: 'smaller',
+        value: '{now} + ({day} * 3)'
+      }
+    ],
+    properties: {
+      variables: [
+        {
+          name: 'varA',
+          label: 'Variable A'
+        },
+        {
+          name: 'varB',
+          label: 'Variable B'
+        }
+      ],
+      description: '',
+      color: '#FFD2D2'
+    }
+  },
+  {
+    id: uuid(),
+    resourceType: 'task',
+    name: 'Group A',
+    owner: 'jonny1',
+    query: [
+      {
+        key: 'candidateGroup',
+        // operator: 'has',
+        value: 'group-a'
+      }
+    ],
+    properties: {
+      variables: [
+        {
+          name: 'varA',
+          label: 'Variable A'
+        },
+        {
+          name: 'varB',
+          label: 'Variable B'
+        }
+      ],
+      description: '',
+      color: ''
+    }
+  },
+  {
+    id: uuid(),
+    resourceType: 'task',
+    name: 'Group B',
+    owner: 'jonny1',
+    query: [
+      {
+        key: 'candidateGroup',
+        // operator: 'has',
+        value: 'group-a'
+      }
+    ],
+    properties: {
+      variables: [
+        {
+          name: 'varA',
+          label: 'Variable A'
+        },
+        {
+          name: 'varB',
+          label: 'Variable B'
+        }
+      ],
+      description: '',
+      color: ''
+    }
+  }
+], function(filter) {
+  _store.filter[filter.id] = filter;
+});
 
 
 _store.processInstanceFormVariables = {};
@@ -692,7 +684,7 @@ HttpClientMock.prototype.del = function(data, options) {
 module.exports = HttpClientMock;
 
 }).call(this,_dereq_("JkpR2F"))
-},{"./../events":3,"./http-client":2,"JkpR2F":6,"fixturer":5,"underscore":11,"underscore.string":10,"uuid":14}],2:[function(_dereq_,module,exports){
+},{"./../events":3,"./http-client":2,"JkpR2F":7,"fixturer":6,"underscore":12,"underscore.string":11,"uuid":15}],2:[function(_dereq_,module,exports){
 'use strict';
 
 var request = _dereq_('superagent');
@@ -785,9 +777,11 @@ HttpClient.prototype.load = function(url, options) {
   var done = options.done || noop;
   var self = this;
 
+  var accept = options.accept || 'application/hal+json, application/json; q=0.5';
+
   var req = request
     .get(url)
-    .set('Accept', 'application/hal+json, application/json; q=0.5')
+    .set('Accept', accept)
     .query(options.data || {});
 
   req.end(end(self, done));
@@ -850,7 +844,7 @@ HttpClient.prototype.options = function(path, options) {
 
 module.exports = HttpClient;
 
-},{"./../events":3,"./../utils":4,"superagent":7}],3:[function(_dereq_,module,exports){
+},{"./../events":3,"./../utils":5,"superagent":8}],3:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -1007,11 +1001,70 @@ module.exports = Events;
 },{}],4:[function(_dereq_,module,exports){
 'use strict';
 
+var INTEGER_PATTERN = /^-?[\d]+$/;
+
+var FLOAT_PATTERN = /^(0|(-?(((0|[1-9]\d*)\.\d+)|([1-9]\d*))))([eE][-+]?[0-9]+)?$/;
+
+var BOOLEAN_PATTERN = /^(true|false)$/;
+
+var DATE_PATTERN = /^(\d{2}|\d{4})(?:\-)([0]{1}\d{1}|[1]{1}[0-2]{1})(?:\-)([0-2]{1}\d{1}|[3]{1}[0-1]{1})T(?:\s)?([0-1]{1}\d{1}|[2]{1}[0-3]{1}):([0-5]{1}\d{1}):([0-5]{1}\d{1})?$/;
+
+var isType = function(value, type) {
+  switch(type) {
+    case 'Integer':
+    case 'Long':
+    case 'Short':
+      return INTEGER_PATTERN.test(value);
+    case 'Float':
+    case 'Double':
+      return FLOAT_PATTERN.test(value);
+    case 'Boolean':
+      return BOOLEAN_PATTERN.test(value);
+    case 'Date':
+      return DATE_PATTERN.test(value);
+  }
+};
+
+var convertToType = function(value, type) {
+
+  if(typeof value === 'string') {
+    value = value.trim();
+  }
+
+  if(type === "String") {
+    return value;
+  } else if (isType(value, type)) {
+    switch(type) {
+      case 'Integer':
+      case 'Long':
+      case 'Short':
+        return parseInt(value, 10);
+      case 'Float':
+      case 'Double':
+        return parseFloat(value);
+      case 'Boolean':
+        return "true" === value;
+      case 'Date':
+        return value;
+    }
+  } else {
+    throw new Error("Value '"+value+"' is not of type "+type);
+  }
+};
+
+module.exports = {
+  convertToType : convertToType,
+  isType : isType
+};
+
+},{}],5:[function(_dereq_,module,exports){
+'use strict';
+
 
 /**
  * @exports CamSDK.utils
  */
-var utils = module.exports = {};
+var utils = module.exports = {"typeUtils" : _dereq_('./forms/type-util')};
 
 utils.solveHALEmbedded = function(results) {
 
@@ -1129,7 +1182,7 @@ utils.series = function(tasks, callback) {
   });
 };
 
-},{}],5:[function(_dereq_,module,exports){
+},{"./forms/type-util":4}],6:[function(_dereq_,module,exports){
 (function (root, factory) {
   /* global define: false, exports: false, require: false */
   'use strict';
@@ -1549,7 +1602,7 @@ utils.series = function(tasks, callback) {
   return fixturer;
 }));
 
-},{"underscore":11,"underscore.string":10}],6:[function(_dereq_,module,exports){
+},{"underscore":12,"underscore.string":11}],7:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1614,7 +1667,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
@@ -2665,7 +2718,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":8,"reduce":9}],8:[function(_dereq_,module,exports){
+},{"emitter":9,"reduce":10}],9:[function(_dereq_,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -2831,7 +2884,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -2856,7 +2909,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 //  Underscore.string
 //  (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
 //  Underscore.string is freely distributable under the terms of the MIT license.
@@ -3531,7 +3584,7 @@ module.exports = function(arr, fn, initial){
   root._.string = root._.str = _s;
 }(this, String);
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 //     Underscore.js 1.7.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -4948,10 +5001,10 @@ module.exports = function(arr, fn, initial){
   }
 }.call(this));
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 module.exports = Array;
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 (function (global){
 
 var rng;
@@ -4986,7 +5039,7 @@ module.exports = rng;
 
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(_dereq_,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 //     uuid.js
 //
 //     Copyright (c) 2010-2012 Robert Kieffer
@@ -5177,6 +5230,6 @@ uuid.BufferClass = BufferClass;
 
 module.exports = uuid;
 
-},{"./buffer":12,"./rng":13}]},{},[1])
+},{"./buffer":13,"./rng":14}]},{},[1])
 (1)
 });

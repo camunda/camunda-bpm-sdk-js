@@ -112,7 +112,8 @@ module.exports = CamundaFormAngular;
 'use strict';
 
 var angular = (window.angular),
-    CamundaFormAngular = _dereq_('./camunda-form-angular');
+    CamundaFormAngular = _dereq_('./camunda-form-angular'),
+    isType = _dereq_('./../../forms/type-util').isType;
 
 // define embedded forms angular module
 var ngModule = angular.module('cam.embedded.forms', []);
@@ -143,10 +144,51 @@ ngModule.directive('camVariableName', ['$rootScope', function($rootScope) {
   };
 }]);
 
+ngModule.directive('camVariableType', [function() {
+
+  return {
+
+    require: 'ngModel',
+    link: function($scope, $element, $attrs, ctrl) {
+
+      var validate = function(viewValue) {
+
+        var type = $attrs.camVariableType;
+
+        ctrl.$setValidity('camVariableType', true );
+
+        if (viewValue || viewValue === false) {
+
+          if (ctrl.$pristine) {
+            ctrl.$pristine = false;
+            ctrl.$dirty = true;
+            $element.addClass('ng-dirty');
+            $element.removeClass('ng-pristine');
+          }
+
+          if(['Boolean', 'String'].indexOf(type) === -1 && !isType(viewValue, type)) {
+            ctrl.$setValidity('camVariableType', false );
+          }
+
+        }
+
+        return viewValue;
+      };
+
+      ctrl.$parsers.unshift(validate);
+      ctrl.$formatters.push(validate);
+
+      $attrs.$observe('camVariableType', function(comparisonModel){
+        return validate(ctrl.$viewValue);
+      });
+
+    }};
+}]);
+
 module.exports = CamundaFormAngular;
 
 
-},{"./camunda-form-angular":1}],3:[function(_dereq_,module,exports){
+},{"./../../forms/type-util":25,"./camunda-form-angular":1}],3:[function(_dereq_,module,exports){
 /** @namespace CamSDK */
 
 module.exports = {
@@ -472,9 +514,11 @@ HttpClient.prototype.load = function(url, options) {
   var done = options.done || noop;
   var self = this;
 
+  var accept = options.accept || 'application/hal+json, application/json; q=0.5';
+
   var req = request
     .get(url)
-    .set('Accept', 'application/hal+json, application/json; q=0.5')
+    .set('Accept', accept)
     .query(options.data || {});
 
   req.end(end(self, done));
@@ -1695,6 +1739,49 @@ Task.comments = function(taskId, done) {
 };
 
 /**
+ * Retrieve the identity links for a single task
+ * @param  {uuid}     taskId   of the task for which the identity links are requested
+ * @param  {Function} done
+ */
+Task.identityLinks = function(taskId, done) {
+  return this.http.get(this.path +'/'+ taskId + "/identity-links", {
+    done: done
+  });
+};
+
+/**
+ * Add an identity link to a task
+ * @param  {uuid}     taskId          of the task for which the identity link is created
+ * @param  {Object} [params]
+ * @param  {String} [params.userId]   The id of the user to link to the task. If you set this parameter, you have to omit groupId
+ * @param  {String} [params.groupId]  The id of the group to link to the task. If you set this parameter, you have to omit userId
+ * @param  {String} [params.type]     Sets the type of the link. Must be provided
+ * @param  {Function} done
+ */
+Task.identityLinksAdd = function(taskId, params, done) {
+  return this.http.post(this.path +'/'+ taskId + "/identity-links", {
+    data: params,
+    done: done
+  });
+};
+
+/**
+ * Removes an identity link from a task.
+ * @param  {uuid}     taskId          The id of the task to remove a link from
+ * @param  {Object} [params]
+ * @param  {String} [params.userId]   The id of the user being part of the link. If you set this parameter, you have to omit groupId.
+ * @param  {String} [params.groupId]  The id of the group being part of the link. If you set this parameter, you have to omit userId.
+ * @param  {String} [params.type]     Specifies the type of the link. Must be provided.
+ * @param  {Function} done
+ */
+Task.identityLinksDelete = function(taskId, params, done) {
+  return this.http.post(this.path +'/'+ taskId + "/identity-links/delete", {
+    data: params,
+    done: done
+  });
+};
+
+/**
  * Create a comment for a task.
  *
  * @param  {String}   taskId  The id of the task to add the comment to.
@@ -1879,13 +1966,23 @@ Task.formVariables = function(data, done) {
 
   return this.http.get(this.path +'/'+ pointer +'/form-variables', {
     data: {
-      variableNames: (data.names || []).join(',')
+      variableNames: (data.names || []).join(','),
+      deserializeValue: data.deserializeValue
     },
     done: done || function() {}
   });
 };
 
-
+/**
+ * Retrieve the form for a single task
+ * @param  {uuid}     taskId   of the task for which the form is requested
+ * @param  {Function} done
+ */
+Task.form = function(taskId, done) {
+  return this.http.get(this.path +'/'+ taskId + "/form", {
+    done: done
+  });
+};
 
 module.exports = Task;
 
@@ -2157,7 +2254,7 @@ module.exports = Events;
 
 },{}],19:[function(_dereq_,module,exports){
 'use strict';
-/* global CamSDK: false */
+/* global CamSDK, require, localStorage: false */
 
 /**
  * For all API client related
@@ -2200,6 +2297,8 @@ function CamundaForm(options) {
     throw new Error("CamundaForm need to be initialized with options.");
   }
 
+  var done = options.done = options.done || function (err) { if(err) throw err; };
+
   if (options.client) {
     this.client = options.client;
   }
@@ -2208,8 +2307,9 @@ function CamundaForm(options) {
   }
 
   if (!options.taskId && !options.processDefinitionId && !options.processDefinitionKey) {
-    throw new Error("Cannot initialize Taskform: either 'taskId' or 'processDefinitionId' or 'processDefinitionKey' must be provided");
+    return done(new Error("Cannot initialize Taskform: either 'taskId' or 'processDefinitionId' or 'processDefinitionKey' must be provided"));
   }
+
   this.taskId = options.taskId;
   this.processDefinitionId = options.processDefinitionId;
   this.processDefinitionKey = options.processDefinitionKey;
@@ -2219,11 +2319,11 @@ function CamundaForm(options) {
   this.formUrl = options.formUrl;
 
   if(!this.formElement && !this.containerElement) {
-    throw new Error("CamundaForm needs to be initilized with either 'formElement' or 'containerElement'");
+    return done(new Error("CamundaForm needs to be initilized with either 'formElement' or 'containerElement'"));
   }
 
   if(!this.formElement && !this.formUrl) {
-    throw new Error("Camunda form needs to be intialized with either 'formElement' or 'formUrl'");
+    return done(new Error("Camunda form needs to be intialized with either 'formElement' or 'formUrl'"));
   }
 
   /**
@@ -2252,7 +2352,7 @@ function CamundaForm(options) {
   // init event support
   Events.attach(this);
 
-  this.initialize(options.initialized);
+  this.initialize(done);
 }
 
 
@@ -2274,23 +2374,36 @@ CamundaForm.prototype.initializeHandler = function(FieldHandler) {
  * @memberof CamSDK.form.CamundaForm.prototype
  */
 CamundaForm.prototype.initialize = function(done) {
-  done = done || function() {};
+  done = done || function (err) { if(err) throw err; };
   var self = this;
 
   // check whether form needs to be loaded first
   if(this.formUrl) {
+
     this.client.http.load(this.formUrl, {
+      accept: '*/*',
       done: function(err, result) {
         if(err) {
           return done(err);
         }
 
-        self.renderForm(result);
-        self.initializeForm(done);
+        try {
+          self.renderForm(result);
+          self.initializeForm(done);
+
+        } catch (error) {
+          done(error);
+        }
       }
     });
   } else {
-    this.initializeForm(done);
+
+    try  {
+      this.initializeForm(done);
+
+    } catch (error) {
+      done(error);
+    }
   }
 };
 
@@ -2312,7 +2425,7 @@ CamundaForm.prototype.renderForm = function(formHtmlSource) {
     throw new Error("Form must provide exaclty one element <form ..>");
   }
   if(!formElement.attr('name')) {
-    formElement.attr('name', 'camForm');
+    formElement.attr('name', '$$camForm');
   }
 };
 
@@ -2328,9 +2441,7 @@ CamundaForm.prototype.initializeForm = function(done) {
   this.initializeFormScripts();
 
   // initialize field handlers
-  for(var FieldHandler in this.formFieldHandlers) {
-    this.initializeHandler(this.formFieldHandlers[FieldHandler]);
-  }
+  this.initializeFieldHandlers();
 
   // execute the scripts
   this.executeFormScripts();
@@ -2346,8 +2457,17 @@ CamundaForm.prototype.initializeForm = function(done) {
     // merge the variables
     self.mergeVariables(result);
 
+    // retain original server values for dirty checking
+    self.storeOriginalValues(result);
+
     // fire variables fetched
     self.fireEvent('variables-fetched');
+
+    // restore variables from local storage
+    self.restore();
+
+    // fire variables-restored
+    self.fireEvent('variables-restored');
 
     // apply the variables to the form fields
     self.applyVariables();
@@ -2356,8 +2476,14 @@ CamundaForm.prototype.initializeForm = function(done) {
     self.fireEvent('variables-applied');
 
     // invoke callback
-    done(self);
+    done(null, self);
   });
+};
+
+CamundaForm.prototype.initializeFieldHandlers = function() {
+  for(var FieldHandler in this.formFieldHandlers) {
+    this.initializeHandler(this.formFieldHandlers[FieldHandler]);
+  }
 };
 
 /**
@@ -2386,10 +2512,165 @@ CamundaForm.prototype.executeFormScript = function(script) {
   })(this);
 };
 
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ *
+ * Store the state of the form to localStorage.
+ *
+ * You can prevent further execution by hooking
+ * the `store` event and set `storePrevented` to
+ * something truthy.
+ */
+CamundaForm.prototype.store = function(callback) {
+  var formId = this.taskId || this.processDefinitionId || this.caseInstanceId;
+
+  if (!formId) {
+    if(typeof callback === "function") {
+      return callback(new Error('Cannot determine the storage ID'));
+    } else {
+      throw new Error('Cannot determine the storage ID');
+    }
+  }
+
+  this.storePrevented = false;
+  this.fireEvent('store');
+  if(!!this.storePrevented) {
+    return;
+  }
+
+  try {
+    // get values from form fields
+    this.retrieveVariables();
+
+    // build the local storage object
+    var store = {date: Date.now(), vars: {}};
+    for(var name in this.variableManager.variables) {
+      store.vars[name] = this.variableManager.variables[name].value;
+    }
+
+    // store it
+    localStorage.setItem('camForm:'+ formId, JSON.stringify(store));
+  }
+  catch (error) {
+    if(typeof callback === "function") {
+      return callback(error);
+    } else {
+      throw error;
+    }
+  }
+  this.fireEvent('variables-stored');
+  if(typeof callback === "function") {
+    callback();
+  }
+};
+
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ * @return {Boolean} `true` if there is something who can be restored
+ */
+CamundaForm.prototype.isRestorable = function() {
+  var formId = this.taskId || this.processDefinitionId || this.caseInstanceId;
+
+  if (!formId) {
+    throw new Error('Cannot determine the storage ID');
+  }
+
+  // verify the presence of an entry
+  if (!localStorage.getItem('camForm:'+ formId)) {
+    return false;
+  }
+
+  // unserialize
+  var stored = localStorage.getItem('camForm:'+ formId);
+  try  {
+    stored = JSON.parse(stored);
+  }
+  catch (error) {
+    return false;
+  }
+
+  // check the content
+  if (!stored || !Object.keys(stored).length) {
+    return false;
+  }
+
+  return true;
+};
+
+
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ *
+ * Restore the state of the form from localStorage.
+ *
+ * You can prevent further execution by hooking
+ * the `restore` event and set `restorePrevented` to
+ * something truthy.
+ */
+CamundaForm.prototype.restore = function(callback) {
+  var stored;
+  var vars = this.variableManager.variables;
+  var formId = this.taskId || this.processDefinitionId || this.caseDefinitionId;
+
+  if (!formId) {
+    if(typeof callback === "function") {
+      return callback(new Error('Cannot determine the storage ID'));
+    } else {
+      throw new Error('Cannot determine the storage ID');
+    }
+  }
+
+
+  // no need to go further if there is nothing to restore
+  if (!this.isRestorable()) {
+    if(typeof callback === "function") {
+      return callback();
+    }
+    return;
+  }
+
+  try {
+    // retrieve the values from localStoarge
+    stored = localStorage.getItem('camForm:'+ formId);
+    stored = JSON.parse(stored).vars;
+  }
+  catch (error) {
+    if(typeof callback === "function") {
+      return callback(error);
+    } else {
+      throw error;
+    }
+  }
+
+  // merge the stored values on the variableManager.variables
+  for (var name in stored) {
+    if (vars[name]) {
+      vars[name].value = stored[name];
+    }
+    else {
+      vars[name] = {
+        name: name,
+        value: stored[name]
+      };
+    }
+  }
+
+  if(typeof callback === "function") {
+    callback();
+  }
+
+};
+
+
 /**
  * @memberof CamSDK.form.CamundaForm.prototype
  */
 CamundaForm.prototype.submit = function(callback) {
+  var formId = this.taskId || this.processDefinitionId;
 
   // fire submit event (event handler may prevent submit from being performed)
   this.submitPrevented = false;
@@ -2398,8 +2679,15 @@ CamundaForm.prototype.submit = function(callback) {
     return;
   }
 
-  // get values from form fields
-  this.retrieveVariables();
+  try {
+    // get values from form fields
+    this.retrieveVariables();
+  } catch (error) {
+    return callback(error);
+  }
+
+  // clear the local storage for this form
+  localStorage.removeItem('camForm:'+ formId);
 
   var self = this;
   // submit the form variables
@@ -2421,19 +2709,27 @@ CamundaForm.prototype.submit = function(callback) {
  */
 CamundaForm.prototype.fetchVariables = function(done) {
   done = done || function(){};
-  var data = {
-    names: this.variableManager.variableNames()
-  };
+  var names = this.variableManager.variableNames();
+  if (names.length) {
 
-  // pass either the taskId, processDefinitionId or processDefinitionKey
-  if (this.taskId) {
-    data.id = this.taskId;
-    this.client.resource('task').formVariables(data, done);
+    var data = {
+      names: names,
+      deserializeValue: false
+    };
+
+    // pass either the taskId, processDefinitionId or processDefinitionKey
+    if (this.taskId) {
+      data.id = this.taskId;
+      this.client.resource('task').formVariables(data, done);
+    }
+    else {
+      data.id = this.processDefinitionId;
+      data.key = this.processDefinitionKey;
+      this.client.resource('process-definition').formVariables(data, done);
+    }
   }
   else {
-    data.id = this.processDefinitionId;
-    data.key = this.processDefinitionKey;
-    this.client.resource('process-definition').formVariables(data, done);
+    done();
   }
 };
 
@@ -2445,22 +2741,25 @@ CamundaForm.prototype.fetchVariables = function(done) {
 CamundaForm.prototype.submitVariables = function(done) {
   done = done || function() {};
 
-  var vars = this.variableManager.variables;
+  var varManager = this.variableManager;
+  var vars = varManager.variables;
 
   var variableData = {};
   for(var v in vars) {
     // only submit dirty variables
     // LIMITATION: dirty checking is not performed for complex object variables
-    if(!!vars[v].isDirty || vars[v].type === 'Object') {
+    if(varManager.isDirty(v)) {
       var val = vars[v].value;
       // if variable is JSON, serialize
-      if(this.variableManager.isJsonVariable(v)) {
+
+      if(varManager.isJsonVariable(v)) {
         val = JSON.stringify(val);
       }
+
       variableData[v] = {
         value: val,
         type: vars[v].type,
-        serializationConfig: vars[v].serializationConfig
+        valueInfo: vars[v].valueInfo
       };
     }
   }
@@ -2477,11 +2776,16 @@ CamundaForm.prototype.submitVariables = function(done) {
     data.key = this.processDefinitionKey;
     this.client.resource('process-definition').submitForm(data, done);
   }
-
-
 };
 
-
+/**
+ * @memberof CamSDK.form.CamundaForm.prototype
+ */
+CamundaForm.prototype.storeOriginalValues = function(variables) {
+  for(var v in variables) {
+    this.variableManager.setOriginalValue(v, variables[v].value);
+  }
+};
 
 /**
  * @memberof CamSDK.form.CamundaForm.prototype
@@ -2502,10 +2806,6 @@ CamundaForm.prototype.mergeVariables = function(variables) {
     // check whether the variable provides JSON payload. If true, deserialize
     if(this.variableManager.isJsonVariable(v)) {
       vars[v].value = JSON.parse(variables[v].value);
-    }
-    // check whether the variable is a Serialized Java Object. If true, unbox
-    if(this.variableManager.isSerializedObjectVariable(v)) {
-      vars[v].value = vars[v].value.object;
     }
     this.variableManager.isVariablesFetched = true;
   }
@@ -2530,11 +2830,9 @@ CamundaForm.prototype.applyVariables = function() {
  * @memberof CamSDK.form.CamundaForm.prototype
  */
 CamundaForm.prototype.retrieveVariables = function() {
-
   for (var i in this.fields) {
     this.fields[i].getValue();
   }
-
 };
 
 /**
@@ -2553,6 +2851,23 @@ CamundaForm.VariableManager = VariableManager;
 CamundaForm.fields = {};
 CamundaForm.fields.InputFieldHandler = InputFieldHandler;
 CamundaForm.fields.ChoicesFieldHandler = ChoicesFieldHandler;
+
+/**
+ * @memberof CamSDK.form.CamundaForm
+ */
+CamundaForm.cleanLocalStorage = function(timestamp) {
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if(key.indexOf('camForm:') === 0) {
+      var item = JSON.parse(localStorage.getItem(key));
+      if(item.date < timestamp) {
+        localStorage.removeItem(key);
+        i--;
+      }
+    }
+  }
+};
+
 
 /**
  * @memberof CamSDK.form.CamundaForm
@@ -2713,18 +3028,22 @@ var ChoicesFieldHandler = AbstractFormField.extend(
         if (choicesVariableValue instanceof Array) {
           for(var i = 0; i < choicesVariableValue.length; i++) {
             var val = choicesVariableValue[i];
-            this.element.append($('<option>', {
-              value: val,
-              text: val
-            }));
+            if(!this.element.find('option[text="'+val+'"]').length) {
+              this.element.append($('<option>', {
+                value: val,
+                text: val
+              }));
+            }
           }
         // object aka map
         } else {
           for (var p in choicesVariableValue) {
-            this.element.append($('<option>', {
-              value: p,
-              text: choicesVariableValue[p]
-            }));
+            if(!this.element.find('option[value="'+p+'"]').length) {
+              this.element.append($('<option>', {
+                value: p,
+                text: choicesVariableValue[p]
+              }));
+            }
           }
         }
       }
@@ -2788,7 +3107,9 @@ var constants = _dereq_('./../constants'),
     AbstractFormField = _dereq_('./abstract-form-field'),
     $ = _dereq_('./../dom-lib');
 
-
+var isBooleanCheckbox = function(element) {
+  return element.attr('type') === "checkbox" && element.attr(constants.DIRECTIVE_CAM_VARIABLE_TYPE) === "Boolean";
+};
 
 /**
  * A field control handler for simple text / string values
@@ -2830,11 +3151,11 @@ var InputFieldHandler = AbstractFormField.extend(
    * @return {CamSDK.form.InputFieldHandler} Chainable method
    */
   applyValue: function() {
-    this.previousValue = this.element.val() || '';
+    this.previousValue = this.getValueFromHtmlControl() || '';
     var variableValue = this.variableManager.variableValue(this.variableName);
     if (variableValue !== this.previousValue) {
       // write value to html control
-      this.element.val(variableValue);
+      this.applyValueToHtmlControl(variableValue);
       this.element.trigger('camFormVariableApplied', variableValue);
     }
 
@@ -2848,12 +3169,29 @@ var InputFieldHandler = AbstractFormField.extend(
    * @return {*}
    */
   getValue: function() {
-    // read value from html control
-    var value = this.element.val();
+    var value = this.getValueFromHtmlControl();
+
     // write value to variable
     this.variableManager.variableValue(this.variableName, value);
 
     return value;
+  },
+
+  getValueFromHtmlControl: function() {
+    if(isBooleanCheckbox(this.element)) {
+      return this.element.prop("checked");
+    } else {
+      return this.element.val();
+    }
+  },
+
+  applyValueToHtmlControl: function(variableValue) {
+    if(isBooleanCheckbox(this.element)) {
+      this.element.prop("checked", variableValue);
+    } else {
+      this.element.val(variableValue);
+    }
+
   }
 
 },
@@ -2894,22 +3232,21 @@ var BOOLEAN_PATTERN = /^(true|false)$/;
 
 var DATE_PATTERN = /^(\d{2}|\d{4})(?:\-)([0]{1}\d{1}|[1]{1}[0-2]{1})(?:\-)([0-2]{1}\d{1}|[3]{1}[0-1]{1})T(?:\s)?([0-1]{1}\d{1}|[2]{1}[0-3]{1}):([0-5]{1}\d{1}):([0-5]{1}\d{1})?$/;
 
-
-function isInteger(value) {
-  return INTEGER_PATTERN.test(value);
-}
-
-function isFloat(value) {
-  return FLOAT_PATTERN.test(value);
-}
-
-function isBoolean(value) {
-  return BOOLEAN_PATTERN.test(value);
-}
-
-function isDate(value) {
-  return DATE_PATTERN.test(value);
-}
+var isType = function(value, type) {
+  switch(type) {
+    case 'Integer':
+    case 'Long':
+    case 'Short':
+      return INTEGER_PATTERN.test(value);
+    case 'Float':
+    case 'Double':
+      return FLOAT_PATTERN.test(value);
+    case 'Boolean':
+      return BOOLEAN_PATTERN.test(value);
+    case 'Date':
+      return DATE_PATTERN.test(value);
+  }
+};
 
 var convertToType = function(value, type) {
 
@@ -2919,45 +3256,34 @@ var convertToType = function(value, type) {
 
   if(type === "String") {
     return value;
-
-  } else if(type === "Integer") {
-    if(isInteger(value)) {
-      return parseInt(value);
-    } else {
-      throw Error("Value '"+value+"' is not an Integer");
+  } else if (isType(value, type)) {
+    switch(type) {
+      case 'Integer':
+      case 'Long':
+      case 'Short':
+        return parseInt(value, 10);
+      case 'Float':
+      case 'Double':
+        return parseFloat(value);
+      case 'Boolean':
+        return "true" === value;
+      case 'Date':
+        return value;
     }
-
-  } else if(type === "Float") {
-    if(isFloat(value)) {
-      return parseFloat(value);
-    } else {
-      throw Error("Value '"+value+"' is not a Float");
-    }
-    return isFloat(value);
-
-  } else if(type === "Boolean") {
-    if(isBoolean(value)) {
-      return "true" === value;
-    } else {
-      throw Error("Value '"+value+"' is not a Boolean");
-    }
-
-  } else if(type === "Date") {
-    if(isDate(value)) {
-      return value;
-    } else {
-      throw Error("Value '"+value+"' is not a Date");
-    }
+  } else {
+    throw new Error("Value '"+value+"' is not of type "+type);
   }
-
 };
 
-module.exports = convertToType;
+module.exports = {
+  convertToType : convertToType,
+  isType : isType
+};
 
 },{}],26:[function(_dereq_,module,exports){
 'use strict';
 
-var convertToType = _dereq_('./type-util');
+var convertToType = _dereq_('./type-util').convertToType;
 
 /**
  * @class
@@ -2985,7 +3311,7 @@ function VariableManager() {
 
 VariableManager.prototype.fetchVariable = function(variable) {
   if(this.isVariablesFetched) {
-    throw Error('Illegal State: cannot call fetchVariable(), variables already fetched.');
+    throw new Error('Illegal State: cannot call fetchVariable(), variables already fetched.');
   }
   this.createVariable({ name: variable });
 };
@@ -3006,6 +3332,15 @@ VariableManager.prototype.destroyVariable = function(variableName) {
   }
 };
 
+VariableManager.prototype.setOriginalValue = function(variableName, value) {
+  if(!!this.variables[variableName]) {
+    this.variables[variableName].originalValue = value;
+  } else {
+    throw new Error('Cannot set original value of variable with name '+variableName+': variable does not exist.');
+  }
+
+};
+
 VariableManager.prototype.variable = function(variableName) {
   return this.variables[variableName];
 };
@@ -3021,38 +3356,33 @@ VariableManager.prototype.variableValue = function(variableName, value) {
     // convert empty string to null for all types except String
     value = null;
 
-  } else {
+  } else if(typeof value === "string" && variable.type !== "String") {
     // convert string value into model value
     value = convertToType(value, variable.type);
 
   }
 
   if(arguments.length === 2) {
-    variable.isDirty = true;
-    if(variable.value === value) {
-      variable.isDirty = false;
-    }
     variable.value = value;
   }
 
   return variable.value;
 };
 
+VariableManager.prototype.isDirty = function(name) {
+  var variable = this.variable(name);
+  if(this.isJsonVariable(name)) {
+    return variable.originalValue !== JSON.stringify(variable.value);
+  } else {
+    return variable.originalValue !== variable.value || variable.type === "Object";
+  }
+};
+
 VariableManager.prototype.isJsonVariable = function(name) {
   var variable = this.variable(name);
 
-  return !!variable.serializationConfig &&
-     !!variable.serializationConfig.dataFormatId &&
-     0 >= variable.serializationConfig.dataFormatId.indexOf('application/json');
-};
-
-VariableManager.prototype.isSerializedObjectVariable = function(name) {
-  var variable = this.variable(name);
-
-  return !!variable &&
-         !!variable.value &&
-         !!variable.value.object &&
-         !!variable.value.type;
+  return variable.type === "Object" &&
+     variable.valueInfo.serializationDataFormat.indexOf("application/json") !== -1;
 };
 
 VariableManager.prototype.variableNames = function() {
@@ -3070,7 +3400,7 @@ module.exports = VariableManager;
 /**
  * @exports CamSDK.utils
  */
-var utils = module.exports = {};
+var utils = module.exports = {"typeUtils" : _dereq_('./forms/type-util')};
 
 utils.solveHALEmbedded = function(results) {
 
@@ -3188,7 +3518,7 @@ utils.series = function(tasks, callback) {
   });
 };
 
-},{}],28:[function(_dereq_,module,exports){
+},{"./forms/type-util":25}],28:[function(_dereq_,module,exports){
 /**
  * Module dependencies.
  */
