@@ -75,7 +75,7 @@ describe('The input field', function() {
          client: camClient,
          processDefinitionId: procDef.id,
          formElement: $simpleFormDoc.find('form[cam-form]'),
-         initialized: function() {
+         done: function() {
            initialized = true;
          }
        });
@@ -137,7 +137,7 @@ describe('The input field', function() {
          processDefinitionId: procDef.id,
          containerElement: appElement,
          formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
-         initialized: function() {
+         done: function() {
            initialized = true;
          }
        });
@@ -183,6 +183,59 @@ describe('The input field', function() {
     waitsFor('auto bind value changed in angular model', function() {
       return scope.autoBindVar === "autoBindValue";
     }, 2000);
+  });
+
+  it('should set form invalid', function() {
+    // initialize a new angular app (off screen):
+
+    var appElement = $('<div ng-controller="AppController" />');
+    var scope,
+        initialized;
+
+    angular.module('testApp', [])
+      .controller('AppController', ['$scope', function ($scope) {
+       camForm = new CamSDK.Form({
+         client: camClient,
+         processDefinitionId: procDef.id,
+         containerElement: appElement,
+         formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
+         done: function() {
+           initialized = true;
+         }
+       });
+       scope = $scope;
+
+      }]);
+
+    runs(function() {
+      angular.bootstrap(appElement, ['testApp', 'cam.embedded.forms']);
+    });
+
+    waitsFor('form to be initialized', function() {
+      return initialized;
+    }, 2000);
+
+    runs(function() {
+      expect(scope).toBeDefined();
+
+      // change the value in the scope
+      scope.$apply(function() {
+        scope.integerProperty= 'abc';
+      });
+
+    });
+
+    waitsFor('form to be invalid', function() {
+      var $el = appElement.find('input[name="integerVar"]');
+      return $el.hasClass('ng-invalid')
+          && $el.hasClass('ng-invalid-cam-variable-type')
+          && scope.form
+          && scope.form.$invalid
+          && scope.form.$error
+          && scope.form.$error.camVariableType;
+    }, 2000);
+
+
   });
 
 });

@@ -101,6 +101,7 @@ describe('The form', function() {
       expect($el.length).toBe(1);
 
       expect($el.val())
+        .not
         .toBeTruthy();
     });
   });
