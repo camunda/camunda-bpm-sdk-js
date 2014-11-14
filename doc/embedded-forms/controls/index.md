@@ -2,8 +2,6 @@
 
 * [Inputs][inputs]
 * [Choices][choices]
-* [File Upload][file-upload]
-* [Hidden field][hidden-field]
 
 # Common attributes
 
