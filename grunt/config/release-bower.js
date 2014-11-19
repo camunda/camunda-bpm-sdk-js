@@ -1,6 +1,12 @@
 module.exports = function() {
   'use strict';
 
+  var publishedFiles = [
+    'camunda-bpm-sdk-angular.js',
+    'camunda-bpm-sdk.js',
+    'camunda-bpm-sdk.min.js'
+  ];
+
   return {
     options: {
       main: 'camunda-bpm-sdk.js',
@@ -19,7 +25,7 @@ module.exports = function() {
         {
           expand: true,
           cwd: 'dist/',
-          src: ['**/*.js' ]
+          src: publishedFiles
         }
       ]
     },
@@ -33,7 +39,7 @@ module.exports = function() {
         {
           expand: true,
           cwd: 'dist/',
-          src: ['**/*.js' ]
+          src: publishedFiles
         }
       ]
     }
