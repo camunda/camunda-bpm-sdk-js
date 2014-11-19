@@ -2,7 +2,7 @@ node_modules
 *.swp
 *.log
 documentation
-
+dist
 /.project
 .idea/
 staging/
