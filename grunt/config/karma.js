@@ -47,7 +47,7 @@ module.exports = function() {
 
         files: [
           {pattern: 'test/jquery-2.1.1.min.js', included: true},
-          {pattern: 'node_modules/angular/lib/angular.js', included: true},
+          {pattern: 'node_modules/angular/lib/angular.min.js', included: true},
 
           {pattern: 'dist/camunda-bpm-sdk-angular.js', included: true},
           {pattern: 'dist/camunda-bpm-sdk-mock.js', included: true},
