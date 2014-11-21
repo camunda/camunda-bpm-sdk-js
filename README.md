@@ -82,6 +82,10 @@ grunt publish:version --setversion='myNewVersion'
 * --no-bower -> skip bower release
 * --no-write -> dryRun mode
 
+### Examples
+
+* [standalone usage](https://github.com/camunda/camunda-bpm-examples/tree/master/usertask/task-form-standalone)
+
 ## License
 
 Unless otherwise specified this project is licensed under [Apache License Version 2.0](./LICENSE).
