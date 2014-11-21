@@ -2,6 +2,12 @@
 
 Javascript client library for [camunda BPM](https://github.com/camunda/camunda-bpm-platform)
 
+## Install using bower
+
+```sh
+bower install camunda-bpm-sdk-js --save
+```
+
 ## Documentation
 
 You will find some more detailed documentation about the SDK in the `doc` directory.
