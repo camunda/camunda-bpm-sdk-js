@@ -84,7 +84,7 @@ grunt publish:version --setversion='myNewVersion'
 
 ### Examples
 
-* [standalone usage](https://github.com/camunda/camunda-bpm-examples/tree/master/usertask/task-form-standalone)
+* [standalone usage](https://github.com/camunda/camunda-bpm-examples/tree/master/sdk-js)
 
 ## License
 
