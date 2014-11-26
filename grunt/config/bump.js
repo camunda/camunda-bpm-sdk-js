@@ -5,7 +5,7 @@ module.exports = function() {
     options: {
       files: ['package.json', 'bower.json'],
       updateConfigs: ['pkg'],
-      commitFiles: ['package.json', 'bower.json', 'dist/'],
+      commitFiles: ['package.json', 'bower.json'],
       tagName: '%VERSION%',
       tagMessage: 'chore(project): tag %VERSION%',
       pushTo: 'origin',
