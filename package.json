@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/camunda/camunda-bpm-sdk-js",
   "dependencies": {
-    "superagent": "0.18.0"
+    "superagent": "git://github.com/camunda-third-party/superagent"
   },
   "devDependencies": {
     "browserify": "4.1.10",
@@ -54,7 +54,6 @@
     "underscore": "1.6.0",
     "underscore.string": "2.3.3",
     "uuid": "1.4.1"
-
   },
   "optionalDependencies": {
     "angular": "1.2.16"
