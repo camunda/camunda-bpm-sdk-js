@@ -42,7 +42,7 @@
     "grunt-karma": "0.8.3",
     "grunt-newer": "0.7.0",
     "grunt-release": "0.7.0",
-    "camunda-grunt-bower-release": "git://github.com/camunda-third-party/grunt-bower-release",
+    "grunt-bower-release": "git://github.com/camunda-third-party/grunt-bower-release#0.0.6",
     "grunt-bump": "git://github.com/camunda-third-party/grunt-bump",
     "karma": "0.12.16",
     "karma-chrome-launcher": "0.1.4",
