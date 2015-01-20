@@ -28,8 +28,8 @@
   var ProcessDefinition = camClient.resource('process-definition');
 
   ProcessDefinition.on('loaded', function(result) {
-    var total = results.count;
-    var processDefinitionInstances = results.items;
+    var total = result.count;
+    var processDefinitionInstances = result.items;
     // ... do something when the process definitions are loaded
   });
 
@@ -37,8 +37,8 @@
     if (err) {
       throw err;
     }
-    var total = results.count;
-    var processDefinitionInstances = results.items;
+    var total = result.count;
+    var processDefinitionInstances = result.items;
     // ... other way to do something when the process definitions are loaded
   });
 
@@ -48,8 +48,8 @@
     if (err) {
       throw err;
     }
-    var total = results.count;
-    var processDefinitionInstances = results.items;
+    var total = result.count;
+    var processDefinitionInstances = result.items;
     // ... other way to do something when the process definitions are loaded
   });
 
