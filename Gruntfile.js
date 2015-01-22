@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
   require('time-grunt')(grunt);
 
-  var dryRun = grunt.option("no-write") || false;
+  var dryRun = grunt.option("dryRun") || false;
   var pkg = require('./package.json');
   var config = {};
 
