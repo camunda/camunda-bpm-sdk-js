@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
   require('time-grunt')(grunt);
 
-  var dryRun = grunt.option("no-write") || false;
+  var dryRun = grunt.option("dryRun") || false;
   var pkg = require('./package.json');
   var config = {};
 
@@ -81,7 +81,7 @@ module.exports = function(grunt) {
   grunt.registerTask('publish', function(mode) {
     mode = mode || 'snapshot';
     var tasks = [];
-    var releaseBower = !grunt.option('no-bower') || true;
+    var skipBowerRelease = grunt.option('skip-bower-release') || false;
 
     // check options
     if (mode !== 'release' && mode !== 'snapshot' && mode !== 'version') {
@@ -93,7 +93,7 @@ module.exports = function(grunt) {
       grunt.fatal('No version specified using the --set-version=VERSION param!')
     }
 
-    if (grunt.option('no-bower')) {
+    if (skipBowerRelease) {
       grunt.log.writeln('Skipping bower release.')
     }
 
@@ -102,7 +102,7 @@ module.exports = function(grunt) {
         'build:prod'
       ]);
 
-      if (releaseBower) {
+      if (!skipBowerRelease) {
         tasks = tasks.concat(['bowerRelease:' + mode]);
       }
     } else if (mode === 'version') {
@@ -120,7 +120,7 @@ module.exports = function(grunt) {
         'release' // npm release
       ]);
 
-      if (releaseBower) {
+      if (!skipBowerRelease) {
         tasks = tasks.concat(['bowerRelease:' + mode]);
       }
     }
