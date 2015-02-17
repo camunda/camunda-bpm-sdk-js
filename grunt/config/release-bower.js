@@ -1,4 +1,4 @@
-module.exports = function() {
+module.exports = function(config) {
   'use strict';
 
   var publishedFiles = [
@@ -14,7 +14,7 @@ module.exports = function() {
       packageName: 'camunda-bpm-sdk-js',
       commitMessage: 'chore(project): release <%= pkg.version %>',
       tagMessage: 'chore(project): release <%= pkg.version %>',
-      push: '<%= !dryRun %>'
+      push: !config.grunt.config.data.dryRun //'<%= !dryRun %>'
     },
     release: {
       options: {
