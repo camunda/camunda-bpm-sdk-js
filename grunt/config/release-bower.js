@@ -14,7 +14,7 @@ module.exports = function(config) {
       packageName: 'camunda-bpm-sdk-js',
       commitMessage: 'chore(project): release <%= pkg.version %>',
       tagMessage: 'chore(project): release <%= pkg.version %>',
-      push: !config.grunt.config.data.dryRun //'<%= !dryRun %>'
+      push: !config.dryRun
     },
     release: {
       options: {

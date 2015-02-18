@@ -1,4 +1,4 @@
-module.exports = function() {
+module.exports = function(config) {
   'use strict';
 
   return {
@@ -9,7 +9,7 @@ module.exports = function() {
       tagName: '%VERSION%',
       tagMessage: 'chore(project): tag %VERSION%',
       pushTo: 'origin',
-      push: '<%= !dryRun %>'
+      push: !config.dryRun
     },
     // just for bumping the version
     only: {

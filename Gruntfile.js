@@ -11,6 +11,7 @@ module.exports = function(grunt) {
 
   config.grunt = grunt;
   config.pkg = pkg;
+  config.dryRun = dryRun;
 
   grunt.initConfig({
     pkg:              pkg,
