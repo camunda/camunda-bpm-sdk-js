@@ -126,7 +126,7 @@ new CamSDK.Form({
 
 ### Usage Eample
 
-You can initialize CamundaForm for a `<fom>` already existing in the DOM:
+You can initialize CamundaForm for a `<form>` already existing in the DOM:
 
 ```html
 <div ng-controller="FormController">
