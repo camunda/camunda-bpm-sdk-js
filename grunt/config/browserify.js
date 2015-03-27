@@ -29,6 +29,19 @@ module.exports = function(config) {
       }
     },
 
+    distTypeUtils: {
+      options: {
+        bundleOptions: {
+          standalone: 'CamSDK.utils.typeUtils'
+        }
+      },
+      files: {
+        'dist/camunda-bpm-sdk-type-utils.js': [
+          './lib/forms/type-util.js'
+        ]
+      }
+    },
+
     distAngular: {
       options: {
         bundleOptions: {
