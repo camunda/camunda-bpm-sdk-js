@@ -1,14 +1,27 @@
+// Usage:
+//
+// ```sh
+// grunt karma
+// ```
+//
+// or
+//
+// ```sh
+// BROWSERS=PhantomJS TESTED=angular-forms-base grunt karma:dev-form-angularjs
+// ```
 module.exports = function() {
   'use strict';
 
   var singleRun = false;
+  var tested = process.env.TESTED || '*';
+  var browsers = process.env.BROWSERS ? process.env.BROWSERS.split(',') : ['Chrome'];
 
   return {
     options: {
       singleRun: singleRun,
       autoWatch: !singleRun,
 
-      frameworks: ['jasmine'],
+      frameworks: ['mocha', 'chai'],
 
       browsers: [
         'Chrome',
@@ -22,9 +35,7 @@ module.exports = function() {
     'dev-form': {
       options: {
 
-        browsers: [
-          'Chrome'
-        ],
+        browsers: browsers,
 
         files: [
           {pattern: 'test/jquery-2.1.1.min.js', included: true},
@@ -33,7 +44,7 @@ module.exports = function() {
 
           {pattern: 'test/karma/forms/**/*.html', included: false},
 
-          {pattern: 'test/karma/forms/**/*spec.js', included: true}
+          {pattern: 'test/karma/forms/**/' + tested + '-spec.js', included: true}
         ]
       }
     },
@@ -41,9 +52,7 @@ module.exports = function() {
     'dev-form-angularjs': {
       options: {
 
-        browsers: [
-          'Chrome'
-        ],
+        browsers: browsers,
 
         files: [
           {pattern: 'test/jquery-2.1.1.min.js', included: true},
@@ -54,7 +63,7 @@ module.exports = function() {
 
           {pattern: 'test/karma/forms-angularjs/**/*.html', included: false},
 
-          {pattern: 'test/karma/forms-angularjs/**/*spec.js', included: true}
+          {pattern: 'test/karma/forms-angularjs/**/' + tested + '-spec.js', included: true}
         ]
       }
     }
