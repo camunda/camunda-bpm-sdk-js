@@ -6,7 +6,7 @@ describe('The AbstractClientResource', function() {
   it('does not blow when loading', function() {
     expect(function() {
       AbstractClientResource = require('./../../lib/api-client/abstract-client-resource');
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
@@ -27,22 +27,22 @@ describe('The AbstractClientResource', function() {
         otherStaticMethod: function() {},
         otherStaticProperty: true
       });
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
   describe('generated resource class', function() {
     it('has a `static` properties', function() {
-      expect(typeof Extended1.staticMethod).toBe('function');
-      expect(typeof Extended1.staticProperty).toBe('boolean');
-      expect(typeof Extended1.path).toBeDefined();
+      expect(typeof Extended1.staticMethod).to.eql('function');
+      expect(typeof Extended1.staticProperty).to.eql('boolean');
+      expect(typeof Extended1.path).to.not.be.undefined;
 
-      expect(typeof Extended2.staticMethod).toBe('undefined');
-      expect(typeof Extended2.staticProperty).toBe('undefined');
-      expect(typeof Extended2.path).toBeDefined();
+      expect(typeof Extended2.staticMethod).to.eql('undefined');
+      expect(typeof Extended2.staticProperty).to.eql('undefined');
+      expect(typeof Extended2.path).to.not.be.undefined;
 
-      expect(typeof Extended2.otherStaticMethod).toBe('function');
-      expect(typeof Extended2.otherStaticProperty).toBe('boolean');
+      expect(typeof Extended2.otherStaticMethod).to.eql('function');
+      expect(typeof Extended2.otherStaticProperty).to.eql('boolean');
     });
 
 
@@ -51,19 +51,19 @@ describe('The AbstractClientResource', function() {
         instance1 = new Extended1();
 
         instance2 = new Extended2();
-      }).not.toThrow();
+      }).not.to.throw();
     });
 
 
     it('has a `instance` properties', function() {
-      expect(typeof instance1.instanceMethod).toBe('function');
-      expect(typeof instance1.instanceProperty).toBe('boolean');
+      expect(typeof instance1.instanceMethod).to.eql('function');
+      expect(typeof instance1.instanceProperty).to.eql('boolean');
 
-      expect(typeof instance2.instanceMethod).toBe('undefined');
-      expect(typeof instance2.instanceProperty).toBe('undefined');
+      expect(typeof instance2.instanceMethod).to.eql('undefined');
+      expect(typeof instance2.instanceProperty).to.eql('undefined');
 
-      expect(typeof instance2.otherInstanceMethod).toBe('function');
-      expect(typeof instance2.otherInstanceProperty).toBe('boolean');
+      expect(typeof instance2.otherInstanceMethod).to.eql('function');
+      expect(typeof instance2.otherInstanceProperty).to.eql('boolean');
     });
   });
 });

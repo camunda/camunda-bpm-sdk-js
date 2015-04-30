@@ -6,11 +6,11 @@ describe('The ProcessDefinition resource', function() {
   it('does not blow when loading', function() {
     expect(function() {
       ProcessDefinition = require('./../../../lib/api-client/resources/process-definition');
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
   it('has a `path` static property', function() {
-    expect(ProcessDefinition.path).toBe('process-definition');
+    expect(ProcessDefinition.path).to.eql('process-definition');
   });
 });

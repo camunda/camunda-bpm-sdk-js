@@ -1,19 +1,22 @@
 describe('The select field', function() {
-  /* global jQuery: false, CamSDK: false, CamSDKMocks: false, CamFormSDK: false */
+  /* global jQuery: false, CamSDK: false */
   'use strict';
 
-  var exampleVariableName = "exampleVariableName";
-  var exampleVariableStringValue = "exampleVariableStringValue";
-  var exampleVariableIntegerValue = 100;
-  var exampleVariableFloatValue = 100.100;
-  var exampleVariableBooleanValue = true;
-  var exampleVariableDateValue = '2013-01-23T13:42:42';
+  var $ = jQuery;
 
-  var exampleChoicesVariableName = 'exampleChoicesVarName';
+  var exampleVariableLabel = '__exampleVariableLabel__';
+  var exampleVariableName = '__exampleVariableName__';
+  var exampleVariableStringValue = '__exampleVariableStringValue__';
+  // var exampleVariableIntegerValue = 100;
+  // var exampleVariableFloatValue = 100.100;
+  // var exampleVariableBooleanValue = true;
+  // var exampleVariableDateValue = '2013-01-23T13:42:42';
+
+  var exampleChoicesVariableName = '__exampleChoicesVarName__';
   var exampleList = ['option1', 'option2'];
   var exampleStringMap = {
-    "option1": "Option 1",
-    "option2": "Option 2"
+    option1: 'Option 1',
+    option2: 'Option 2'
   };
   var exampleIntegerMap = {
     1: 'Option 1',
@@ -23,6 +26,18 @@ describe('The select field', function() {
   var VariableManager = CamSDK.Form.VariableManager;
   var ChoicesFieldHandler = CamSDK.Form.fields.ChoicesFieldHandler;
   var selectTemplate = '<select />';
+
+
+  function varElement() {
+    return $(selectTemplate)
+              .attr('cam-variable-name', exampleVariableName)
+              .attr('cam-variable-type', 'String')
+              .append($('<option></option>')
+                .text(exampleVariableLabel)
+                .attr('value', exampleVariableStringValue)
+                .attr('selected', 'selected'));
+  }
+
 
 
   it('should init the var name', function() {
@@ -37,18 +52,19 @@ describe('The select field', function() {
     // if:
 
     // I create an Input field
-    var inputFieldHandler = new ChoicesFieldHandler(element, variableManager);
+    new ChoicesFieldHandler(element, variableManager);
 
     // then:
 
     // the variable is created in the variable manager
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBeUndefined();
-    expect(variable.value).toBe(null);
 
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.be.undefined;
+    expect(variable.value).to.be.falsy;
   });
+
 
   it('should init the var type', function() {
     var variableManager = new VariableManager();
@@ -63,22 +79,22 @@ describe('The select field', function() {
     // if:
 
     // I create an Input field
-    var inputFieldHandler = new ChoicesFieldHandler(element, variableManager);
+    new ChoicesFieldHandler(element, variableManager);
 
     // then:
 
     // the variable is created in the variable manager
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBe('String');
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.eql('String');
 
     // <!> different from <input> of type 'String'
     // If no value is selected, the variable value is expected to be 'null', regardless of whether
     // the selectbox is of type 'String' or not
-    expect(variable.value).toBe(null);
-
+    expect(variable.value).to.eql(null);
   });
+
 
   it('should init the variable value', function() {
 
@@ -87,30 +103,24 @@ describe('The select field', function() {
     // given:
 
     // an input field with 'cam-variable-name' and 'cam-variable-type' directive and an initial value
-    var element = $(selectTemplate)
-      .attr('cam-variable-name', exampleVariableName)
-      .attr('cam-variable-type', 'String')
-      .append($('<option>', {
-          value: 'exampleVariableStringValue',
-          text: 'exampleVariableStringValue'
-        }))
-      .val(exampleVariableStringValue);
+    var element = varElement();
 
     // if:
 
     // I create an Input field
-    var inputFieldHandler = new ChoicesFieldHandler(element, variableManager);
+    new ChoicesFieldHandler(element, variableManager);
 
     // then:
 
     // the variable is created in the variable manager
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBe('String');
-    expect(variable.value).toBe(exampleVariableStringValue);
 
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.eql('String');
+    expect(variable.value).to.eql(exampleVariableStringValue);
   });
+
 
   it('should get a string value from the control', function() {
 
@@ -119,13 +129,8 @@ describe('The select field', function() {
     // given:
 
     // an initialized input handler
-    var element = $(selectTemplate)
-      .attr('cam-variable-name', exampleVariableName)
-      .attr('cam-variable-type', 'String')
-      .append($('<option>', {
-          value: 'exampleVariableStringValue',
-          text: 'exampleVariableStringValue'
-        }));
+    var element = varElement();
+
     // with no option selected
     element[0].selectedIndex = -1;
 
@@ -134,7 +139,7 @@ describe('The select field', function() {
     // defined variable ...
     var variable = variableManager.variable(exampleVariableName);
     // without value
-    expect(variable.value).toBe(null);
+    expect(variable.value).to.eql(null);
 
     // if:
 
@@ -146,23 +151,19 @@ describe('The select field', function() {
     // then:
 
     // the value is set in the variable manager
-    expect(variable.value).toBe(exampleVariableStringValue);
+    expect(variable.value).to.eql(exampleVariableStringValue);
   });
 
- it('should apply a string value to the control', function() {
+
+  it('should apply a string value to the control', function() {
 
     var variableManager = new VariableManager();
 
     // given:
 
     // an initialized select
-    var element = $(selectTemplate)
-      .attr('cam-variable-name', exampleVariableName)
-      .attr('cam-variable-type', 'String')
-      .append($('<option>', {
-          value: 'exampleVariableStringValue',
-          text: 'exampleVariableStringValue'
-        }));
+    var element = varElement();
+
     // with no option selected
     element[0].selectedIndex = -1;
 
@@ -170,7 +171,7 @@ describe('The select field', function() {
     // defined variable ...
     var variable = variableManager.variable(exampleVariableName);
     // without value
-    expect(variable.value).toBe(null);
+    expect(variable.value).to.eql(null);
 
     // if:
 
@@ -182,9 +183,9 @@ describe('The select field', function() {
     // then:
 
     // it selects the value
-    expect(element.val()).toBe(exampleVariableStringValue);
-
+    expect(element.val()).to.eql(exampleVariableStringValue);
   });
+
 
   // option handling (cam-choices) ////////////////////////
 
@@ -206,8 +207,8 @@ describe('The select field', function() {
     // defined choices variable.
     var variable = variableManager.variable(exampleChoicesVariableName);
     // without value
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleChoicesVariableName);
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleChoicesVariableName);
 
     // if:
 
@@ -219,13 +220,13 @@ describe('The select field', function() {
     // then:
 
     // the choices are applied
-    var options =$("option", element).map(function() {return $(this).val();}).get();
-    expect(options).toEqual(exampleList);
+    var options = $('option', element).map(function() {return $(this).val();}).get();
+    expect(options).to.eql(exampleList);
 
     // still no value selected
-    expect(element[0].selectedIndex).toEqual(-1);
-
+    expect(element[0].selectedIndex).to.eql(-1);
   });
+
 
   it('should fetch cam-choices string map', function() {
 
@@ -245,8 +246,8 @@ describe('The select field', function() {
     // defined choices variable.
     var variable = variableManager.variable(exampleChoicesVariableName);
     // without value
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleChoicesVariableName);
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleChoicesVariableName);
 
     // if:
 
@@ -258,13 +259,13 @@ describe('The select field', function() {
     // then:
 
     // the choices are applied
-    var options =$("option", element).map(function() {return $(this).val();}).get();
-    expect(options).toEqual(exampleList);
+    var options = $('option', element).map(function() {return $(this).val();}).get();
+    expect(options).to.eql(exampleList);
 
     // still no value selected
-    expect(element[0].selectedIndex).toEqual(-1);
-
+    expect(element[0].selectedIndex).to.eql(-1);
   });
+
 
   it('should fetch cam-choices integer map', function() {
 
@@ -284,8 +285,8 @@ describe('The select field', function() {
     // defined choices variable.
     var variable = variableManager.variable(exampleChoicesVariableName);
     // without value
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleChoicesVariableName);
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleChoicesVariableName);
 
     // if:
 
@@ -297,11 +298,11 @@ describe('The select field', function() {
     // then:
 
     // the choices are applied
-    var options =$("option", element).map(function() {return $(this).val();}).get();
-    expect(options).toEqual(['1', '2']);
+    var options = $('option', element).map(function() {return $(this).val();}).get();
+    expect(options).to.eql(['1', '2']);
 
     // still no value selected
-    expect(element[0].selectedIndex).toEqual(-1);
+    expect(element[0].selectedIndex).to.eql(-1);
 
     // if
 
@@ -313,7 +314,7 @@ describe('The select field', function() {
     // then:
 
     // the value is set in the variable manager as Number (Integer)
-    expect(variableManager.variableValue(exampleVariableName)).toBe(2);
+    expect(variableManager.variableValue(exampleVariableName)).to.eql(2);
 
 
   });

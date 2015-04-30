@@ -6,7 +6,7 @@ describe('The SDK core', function() {
   it('does not blow when loading', function() {
     expect(function() {
       CamSDK = require('./../../lib/index');
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
@@ -16,27 +16,27 @@ describe('The SDK core', function() {
         apiUri: 'engine-rest/engine',
         HttpClient: require('./../../lib/api-client/http-client-mock')
       });
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
   it('uses the mock HttpClient', function(done) {
     expect(function() {
       ProcessDefinition = camClient.resource('process-definition');
-    }).not.toThrow();
+    }).not.to.throw();
 
-    expect(ProcessDefinition.http).toBeDefined();
+    expect(ProcessDefinition.http).to.not.be.undefined;
 
-    expect(ProcessDefinition.http.mock).toBe(true);
+    expect(ProcessDefinition.http.mock).to.eql(true);
 
     ProcessDefinition.list({
       nameLike: 'Bar'
     }, function(err, results) {
       expect(err).toBeNull();
 
-      expect(results.count).toBeDefined();
+      expect(results.count).to.not.be.undefined;
 
-      expect(Array.isArray(results.items)).toBe(true);
+      expect(Array.isArray(results.items)).to.eql(true);
 
       done();
     });
@@ -46,9 +46,9 @@ describe('The SDK core', function() {
   it('has resources', function() {
     expect(function() {
       processDefinition = new ProcessDefinition();
-    }).not.toThrow();
+    }).not.to.throw();
 
-    expect(processDefinition.http).toBeDefined();
-    expect(processDefinition.http).toBe(ProcessDefinition.http);
+    expect(processDefinition.http).to.not.be.undefined;
+    expect(processDefinition.http).to.eql(ProcessDefinition.http);
   });
 });

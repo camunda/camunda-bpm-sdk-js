@@ -1,9 +1,11 @@
 describe('The input field', function() {
-  /* global jQuery: false, CamSDK: false, CamSDKMocks: false, CamFormSDK: false */
+  /* global jQuery: false, CamSDK: false */
   'use strict';
 
-  var exampleVariableName = "exampleVariableName";
-  var exampleVariableStringValue = "exampleVariableStringValue";
+  var $ = jQuery;
+
+  var exampleVariableName = 'exampleVariableName';
+  var exampleVariableStringValue = 'exampleVariableStringValue';
   var exampleVariableIntegerValue = 100;
   var exampleVariableFloatValue = 100.100;
   var exampleVariableBooleanValue = true;
@@ -28,18 +30,19 @@ describe('The input field', function() {
     // if:
 
     // I create an Input field
-    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+    new InputFieldHandler(element, variableManager);
 
     // then:
 
     // the variable is created in the variable manager
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBeUndefined();
-    expect(variable.value).toBe(null);
 
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.be.undefined;
+    expect(variable.value).to.eql(null);
   });
+
 
   it('should init the var type', function() {
 
@@ -55,17 +58,17 @@ describe('The input field', function() {
     // if:
 
     // I create an Input field
-    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+    new InputFieldHandler(element, variableManager);
 
     // then:
 
     // the variable is created in the variable manager
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBe('String');
-    expect(variable.value).toBe('');
 
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.eql('String');
+    expect(variable.value).to.eql('');
   });
 
   it('should init the variable value', function() {
@@ -83,18 +86,19 @@ describe('The input field', function() {
     // if:
 
     // I create an Input field
-    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+    new InputFieldHandler(element, variableManager);
 
     // then:
 
     // the variable is created in the variable manager
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBe('String');
-    expect(variable.value).toBe(exampleVariableStringValue);
 
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.eql('String');
+    expect(variable.value).to.eql(exampleVariableStringValue);
   });
+
 
   it('should get a string value from the control', function() {
 
@@ -111,7 +115,7 @@ describe('The input field', function() {
     // defined variable ...
     var variable = variableManager.variable(exampleVariableName);
     // without value
-    expect(variable.value).toBe('');
+    expect(variable.value).to.eql('');
 
     // if:
 
@@ -123,8 +127,9 @@ describe('The input field', function() {
     // then:
 
     // the value is set in the variable manager
-    expect(variable.value).toBe(exampleVariableStringValue);
+    expect(variable.value).to.eql(exampleVariableStringValue);
   });
+
 
   it('should apply a string value to the control', function() {
 
@@ -141,7 +146,7 @@ describe('The input field', function() {
     // defined variable ...
     var variable = variableManager.variable(exampleVariableName);
     // without value
-    expect(variable.value).toBe('');
+    expect(variable.value).to.eql('');
 
     // if:
 
@@ -153,9 +158,9 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.val()).toBe(exampleVariableStringValue);
-
+    expect(element.val()).to.eql(exampleVariableStringValue);
   });
+
 
   it('should work with a textarea', function() {
 
@@ -172,7 +177,7 @@ describe('The input field', function() {
     // defined variable ...
     var variable = variableManager.variable(exampleVariableName);
     // without value
-    expect(variable.value).toBe('');
+    expect(variable.value).to.eql('');
 
     // if:
 
@@ -184,7 +189,7 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.val()).toBe(exampleVariableStringValue);
+    expect(element.val()).to.eql(exampleVariableStringValue);
 
   });
   ////////////////////// Integer //////////////////////////
@@ -212,9 +217,9 @@ describe('The input field', function() {
     // then:
 
     // the value in the variable manager is Null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
-
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should not accept Float values for Integers', function() {
 
@@ -237,10 +242,11 @@ describe('The input field', function() {
     // getValue throws an exception
     expect(function() {
       inputFieldHandler.getValue();
-    }).toThrow();
+    }).to.throw();
     // and the value in the variable is still null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should get an Integer value from the control', function() {
 
@@ -266,9 +272,9 @@ describe('The input field', function() {
 
     // the value in the variable manager is an integer
     expect(variableManager.variable(exampleVariableName).value)
-      .toBe(exampleVariableIntegerValue);
-
+      .to.eql(exampleVariableIntegerValue);
   });
+
 
   it('should set an Integer value to the control', function() {
 
@@ -294,7 +300,7 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.val()).toBe(exampleVariableIntegerValue.toString());
+    expect(element.val()).to.eql(exampleVariableIntegerValue.toString());
 
   });
 
@@ -323,9 +329,9 @@ describe('The input field', function() {
     // then:
 
     // the value in the variable manager is Null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
-
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should not accept String values for Floats', function() {
 
@@ -349,11 +355,12 @@ describe('The input field', function() {
     // getValue throws an exception
     expect(function() {
       inputFieldHandler.getValue();
-    }).toThrow();
+    }).to.throw();
 
     // and the value in the variable is still null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should get an Float value from the control', function() {
 
@@ -379,7 +386,7 @@ describe('The input field', function() {
 
     // the value in the variable manager is an integer
     expect(variableManager.variable(exampleVariableName).value)
-      .toBe(exampleVariableFloatValue);
+      .to.eql(exampleVariableFloatValue);
 
   });
 
@@ -407,7 +414,7 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.val()).toBe(exampleVariableFloatValue.toString());
+    expect(element.val()).to.eql(exampleVariableFloatValue.toString());
 
   });
 
@@ -436,9 +443,9 @@ describe('The input field', function() {
     // then:
 
     // the value in the variable manager is Null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
-
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should not accept String values for Booleans', function() {
 
@@ -462,11 +469,12 @@ describe('The input field', function() {
     // getValue throws an exception
     expect(function() {
       inputFieldHandler.getValue();
-    }).toThrow();
+    }).to.throw();
 
     // and the value in the variable is still null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should get a Boolean value from the control', function() {
 
@@ -492,9 +500,9 @@ describe('The input field', function() {
 
     // the value in the variable manager is a boolean
     expect(variableManager.variable(exampleVariableName).value)
-      .toBe(exampleVariableBooleanValue);
-
+      .to.eql(exampleVariableBooleanValue);
   });
+
 
   it('should set a Boolean value to the control', function() {
 
@@ -520,7 +528,7 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.val()).toBe(exampleVariableBooleanValue.toString());
+    expect(element.val()).to.eql(exampleVariableBooleanValue.toString());
 
   });
 
@@ -540,18 +548,18 @@ describe('The input field', function() {
 
 
     // if:
-
-    var inputFieldHandler = new InputFieldHandler(element, variableManager);
+    new InputFieldHandler(element, variableManager);
 
     // I set the value to the variable
 
     // then:
     var variable = variableManager.variable(exampleVariableName);
-    expect(variable).toBeDefined();
-    expect(variable.name).toBe(exampleVariableName);
-    expect(variable.type).toBe('Boolean');
 
+    expect(variable).to.not.be.undefined;
+    expect(variable.name).to.eql(exampleVariableName);
+    expect(variable.type).to.eql('Boolean');
   });
+
 
   it('should get a Boolean value from the checkbox control', function() {
 
@@ -568,7 +576,7 @@ describe('The input field', function() {
 
     // if:
     // I check the checkbox
-    element.prop("checked", exampleVariableBooleanValue);
+    element.prop('checked', exampleVariableBooleanValue);
     // and get the value from the input field
     inputFieldHandler.getValue();
 
@@ -576,9 +584,9 @@ describe('The input field', function() {
 
     // the value in the variable manager is a boolean
     expect(variableManager.variable(exampleVariableName).value)
-      .toBe(exampleVariableBooleanValue);
-
+      .to.eql(exampleVariableBooleanValue);
   });
+
 
   it('should set a Boolean value to the checkbox control', function() {
 
@@ -604,9 +612,9 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.prop("checked")).toBe(exampleVariableBooleanValue);
-
+    expect(element.prop('checked')).to.eql(exampleVariableBooleanValue);
   });
+
 
   it('should handle null values with the checkbox control', function() {
 
@@ -632,9 +640,9 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.prop("checked")).toBe(false);
-
+    expect(element.prop('checked')).to.eql(false);
   });
+
 
   it('should have a boolean value after getting a checkbox input', function() {
 
@@ -656,14 +664,14 @@ describe('The input field', function() {
     inputFieldHandler.applyValue();
 
     // the value is set to the form control
-    expect(element.prop("checked")).toBe(false);
-    expect(variable.value).toBe(null);
+    expect(element.prop('checked')).to.eql(false);
+    expect(variable.value).to.eql(null);
 
     // if:
     inputFieldHandler.getValue();
 
     // then:
-    expect(variable.value).toBe(false);
+    expect(variable.value).to.eql(false);
   });
 
   ////////////////////// Date //////////////////////////
@@ -691,9 +699,9 @@ describe('The input field', function() {
     // then:
 
     // the value in the variable manager is Null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
-
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should not accept String values for Dates', function() {
 
@@ -717,11 +725,12 @@ describe('The input field', function() {
     // getValue throws an exception
     expect(function() {
       inputFieldHandler.getValue();
-    }).toThrow();
+    }).to.throw();
 
     // and the value in the variable is still null
-    expect(variableManager.variable(exampleVariableName).value).toBeNull();
+    expect(variableManager.variable(exampleVariableName).value).to.be.null;
   });
+
 
   it('should get a Date value from the control', function() {
 
@@ -747,7 +756,7 @@ describe('The input field', function() {
 
     // the value in the variable manager is a boolean
     expect(variableManager.variable(exampleVariableName).value)
-      .toBe(exampleVariableDateValue);
+      .to.eql(exampleVariableDateValue);
 
   });
 
@@ -775,7 +784,7 @@ describe('The input field', function() {
     // then:
 
     // the value is set to the form control
-    expect(element.val()).toBe(exampleVariableDateValue.toString());
+    expect(element.val()).to.eql(exampleVariableDateValue.toString());
 
   });
 });

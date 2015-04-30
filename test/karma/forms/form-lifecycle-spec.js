@@ -1,101 +1,74 @@
 describe('The form', function() {
-  /* global jQuery: false, CamSDK: false, CamSDKMocks: false, CamFormSDK: false */
+  /* global jQuery: false, CamSDK: false, CamSDKMocks: false */
   'use strict';
+
+  var $ = jQuery;
   var $simpleFormDoc;
-  var camForm, camClient, procDef;
+  var camClient, procDef;
+
+
+  before(function (done) {
+    jQuery.ajax('/base/test/karma/forms/form-lifecycle.html', {
+      success: function(data) {
+        $simpleFormDoc = jQuery('<div id="test-form">'+ data +'</div>');
+        // the following lines allow to see the form in the browser
+        var _$top = $(top.document);
+        _$top.find('#test-form').remove();
+        _$top.find('#browsers').after($simpleFormDoc);
+
+        camClient = new CamSDK.Client({
+          apiUri: 'engine-rest/engine',
+          HttpClient: CamSDKMocks
+        });
+
+        done();
+      },
+
+      error: done
+    });
+  });
 
 
   it('prepares the testing environemnt', function() {
-    runs(function() {
-      jQuery.ajax('/base/test/karma/forms/form-lifecycle.html', {
-        success: function(data) {
-          $simpleFormDoc = jQuery('<div id="test-form">'+ data +'</div>');
-          // the following lines allow to see the form in the browser
-          var _$top = $(top.document);
-          _$top.find('#test-form').remove();
-          _$top.find('#browsers').after($simpleFormDoc);
-        },
-        error: function() {
-          console.info('errorThrown', arguments);
-        }
-      });
-    });
+    expect(CamSDKMocks).to.be.a('function');
 
-    waitsFor(function() {
-      return !!$simpleFormDoc;
-    }, 400);
+    expect(CamSDK).to.be.an('object');
 
-    runs(function() {
-      expect(typeof CamSDKMocks).toBe('function');
+    expect(camClient).to.be.ok;
+  });
 
-      expect(typeof CamSDK).toBe('object');
+
+  it('needs a process definition', function(done) {
+    camClient.resource('process-definition').list({}, function(err, result) {
+      if (err) { return done(err); }
+
+      procDef = result.items.pop();
+
+      expect(procDef.id).to.be.ok;
+
+      done();
     });
   });
 
 
-  it('needs a process definition', function() {
-    runs(function() {
-      camClient = new CamSDK.Client({
-        apiUri: 'engine-rest/engine',
-        HttpClient: CamSDKMocks
-      });
+  it('initialize', function (done) {
+    function ready(err) {
+      if (err) { return done(err); }
 
-      camClient.resource('process-definition').list({}, function(err, result) {
-        if (err) {
-          throw err;
-        }
-
-        procDef = result.items.pop();
-      });
-    });
-
-    waitsFor(function() {
-      return !!procDef;
-    }, 4000);
-
-    runs(function() {
-      expect(procDef.id).toBeTruthy();
-    });
-  });
-
-  it('initialize', function() {
-    var initialized;
-    runs(function() {
-
-      expect(camClient).toBeTruthy();
-
-      expect(function() {
-        camForm = new CamSDK.Form({
-          client: camClient,
-          processDefinitionId: procDef.id,
-          formElement: $simpleFormDoc.find('form[cam-form]'),
-          done: function() {
-            initialized = true;
-          }
-        });
-      }).not.toThrow();
-
-    });
-
-    waitsFor('form to be initialized', function() {
-      return initialized;
-    }, 2000);
-
-    runs(function() {
       // expect variable created by script to be present
-      expect(camForm.variableManager.variable('customVar').name).toBe('customVar');
-      expect(camForm.variableManager.variable('customVar').type).toBe('String');
+      var customVar = camForm.variableManager.variable('customVar');
+      expect(customVar.name).to.eql('customVar');
+      expect(customVar.type).to.eql('String');
 
       // expect form field to be populated
-      expect($('#customField', camForm.formElement).val()).toBe('someValue');
-    });
+      expect($('#customField', camForm.formElement).val()).to.eql('someValue');
 
-    runs(function() {
+
       // given that we do not change the value of the custom field
       camForm.submit();
 
       // we expect the submit callback to prevent the submit of the form
-      expect(camForm.submitPrevented).toBeTruthy();
+      expect(camForm.submitPrevented).to.be.ok;
 
       // if we change the value of the form field
       $('#customField', camForm.formElement).val('updated');
@@ -104,14 +77,16 @@ describe('The form', function() {
       camForm.submit();
 
       // we expect the submit to pass
-      expect(camForm.submitPrevented).toBeFalsy();
+      expect(camForm.submitPrevented).to.not.be.ok;
 
+      done();
+    }
+
+    var camForm = new CamSDK.Form({
+      client: camClient,
+      processDefinitionId: procDef.id,
+      formElement: $simpleFormDoc.find('form[cam-form]'),
+      done: ready
     });
-
-  });
-
-
-  it('submits the form', function() {
-
   });
 });

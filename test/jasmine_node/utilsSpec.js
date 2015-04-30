@@ -6,7 +6,7 @@ describe('The SDK utilities', function() {
   it('does not blow when loading', function() {
     expect(function() {
       sdkUtils = require('./../../lib/utils');
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
   describe('HAL tools', function() {
@@ -41,16 +41,16 @@ describe('The SDK utilities', function() {
 
         expect(function() {
           remapped = sdkUtils.solveHALEmbedded(HALResponse);
-        }).not.toThrow();
+        }).not.to.throw();
 
         expect(remapped._embedded.objB[0]._embedded.objA[0].id)
-          .toBe(remapped._embedded.objB[0].objAId);
+          .to.eql(remapped._embedded.objB[0].objAId);
 
         expect(remapped._embedded.objB[1]._embedded.objA[0].id)
-          .toBe(remapped._embedded.objB[1].objAId);
+          .to.eql(remapped._embedded.objB[1].objAId);
 
         expect(remapped._embedded.objB[2]._embedded.objA[0].id)
-          .toBe(remapped._embedded.objB[2].objAId);
+          .to.eql(remapped._embedded.objB[2].objAId);
       });
     });
   });
@@ -58,7 +58,7 @@ describe('The SDK utilities', function() {
   describe('control flow', function() {
     describe('series()', function() {
       it('is a function', function() {
-        expect(typeof sdkUtils.series).toBe('function');
+        expect(typeof sdkUtils.series).to.eql('function');
       });
 
 
@@ -69,15 +69,15 @@ describe('The SDK utilities', function() {
           function(cb) { setTimeout(function() { cb(null, 3); }, 1); }
         ], function(err, result) {
 
-          expect(err).not.toBeDefined();
+          expect(err).to.be.undefined;
 
-          expect(result).toBeDefined();
+          expect(result).to.not.be.undefined;
 
-          expect(result[0]).toBe(1);
+          expect(result[0]).to.eql(1);
 
-          expect(result[1]).toBe(2);
+          expect(result[1]).to.eql(2);
 
-          expect(result[2]).toBe(3);
+          expect(result[2]).to.eql(3);
 
           done();
         });
@@ -92,15 +92,15 @@ describe('The SDK utilities', function() {
           c: function(cb) { setTimeout(function() { cb(null, 3); }, 1); }
         }, function(err, result) {
 
-          expect(err).not.toBeDefined();
+          expect(err).to.be.undefined;
 
-          expect(result).toBeDefined();
+          expect(result).to.not.be.undefined;
 
-          expect(result.a).toBe(1);
+          expect(result.a).to.eql(1);
 
-          expect(result.b).toBe(2);
+          expect(result.b).to.eql(2);
 
-          expect(result.c).toBe(3);
+          expect(result.c).to.eql(3);
 
           done();
         });
@@ -115,13 +115,13 @@ describe('The SDK utilities', function() {
           c: function(cb) { setTimeout(function() { cb(null, 3); }, 1); }
         }, function(err, result) {
 
-          expect(err).toBeDefined();
+          expect(err).to.not.be.undefined;
 
-          expect(result).toBeDefined();
+          expect(result).to.not.be.undefined;
 
-          expect(result.a).toBe(1);
+          expect(result.a).to.eql(1);
 
-          expect(result.b).not.toBeDefined();
+          expect(result.b).to.be.undefined;
 
           done();
         });

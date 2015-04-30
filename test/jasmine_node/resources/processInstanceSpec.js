@@ -6,12 +6,12 @@ describe('The ProcessInstance resource', function() {
   it('does not blow when loading', function() {
     expect(function() {
       ProcessInstance = require('./../../../lib/api-client/resources/process-instance');
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
   it('has a `path` static property', function() {
-    expect(ProcessInstance.path).toBe('process-instance');
+    expect(ProcessInstance.path).to.eql('process-instance');
   });
 
 
@@ -21,7 +21,7 @@ describe('The ProcessInstance resource', function() {
     it('does not blow when instanciating', function() {
       expect(function() {
         instance = new ProcessInstance();
-      }).not.toThrow();
+      }).not.to.throw();
     });
   });
 });

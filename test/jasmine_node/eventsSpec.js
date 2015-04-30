@@ -25,7 +25,7 @@ describe('The events system', function() {
   it('does not blow when loading', function() {
     expect(function() {
       Events = require('./../../lib/events');
-    }).not.toThrow();
+    }).not.to.throw();
   });
 
 
@@ -33,52 +33,52 @@ describe('The events system', function() {
     it('is used to provide events to an object', function() {
       expect(function() {
         Events.attach(obj);
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(typeof obj.on).toBe('function');
+      expect(typeof obj.on).to.eql('function');
 
-      expect(typeof obj.once).toBe('function');
+      expect(typeof obj.once).to.eql('function');
 
-      expect(typeof obj.off).toBe('function');
+      expect(typeof obj.off).to.eql('function');
 
-      expect(typeof obj.trigger).toBe('function');
+      expect(typeof obj.trigger).to.eql('function');
 
-      expect(typeof obj._events).toBe('object');
+      expect(typeof obj._events).to.eql('object');
     });
   });
 
 
   describe('`on` function', function() {
     it('is a function', function() {
-      expect(typeof Events.on).toBe('function');
+      expect(typeof Events.on).to.eql('function');
 
       expect(function() {
         Events.attach(obj);
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(typeof obj.on).toBe('function');
+      expect(typeof obj.on).to.eql('function');
     });
 
 
     it('adds an event', function() {
-      expect(obj).toBeDefined();
+      expect(obj).to.not.be.undefined;
 
-      expect(typeof obj._events).toBe('object');
+      expect(typeof obj._events).to.eql('object');
 
       expect(function() {
         obj.on('some:event:name', onEventCB);
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(isArray(obj._events['some:event:name'])).toBe(true);
+      expect(isArray(obj._events['some:event:name'])).to.eql(true);
 
-      expect(obj._events['some:event:name'].indexOf(onEventCB)).toBeGreaterThan(-1);
+      expect(obj._events['some:event:name'].indexOf(onEventCB)).to.be.greaterThan(-1);
     });
   });
 
 
   describe('`trigger` function', function() {
     it('is a function', function() {
-      expect(typeof Events.trigger).toBe('function');
+      expect(typeof Events.trigger).to.eql('function');
     });
 
 
@@ -86,23 +86,23 @@ describe('The events system', function() {
       expect(function() {
         obj.trigger('some:event:name');
         obj.trigger('some:event:name');
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(counters.on).toBe(2);
+      expect(counters.on).to.eql(2);
     });
   });
 
 
   describe('`once` function', function() {
     it('is a function', function() {
-      expect(typeof Events.once).toBe('function');
+      expect(typeof Events.once).to.eql('function');
     });
 
 
     it('adds a function', function() {
       expect(function() {
         obj.once('other:event:name', onceEventCB);
-      }).not.toThrow();
+      }).not.to.throw();
     });
 
 
@@ -110,7 +110,7 @@ describe('The events system', function() {
       expect(function() {
         obj.trigger('other:event:name');
         // console.info('counters.once', counters.once);
-      }).not.toThrow();
+      }).not.to.throw();
     });
 
 
@@ -118,45 +118,45 @@ describe('The events system', function() {
       expect(function() {
         obj.trigger('other:event:name');
         // console.info('counters.once', counters.once);
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(counters.once).toBe(1);
+      expect(counters.once).to.eql(1);
     });
   });
 
 
   describe('`off` function', function() {
     it('is a function', function() {
-      expect(typeof Events.off).toBe('function');
+      expect(typeof Events.off).to.eql('function');
     });
 
 
     it('removes a function assigned to an event', function() {
       expect(function() {
         obj.on('some:event:name', otherEventCB);
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(isArray(obj._events['some:event:name'])).toBe(true);
+      expect(isArray(obj._events['some:event:name'])).to.eql(true);
 
-      expect(obj._events['some:event:name'].length).toBe(2);
+      expect(obj._events['some:event:name'].length).to.eql(2);
 
 
       expect(function() {
         obj.off('some:event:name', otherEventCB);
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(isArray(obj._events['some:event:name'])).toBe(true);
+      expect(isArray(obj._events['some:event:name'])).to.eql(true);
 
-      expect(obj._events['some:event:name'].length).toBe(1);
+      expect(obj._events['some:event:name'].length).to.eql(1);
     });
 
 
     it('removes all the functions assigned to an event', function() {
       expect(function() {
         obj.off('some:event:name');
-      }).not.toThrow();
+      }).not.to.throw();
 
-      expect(obj._events['some:event:name']).not.toBeDefined();
+      expect(obj._events['some:event:name']).to.be.undefined;
     });
   });
 });
