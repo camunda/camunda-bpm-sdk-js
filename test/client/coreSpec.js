@@ -1,4 +1,5 @@
 'use strict';
+var expect = require('chai').expect;
 
 describe('The SDK core', function() {
   var CamSDK, camClient, ProcessDefinition, processDefinition;
@@ -32,7 +33,7 @@ describe('The SDK core', function() {
     ProcessDefinition.list({
       nameLike: 'Bar'
     }, function(err, results) {
-      expect(err).toBeNull();
+      expect(err).to.be.null;
 
       expect(results.count).to.not.be.undefined;
 

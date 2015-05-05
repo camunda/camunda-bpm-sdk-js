@@ -10,7 +10,6 @@
     "ddescribe": false,
     "it": false,
     "xit": false,
-    "expect": false,
     "beforeEach": false,
     "afterEach": false,
     "before": false,

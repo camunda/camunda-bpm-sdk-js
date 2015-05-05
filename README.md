@@ -39,10 +39,10 @@ grunt karma:dev-form-angularjs
 ```
 
 
-#### Jamsine node
+#### Mocha
 
 ```sh
-jasmine-node --autotest --watch lib -m /*Spec\.js$/ test/jasmine_node
+grunt mochacli
 ```
 
 ### Issues

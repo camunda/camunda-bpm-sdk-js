@@ -1,4 +1,5 @@
 'use strict';
+var expect = require('chai').expect;
 
 describe('The AbstractClientResource', function() {
   var AbstractClientResource, Extended1, Extended2, instance1, instance2;

@@ -29,13 +29,13 @@ module.exports = function(config) {
       ]
     },
 
-    jasmine_node: {
+    mochacli: {
       files: [
         'lib/**/*.js',
-        'test/jasmine_node/**/*.js'
+        'test/client/**/*Spec.js'
       ],
       tasks: [
-        'jasmine_node'
+        'mochacli'
       ]
     },
 

@@ -3,9 +3,9 @@
 
 module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
-  require('time-grunt')(grunt);
+  // require('time-grunt')(grunt);
 
-  var dryRun = grunt.option("dryRun") || false;
+  var dryRun = grunt.option('dryRun') || false;
   var pkg = require('./package.json');
   var config = {};
 
@@ -24,7 +24,7 @@ module.exports = function(grunt) {
 
     copy:             require('./grunt/config/copy')(config),
 
-    jasmine_node:     require('./grunt/config/jasmine_node')(config),
+    mochacli:         require('./grunt/config/mocha-cli')(config),
 
     jsdoc:            require('./grunt/config/jsdoc')(config),
 
@@ -91,11 +91,11 @@ module.exports = function(grunt) {
     grunt.log.writeln('Publishing JS SDK in "'+ mode +'" mode.');
 
     if ((mode === 'release' || mode === 'version') && !grunt.option('setversion')) {
-      grunt.fatal('No version specified using the --set-version=VERSION param!')
+      grunt.fatal('No version specified using the --set-version=VERSION param!');
     }
 
     if (skipBowerRelease) {
-      grunt.log.writeln('Skipping bower release.')
+      grunt.log.writeln('Skipping bower release.');
     }
 
     if (mode === 'snapshot') {

@@ -1,4 +1,5 @@
 'use strict';
+var expect = require('chai').expect;
 
 describe('The ProcessInstance resource', function() {
   var ProcessInstance;

@@ -1,6 +1,6 @@
-/* global describe, require, it, expect: false */
-
+/* global describe, require, it */
 'use strict';
+var expect = require('chai').expect;
 
 describe('The type-util', function() {
 
@@ -14,7 +14,7 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('100.10', 'Integer');
-    }).to.throw(new Error("Value '100.10' is not of type Integer"));
+    }).to.throw('Value \'100.10\' is not of type Integer');
 
   });
 
@@ -25,7 +25,7 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('100.10', 'Long');
-    }).to.throw(new Error("Value '100.10' is not of type Long"));
+    }).to.throw('Value \'100.10\' is not of type Long');
   });
 
   it('does convert Short', function() {
@@ -35,7 +35,7 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('100.10', 'Short');
-    }).to.throw(new Error("Value '100.10' is not of type Short"));
+    }).to.throw('Value \'100.10\' is not of type Short');
   });
 
   it('does convert Float', function() {
@@ -47,7 +47,7 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('100.10a', 'Float');
-    }).to.throw(new Error("Value '100.10a' is not of type Float"));
+    }).to.throw('Value \'100.10a\' is not of type Float');
 
   });
 
@@ -60,7 +60,7 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('100.10a', 'Double');
-    }).to.throw(new Error("Value '100.10a' is not of type Double"));
+    }).to.throw('Value \'100.10a\' is not of type Double');
   });
 
   it('does convert Date', function() {
@@ -70,11 +70,11 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('2013-01-23T13:42', 'Date');
-    }).to.throw(new Error("Value '2013-01-23T13:42' is not of type Date"));
+    }).to.throw('Value \'2013-01-23T13:42\' is not of type Date');
 
     expect(function() {
       return convertToType('2013-01-23T60:42:40', 'Date');
-    }).to.throw(new Error("Value '2013-01-23T60:42:40' is not of type Date"));
+    }).to.throw('Value \'2013-01-23T60:42:40\' is not of type Date');
 
   });
 
@@ -90,7 +90,7 @@ describe('The type-util', function() {
 
     expect(function() {
       return convertToType('strue', 'Boolean');
-    }).to.throw(new Error("Value 'strue' is not of type Boolean"));
+    }).to.throw('Value \'strue\' is not of type Boolean');
   });
 
   it('detects Integers', function() {

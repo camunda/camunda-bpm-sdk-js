@@ -1,7 +1,8 @@
 'use strict';
+var expect = require('chai').expect;
 
 describe('The ProcessDefinition resource', function() {
-  var ProcessDefinition, processDefinition;
+  var ProcessDefinition;
 
   it('does not blow when loading', function() {
     expect(function() {
