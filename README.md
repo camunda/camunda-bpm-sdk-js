@@ -39,10 +39,12 @@ grunt karma:dev-form-angularjs
 ```
 
 
-#### Mocha
+#### Mocha CLI
 
 ```sh
 grunt mochacli
+# or
+grunt watch:mochacli
 ```
 
 ### Issues
