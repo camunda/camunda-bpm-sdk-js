@@ -43,6 +43,19 @@ describe('The SDK core', function() {
     });
   });
 
+  it('returns promises', function() {
+    expect(function() {
+      ProcessDefinition = camClient.resource('process-definition');
+    }).not.to.throw();
+
+    return ProcessDefinition.list({nameLike: 'Bar'}).then(
+      function(results) {
+        expect(results.count).to.not.be.undefined;
+        expect(Array.isArray(results.items)).to.eql(true);
+      }
+    );
+  });
+
 
   it('has resources', function() {
     expect(function() {
