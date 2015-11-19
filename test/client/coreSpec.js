@@ -4,6 +4,8 @@ var expect = require('chai').expect;
 var request = require('superagent');
 var mockConfig = require('../superagent-mock-config');
 
+var requestListener = require('../helper/request');
+
 describe('The SDK core', function() {
 
   var superagentMock;
@@ -74,5 +76,85 @@ describe('The SDK core', function() {
 
     expect(processDefinition.http).to.not.be.undefined;
     expect(processDefinition.http).to.eql(ProcessDefinition.http);
+  });
+
+  describe('http-client', function() {
+
+    before(function() {
+      requestListener.patchRequest(request);
+    });
+
+    it('uses default header when no custom headers provided', function(done) {
+
+        camClient = new CamSDK.Client({
+          apiUri: 'engine-rest/engine'
+        });
+
+        ProcessDefinition = camClient.resource('process-definition');
+
+        var check = function(request) {
+          expect(request.headers).to.eql({
+            'Accept': 'application/hal+json, application/json; q=0.5'
+          });
+        };
+
+        requestListener.register(check);
+        ProcessDefinition.list({}, function(){
+          requestListener.unregister(check);
+          done();
+        });
+    });
+
+    it('uses custom header when provided', function(done) {
+
+        var header = {
+          'Accept': 'text/plain',
+          'Foo': 'Bar'
+        };
+
+        camClient = new CamSDK.Client({
+          apiUri: 'engine-rest/engine',
+          headers: header
+        });
+
+        ProcessDefinition = camClient.resource('process-definition');
+
+        var check = function(request) {
+          expect(request.headers).to.eql(header);
+        };
+
+        requestListener.register(check);
+        ProcessDefinition.list({}, function(){
+          requestListener.unregister(check);
+          done();
+        });
+    });
+
+    it('uses custom header for single request', function(done) {
+
+        var header = {
+          'Accept': 'text/plain',
+          'Foo': 'Bar'
+        };
+
+        camClient = new CamSDK.Client({
+          apiUri: 'engine-rest/engine'
+        });
+
+        var check = function(request) {
+          expect(request.headers).to.eql(header);
+        };
+        requestListener.register(check);
+
+        camClient.http.get('foo', {
+          data: {},
+          headers: header,
+          accept: header.Accept,
+          done: function() {
+            requestListener.unregister(check);
+            done();
+          }
+        });
+    });
   });
 });
