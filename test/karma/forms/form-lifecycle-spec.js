@@ -50,6 +50,15 @@ describe('The form', function() {
     });
   });
 
+  it('gets the process definition with a promise', function() {
+    return camClient.resource('process-definition').list({}).then(
+      function(result) {
+        procDef = result.items.pop();
+        expect(procDef.id).to.be.ok;
+      }
+    );
+  });
+
 
   it('initialize', function (done) {
     function ready(err) {
