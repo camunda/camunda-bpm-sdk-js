@@ -1,10 +1,24 @@
+'use strict';
+
+var CamSDK = require('../../../lib/index-browser.js');
+
+var request = require('superagent');
+var mockConfig = require('../../superagent-mock-config');
+
 describe('The form', function() {
-  /* global jQuery: false, CamSDK: false, CamSDKMocks: false */
-  'use strict';
+  /* global jQuery: false */
   var $ = jQuery;
   var $simpleFormDoc;
   var camForm, camClient, procDef;
 
+  var superagentMock;
+  before(function() {
+    superagentMock = require('superagent-mock')(request, mockConfig);
+  });
+
+  after(function() {
+    superagentMock.unset();
+  });
 
   before(function(done) {
     jQuery.ajax('/base/test/karma/forms/form-simple.html', {
@@ -16,8 +30,7 @@ describe('The form', function() {
         _$top.find('#browsers').after($simpleFormDoc);
 
         camClient = new CamSDK.Client({
-          apiUri: 'engine-rest/engine',
-          HttpClient: CamSDKMocks
+          apiUri: 'engine-rest/engine'
         });
 
         done();
@@ -68,11 +81,12 @@ describe('The form', function() {
         client:               camClient,
         processDefinitionId:  procDef.id,
         formElement:          $simpleFormDoc.find('form[cam-form]'),
-        done:                 initialized
+        done:                 function(){window.setTimeout(initialized);}
       });
     }
 
     function initialized() {
+
       expect(camForm.formFieldHandlers).to.be.an('array');
 
       expect(camForm.fields).to.be.an('array');
@@ -99,7 +113,7 @@ describe('The form', function() {
 
       expect(result.definitionId).to.eql(procDef.id);
 
-      var stored = CamSDKMocks.mockedData.processInstanceFormVariables[result.id];
+      var stored = mockConfig.mockedData.processInstanceFormVariables[result.id];
       expect(stored).to.be.ok;
 
       expect(stored.stringVar).to.be.ok;
@@ -128,7 +142,7 @@ describe('The form', function() {
       client:               camClient,
       processDefinitionId:  procDef.id,
       formElement:          $simpleFormDoc.find('form[cam-form]'),
-      done:                 formReady
+      done:                 function(){window.setTimeout(formReady);}
     });
   });
 

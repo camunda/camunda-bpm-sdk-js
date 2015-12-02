@@ -1,4 +1,4 @@
-/* global jQuery: false, angular: false, CamSDK: false, CamSDKMocks: false */
+/* global jQuery: false, angular: false */
 'use strict';
 
 function waitUntil(test, next, max) {
@@ -34,13 +34,25 @@ function waitUntil(test, next, max) {
 
 
 
+'use strict';
+var CamSDK = require('../../../lib/index-browser.js');
 
-
+var request = require('superagent');
+var mockConfig = require('../../superagent-mock-config');
 
 describe('The input field', function() {
   var $ = jQuery;
   var $simpleFormDoc;
   var camForm, camClient, procDef;
+
+  var superagentMock;
+  before(function() {
+    superagentMock = require('superagent-mock')(request, mockConfig);
+  });
+
+  after(function() {
+    superagentMock.unset();
+  });
 
   it('prepares the testing environemnt', function(done) {
     jQuery.ajax('/base/test/karma/forms-angularjs/angular-form.html', {
@@ -51,7 +63,6 @@ describe('The input field', function() {
         _$top.find('#test-form').remove();
         _$top.find('#browsers').after($simpleFormDoc);
 
-        expect(typeof CamSDKMocks).to.eql('function');
         expect(typeof CamSDK).to.eql('object');
 
         done();
@@ -63,8 +74,7 @@ describe('The input field', function() {
 
   it('needs a process definition', function(done) {
     camClient = new CamSDK.Client({
-      apiUri: 'engine-rest/engine',
-      HttpClient: CamSDKMocks
+      apiUri: 'engine-rest/engine'
     });
 
     camClient.resource('process-definition').list({}, function(err, result) {
@@ -131,7 +141,7 @@ describe('The input field', function() {
           client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
-          done: ready
+          done: function(){window.setTimeout(ready);}
         });
 
         scope = $scope;
@@ -198,7 +208,7 @@ describe('The input field', function() {
          processDefinitionId: procDef.id,
          containerElement: appElement,
          formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
-         done: ready
+         done: function(){window.setTimeout(ready);}
        });
        scope = $scope;
 
@@ -244,7 +254,7 @@ describe('The input field', function() {
           processDefinitionId: procDef.id,
           containerElement: appElement,
           formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
-          done: ready
+          done: function(){window.setTimeout(ready);}
         });
 
         scope = $scope;

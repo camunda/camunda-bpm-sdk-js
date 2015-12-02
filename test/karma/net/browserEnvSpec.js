@@ -1,7 +1,7 @@
 'use strict';
-/* global CamSDK: false */
+var CamSDK = require('../../../lib/index-browser.js');
+
 describe('The browser usage', function() {
-  var camSdk;
 
   it('exists globally', function() {
     expect(CamSDK).to.not.be.undefined;
@@ -12,7 +12,7 @@ describe('The browser usage', function() {
     expect(require).to.not.be.undefined;
 
     expect(function() {
-      camSdk = require('camunda-bpm-sdk');
+      var camSdk = require('camunda-bpm-sdk');
     }).not.to.throw();
   });
 
