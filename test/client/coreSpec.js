@@ -1,7 +1,20 @@
 'use strict';
 var expect = require('chai').expect;
 
+var request = require('superagent');
+var mockConfig = require('./superagent-mock-config');
+
 describe('The SDK core', function() {
+
+  var superagentMock;
+  before(function() {
+    superagentMock = require('superagent-mock')(request, mockConfig);
+  });
+
+  after(function() {
+    superagentMock.unset();
+  });
+
   var CamSDK, camClient, ProcessDefinition, processDefinition;
 
   it('does not blow when loading', function() {
@@ -14,8 +27,7 @@ describe('The SDK core', function() {
   it('initializes', function() {
     expect(function() {
       camClient = new CamSDK.Client({
-        apiUri: 'engine-rest/engine',
-        HttpClient: require('./../../lib/api-client/http-client-mock')
+        apiUri: 'engine-rest/engine'
       });
     }).not.to.throw();
   });
@@ -27,8 +39,6 @@ describe('The SDK core', function() {
     }).not.to.throw();
 
     expect(ProcessDefinition.http).to.not.be.undefined;
-
-    expect(ProcessDefinition.http.mock).to.eql(true);
 
     ProcessDefinition.list({
       nameLike: 'Bar'

@@ -1,10 +1,26 @@
-describe('The form', function() {
+'use strict';
+
+var CamSDK = require('../../../lib/index-browser.js');
+
+var request = require('superagent');
+var mockConfig = require('../../client/superagent-mock-config');
+
+describe.only('The form', function() {
   /* global jQuery: false, CamSDK: false, CamSDKMocks: false */
-  'use strict';
   var $ = jQuery;
   var $simpleFormDoc;
   var camForm, camClient, procDef;
 
+  var superagentMock;
+  before(function() {
+    superagentMock = require('superagent-mock')(request, mockConfig);
+    console.log('doing mock');
+  });
+
+  after(function() {
+    superagentMock.unset();
+    console.log('stopping mock');
+  });
 
   before(function(done) {
     jQuery.ajax('/base/test/karma/forms/form-simple.html', {
@@ -16,8 +32,8 @@ describe('The form', function() {
         _$top.find('#browsers').after($simpleFormDoc);
 
         camClient = new CamSDK.Client({
-          apiUri: 'engine-rest/engine',
-          HttpClient: CamSDKMocks
+          apiUri: 'engine-rest/engine'/*,
+          HttpClient: CamSDKMocks*/
         });
 
         done();
@@ -68,11 +84,12 @@ describe('The form', function() {
         client:               camClient,
         processDefinitionId:  procDef.id,
         formElement:          $simpleFormDoc.find('form[cam-form]'),
-        done:                 initialized
+        done:                 function(){window.setTimeout(initialized);}
       });
     }
 
     function initialized() {
+
       expect(camForm.formFieldHandlers).to.be.an('array');
 
       expect(camForm.fields).to.be.an('array');
@@ -128,7 +145,7 @@ describe('The form', function() {
       client:               camClient,
       processDefinitionId:  procDef.id,
       formElement:          $simpleFormDoc.find('form[cam-form]'),
-      done:                 formReady
+      done:                 function(){window.setTimeout(formReady);}
     });
   });
 
