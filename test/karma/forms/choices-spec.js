@@ -1,7 +1,8 @@
-describe('The select field', function() {
-  /* global jQuery: false, CamSDK: false */
-  'use strict';
+'use strict';
+var CamSDK = require('../../../lib/index-browser.js');
 
+describe('The select field', function() {
+  /* global jQuery: false */
   var $ = jQuery;
 
   var exampleVariableLabel = '__exampleVariableLabel__';

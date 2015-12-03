@@ -510,10 +510,20 @@ module.exports = [
      * @param headers object set by 'set' function
      */
     fixtures: function (match, params, headers) {
+      return params;
+    },
+
+    /**
+     * returns the result of the GET request
+     *
+     * @param match array Result of the resolution of the regular expression
+     * @param data  mixed Data returns by `fixtures` attribute
+     */
+    get: function (match, fixture) {
 
       var pathParts = match[1].split('/');
       pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].split('?')[0];
-      var resource = pathParts.shift();
+      var resourceName = pathParts.shift();
 
       var data = {};
       if(match[1] && match[1].split('?')[1]) {
@@ -524,36 +534,59 @@ module.exports = [
         }
       }
 
-      // returning process definition
-      if (resource === 'process-definition') {
-        var action = pathParts[pathParts.length - 1];
-        if (action === 'form-variables') {
-          var definition;
-          if (pathParts[0] === 'key') {
-            definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+      var results = {};
+
+      switch (resourceName) {
+        case 'process-definition':
+          var action = pathParts[pathParts.length - 1];
+          if (action === 'form-variables') {
+            var definition;
+            if (pathParts[0] === 'key') {
+              definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+            }
+            else {
+              definition = _store.processDefinition[pathParts[0]];
+            }
+            results = _store.processDefinitionFormVariables[definition.id];
           }
           else {
-            definition = _store.processDefinition[pathParts[0]];
+            results = genericGet(pathParts[0], _store.processDefinition, data);
           }
-          return _store.processDefinitionFormVariables[definition.id];
-        }
-        else {
-          return genericGet(pathParts[0], _store.processDefinition, data);
-        }
+          break;
 
+        case 'process-instance':
+          results = genericGet(pathParts[0], _store.processInstance, data);
+          break;
+
+        case 'authorization':
+          results = genericGet(pathParts[0], _store.authorization, data);
+          break;
+
+        case 'filter':
+          results = genericGet(pathParts[0], _store.filter, data);
+          break;
+
+        // case 'session':
+        //   results = genericGet(pathParts[0], _store.session, data);
+        //   break;
+
+        case 'task':
+          results = genericGet(pathParts[0], _store.task, data);
+          break;
+
+        case 'user':
+          results = genericGet(pathParts[0], _store.user, data);
+          break;
+
+        case 'variable-instance':
+          results = genericGet(pathParts[0], _store.variable, data);
+          break;
       }
 
-    },
+      //return results;
 
-    /**
-     * returns the result of the GET request
-     *
-     * @param match array Result of the resolution of the regular expression
-     * @param data  mixed Data returns by `fixtures` attribute
-     */
-    get: function (match, data) {
       return {
-        body: data,
+        body: results,
         ok: true
       };
     },
@@ -565,10 +598,70 @@ module.exports = [
      * @param data  mixed Data returns by `fixtures` attribute
      */
     post: function (match, data) {
+
+      var pathParts = match[1].split('/');
+      pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].split('?')[0];
+      var resourceName = pathParts.shift();
+
+      var urlData = {};
+      if(match[1] && match[1].split('?')[1]) {
+        var args = match[1].split('?')[1].split('&');
+        for(var i = 0; i < args.length; i++) {
+          var components = args[i].split('=');
+          urlData[components[0]] = components[1];
+        }
+      }
+
+      var results = {};
+
+      switch (resourceName) {
+        case 'process-definition':
+          var action = pathParts[pathParts.length - 1];
+          var definition;
+          if (pathParts[0] === 'key') {
+            definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+          }
+          else {
+            definition = _store.processDefinition[pathParts[0]];
+          }
+
+
+          switch (action) {
+            case 'submit-form':
+              var instanceId = uuid();
+              var variables = data.variables;
+
+              _store.processInstanceFormVariables[instanceId] = variables;
+
+              _store.processInstance[instanceId] = {
+                id: instanceId,
+                definitionId: definition.id,
+                businessKey: 'myBusinessKey',
+                ended: false,
+                suspended: false
+              };
+
+              results = _.extend(
+    /** @lends */
+    {
+                links:[
+                  {
+                    method: 'GET',
+                    href: 'http://localhost:8080/rest-test/process-instance/'+ instanceId,
+                    rel: 'self'
+                  }
+                ],
+              }, _store.processInstance[instanceId]);
+              break;
+          }
+          break;
+      }
+
       return {
-        code: 201,
+        body: results,
         ok: true
       };
     }
   }
 ];
+module.exports.mockedData = _store;

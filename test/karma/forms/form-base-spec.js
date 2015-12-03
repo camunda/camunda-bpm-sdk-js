@@ -5,8 +5,8 @@ var CamSDK = require('../../../lib/index-browser.js');
 var request = require('superagent');
 var mockConfig = require('../../client/superagent-mock-config');
 
-describe.only('The form', function() {
-  /* global jQuery: false, CamSDK: false, CamSDKMocks: false */
+describe('The form', function() {
+  /* global jQuery: false */
   var $ = jQuery;
   var $simpleFormDoc;
   var camForm, camClient, procDef;
@@ -14,12 +14,10 @@ describe.only('The form', function() {
   var superagentMock;
   before(function() {
     superagentMock = require('superagent-mock')(request, mockConfig);
-    console.log('doing mock');
   });
 
   after(function() {
     superagentMock.unset();
-    console.log('stopping mock');
   });
 
   before(function(done) {
@@ -32,8 +30,7 @@ describe.only('The form', function() {
         _$top.find('#browsers').after($simpleFormDoc);
 
         camClient = new CamSDK.Client({
-          apiUri: 'engine-rest/engine'/*,
-          HttpClient: CamSDKMocks*/
+          apiUri: 'engine-rest/engine'
         });
 
         done();
@@ -116,7 +113,7 @@ describe.only('The form', function() {
 
       expect(result.definitionId).to.eql(procDef.id);
 
-      var stored = CamSDKMocks.mockedData.processInstanceFormVariables[result.id];
+      var stored = mockConfig.mockedData.processInstanceFormVariables[result.id];
       expect(stored).to.be.ok;
 
       expect(stored.stringVar).to.be.ok;

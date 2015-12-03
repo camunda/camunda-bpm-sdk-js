@@ -48,7 +48,7 @@ module.exports = function() {
 */
           {pattern: 'test/karma/forms/**/*.html', included: false},
 
-          {pattern: 'test/karma/forms/**/' + tested + 'form-base-spec.js', included: true}
+          {pattern: 'test/karma/forms/**/' + tested + '-spec.js', included: true}
         ]
       }
     },

@@ -1,11 +1,25 @@
+'use strict';
+
+var CamSDK = require('../../../lib/index-browser.js');
+
+var request = require('superagent');
+var mockConfig = require('../../client/superagent-mock-config');
+
 describe('The form', function() {
-  /* global jQuery: false, CamSDK: false, CamSDKMocks: false */
-  'use strict';
+  /* global jQuery: false */
 
   var $ = jQuery;
   var $simpleFormDoc;
   var camClient, procDef;
 
+  var superagentMock;
+  before(function() {
+    superagentMock = require('superagent-mock')(request, mockConfig);
+  });
+
+  after(function() {
+    superagentMock.unset();
+  });
 
   before(function (done) {
     jQuery.ajax('/base/test/karma/forms/form-lifecycle.html', {
@@ -17,8 +31,7 @@ describe('The form', function() {
         _$top.find('#browsers').after($simpleFormDoc);
 
         camClient = new CamSDK.Client({
-          apiUri: 'engine-rest/engine',
-          HttpClient: CamSDKMocks
+          apiUri: 'engine-rest/engine'
         });
 
         done();
@@ -30,8 +43,6 @@ describe('The form', function() {
 
 
   it('prepares the testing environemnt', function() {
-    expect(CamSDKMocks).to.be.a('function');
-
     expect(CamSDK).to.be.an('object');
 
     expect(camClient).to.be.ok;
@@ -95,7 +106,7 @@ describe('The form', function() {
       client: camClient,
       processDefinitionId: procDef.id,
       formElement: $simpleFormDoc.find('form[cam-form]'),
-      done: ready
+      done: function(){window.setTimeout(ready);}
     });
   });
 });

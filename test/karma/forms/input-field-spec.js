@@ -1,6 +1,8 @@
+'use strict';
+var CamSDK = require('../../../lib/index-browser.js');
+
 describe('The input field', function() {
-  /* global jQuery: false, CamSDK: false */
-  'use strict';
+  /* global jQuery: false */
 
   var $ = jQuery;
 
