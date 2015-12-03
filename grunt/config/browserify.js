@@ -3,19 +3,6 @@ module.exports = function(config) {
   config = config || {};
 
   return {
-    mock: {
-      options: {
-        bundleOptions: {
-          standalone: 'CamSDKMocks'
-        }
-      },
-      files: {
-        'dist/camunda-bpm-sdk-mock.js': [
-          './lib/api-client/http-client-mock.js'
-        ]
-      }
-    },
-
     dist: {
       options: {
         bundleOptions: {

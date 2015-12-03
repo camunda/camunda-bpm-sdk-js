@@ -3,7 +3,7 @@
 var CamSDK = require('../../../lib/index-browser.js');
 
 var request = require('superagent');
-var mockConfig = require('../../client/superagent-mock-config');
+var mockConfig = require('../../superagent-mock-config');
 
 describe('The form', function() {
   /* global jQuery: false */

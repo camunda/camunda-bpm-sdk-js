@@ -2,7 +2,7 @@
 var expect = require('chai').expect;
 
 var request = require('superagent');
-var mockConfig = require('./superagent-mock-config');
+var mockConfig = require('../superagent-mock-config');
 
 describe('The SDK core', function() {
 

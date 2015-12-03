@@ -1,33 +1,5 @@
 'use strict';
 
-var Events = require('./../events'),
-    HttpClient = require('./http-client'),
-    Q = require('q');
-
-
-/**
- * HttpClient Mock
- *
- * A mocking implementation of CamSDK.HttpClient
- *
- * @class
- * @memberof CamSDK.client
- * @augments {CamSDK.client.HttpClient}
- */
-var HttpClientMock = function(config) {
-  config = config || {};
-
-  if (!config.baseUrl) {
-    throw new Error('HttpClientMock needs a `baseUrl` configuration property.');
-  }
-
-  Events.attach(this);
-
-  this.config = config;
-
-  this.mock = true;
-};
-
 
 /**
  * Console proxy
@@ -406,15 +378,6 @@ for (id in _store.processDefinition) {
   };
 }
 
-
-// expose the "storage"
-HttpClientMock.mockedData = _store;
-
-if (typeof window !== 'undefined') {
-  window.fixturer = fixturer;
-  window.mockedData = _store;
-}
-
 function filter(src, data) {
   var where = {
     exact:  {},
@@ -530,180 +493,174 @@ function genericGet(wanted, items, where) {
   return returned;
 }
 
-/**
- * Performs a POST HTTP request
- */
-HttpClientMock.prototype.post = function(path, options) {
-  options = options || {};
 
-  var deferred = Q.defer();
-  var done = options.done || function() {};
-  var results;
 
-  var pathParts = path.split('/');
-  var resourceName = pathParts.shift();
-  log('SDK MOCKING: "POST" request on "'+ resourceName +'"', pathParts.join(', '));
+module.exports = [
+  {
+    /**
+     * regular expression of URL
+     */
+    pattern: 'engine-rest/engine/engine/default/(.*)',
 
-  switch (resourceName) {
-    case 'process-definition':
-      var action = pathParts[pathParts.length - 1];
-      var definition;
-      if (pathParts[0] === 'key') {
-        definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+    /**
+     * returns the data
+     *
+     * @param match array Result of the resolution of the regular expression
+     * @param params object sent by 'send' function
+     * @param headers object set by 'set' function
+     */
+    fixtures: function (match, params, headers) {
+      return params;
+    },
+
+    /**
+     * returns the result of the GET request
+     *
+     * @param match array Result of the resolution of the regular expression
+     * @param data  mixed Data returns by `fixtures` attribute
+     */
+    get: function (match, fixture) {
+
+      var pathParts = match[1].split('/');
+      pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].split('?')[0];
+      var resourceName = pathParts.shift();
+
+      var data = {};
+      if(match[1] && match[1].split('?')[1]) {
+        var args = match[1].split('?')[1].split('&');
+        for(var i = 0; i < args.length; i++) {
+          var components = args[i].split('=');
+          data[components[0]] = components[1];
+        }
       }
-      else {
-        definition = _store.processDefinition[pathParts[0]];
-      }
 
+      var results = {};
 
-      switch (action) {
-        case 'submit-form':
-          var instanceId = uuid();
-          var variables = options.data.variables;
+      switch (resourceName) {
+        case 'process-definition':
+          var action = pathParts[pathParts.length - 1];
+          if (action === 'form-variables') {
+            var definition;
+            if (pathParts[0] === 'key') {
+              definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+            }
+            else {
+              definition = _store.processDefinition[pathParts[0]];
+            }
+            results = _store.processDefinitionFormVariables[definition.id];
+          }
+          else {
+            results = genericGet(pathParts[0], _store.processDefinition, data);
+          }
+          break;
 
-          _store.processInstanceFormVariables[instanceId] = variables;
+        case 'process-instance':
+          results = genericGet(pathParts[0], _store.processInstance, data);
+          break;
 
-          _store.processInstance[instanceId] = {
-            id: instanceId,
-            definitionId: definition.id,
-            businessKey: 'myBusinessKey',
-            ended: false,
-            suspended: false
-          };
+        case 'authorization':
+          results = genericGet(pathParts[0], _store.authorization, data);
+          break;
 
-          results = _.extend(
-/** @lends */
-{
-            links:[
-              {
-                method: 'GET',
-                href: 'http://localhost:8080/rest-test/process-instance/'+ instanceId,
-                rel: 'self'
-              }
-            ],
-          }, _store.processInstance[instanceId]);
+        case 'filter':
+          results = genericGet(pathParts[0], _store.filter, data);
+          break;
+
+        // case 'session':
+        //   results = genericGet(pathParts[0], _store.session, data);
+        //   break;
+
+        case 'task':
+          results = genericGet(pathParts[0], _store.task, data);
+          break;
+
+        case 'user':
+          results = genericGet(pathParts[0], _store.user, data);
+          break;
+
+        case 'variable-instance':
+          results = genericGet(pathParts[0], _store.variable, data);
           break;
       }
-      break;
-  }
 
-  // postpone the response to simulate latency
-  setTimeout(function() {
-    deferred.resolve(results);
-    done(null, results);
-  }, fixturer.random(300, 700));
+      //return results;
 
-  return deferred.promise;
-};
+      return {
+        body: results,
+        ok: true
+      };
+    },
 
-/**
- * Performs a GET HTTP request
- */
-HttpClientMock.prototype.get = function(path, options) {
-  options = options || {};
+    /**
+     * returns the result of the POST request
+     *
+     * @param match array Result of the resolution of the regular expression
+     * @param data  mixed Data returns by `fixtures` attribute
+     */
+    post: function (match, data) {
 
-  var deferred = Q.defer();
-  var done = options.done || function() {};
-  var results = {};
+      var pathParts = match[1].split('/');
+      pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].split('?')[0];
+      var resourceName = pathParts.shift();
 
-  var pathParts = path.split('/');
-  var resourceName = pathParts.shift();
-  log('SDK MOCKING: "GET" request on "'+ resourceName +'"', pathParts.join(', '));
-
-  switch (resourceName) {
-    case 'process-definition':
-      var action = pathParts[pathParts.length - 1];
-      if (action === 'form-variables') {
-        var definition;
-        if (pathParts[0] === 'key') {
-          definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+      var urlData = {};
+      if(match[1] && match[1].split('?')[1]) {
+        var args = match[1].split('?')[1].split('&');
+        for(var i = 0; i < args.length; i++) {
+          var components = args[i].split('=');
+          urlData[components[0]] = components[1];
         }
-        else {
-          definition = _store.processDefinition[pathParts[0]];
-        }
-        results = _store.processDefinitionFormVariables[definition.id];
       }
-      else {
-        results = genericGet(pathParts[0], _store.processDefinition, options.data);
+
+      var results = {};
+
+      switch (resourceName) {
+        case 'process-definition':
+          var action = pathParts[pathParts.length - 1];
+          var definition;
+          if (pathParts[0] === 'key') {
+            definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+          }
+          else {
+            definition = _store.processDefinition[pathParts[0]];
+          }
+
+
+          switch (action) {
+            case 'submit-form':
+              var instanceId = uuid();
+              var variables = data.variables;
+
+              _store.processInstanceFormVariables[instanceId] = variables;
+
+              _store.processInstance[instanceId] = {
+                id: instanceId,
+                definitionId: definition.id,
+                businessKey: 'myBusinessKey',
+                ended: false,
+                suspended: false
+              };
+
+              results = _.extend(
+              {
+                links:[
+                  {
+                    method: 'GET',
+                    href: 'http://localhost:8080/rest-test/process-instance/'+ instanceId,
+                    rel: 'self'
+                  }
+                ],
+              }, _store.processInstance[instanceId]);
+              break;
+          }
+          break;
       }
-      break;
 
-    case 'process-instance':
-      results = genericGet(pathParts[0], _store.processInstance, options.data);
-      break;
-
-    case 'authorization':
-      results = genericGet(pathParts[0], _store.authorization, options.data);
-      break;
-
-    case 'filter':
-      results = genericGet(pathParts[0], _store.filter, options.data);
-      break;
-
-    // case 'session':
-    //   results = genericGet(pathParts[0], _store.session, options.data);
-    //   break;
-
-    case 'task':
-      results = genericGet(pathParts[0], _store.task, options.data);
-      break;
-
-    case 'user':
-      results = genericGet(pathParts[0], _store.user, options.data);
-      break;
-
-    case 'variable-instance':
-      results = genericGet(pathParts[0], _store.variable, options.data);
-      break;
+      return {
+        body: results,
+        ok: true
+      };
+    }
   }
-
-  // postpone the response to simulate latency
-  setTimeout(function() {
-    deferred.resolve(results);
-    done(null, results);
-  }, fixturer.random(300, 700));
-
-  return deferred.promise;
-};
-
-
-
-/**
- * Performs a PUT HTTP request
- */
-HttpClientMock.prototype.put = function(path, options) {
-  options = options || {};
-  var deferred = Q.defer();
-  var done = options.done || function() {};
-  var results = {};
-
-  // postpone the response to simulate latency
-  setTimeout(function() {
-    deferred.resolve(results);
-    done(null, results);
-  }, fixturer.random(300, 700));
-
-  return deferred.promise;
-};
-
-HttpClientMock.prototype.load = HttpClient.prototype.load;
-
-/**
- * Performs a DELETE HTTP request
- */
-HttpClientMock.prototype.del = function(data, options) {
-  data = data || {};
-  options = options || {};
-  var deferred = Q.defer();
-  var done = options.done || function() {};
-  var results = {};
-
-  // postpone the response to simulate latency
-  setTimeout(function() {
-    deferred.resolve(results);
-    done(null, results);
-  }, fixturer.random(300, 700));
-
-  return deferred.promise;
-};
-module.exports = HttpClientMock;
+];
+module.exports.mockedData = _store;
