@@ -30,7 +30,7 @@ module.exports = function() {
       ],
 
       preprocessors: {
-        'test/karma/forms/**/*-spec.js': [ 'browserify' ]
+        'test/karma/**/*-spec.js': [ 'browserify' ]
       },
 
       files: []
@@ -56,7 +56,6 @@ module.exports = function() {
 
         files: [
           {pattern: 'test/jquery-2.1.1.min.js', included: true},
-          {pattern: 'node_modules/angular/lib/angular.min.js', included: true},
 
           {pattern: 'test/karma/forms-angularjs/**/*.html', included: false},
           {pattern: 'test/karma/forms-angularjs/**/' + tested + '-spec.js', included: true}

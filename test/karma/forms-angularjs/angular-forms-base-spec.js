@@ -1,5 +1,10 @@
-/* global jQuery: false, angular: false */
+/* global jQuery: false */
 'use strict';
+var CamSDK = require('../../../lib/angularjs/index.js');
+var angular = require('angular');
+
+var request = require('superagent');
+var mockConfig = require('../../superagent-mock-config');
 
 function waitUntil(test, next, max) {
   max = max || 1000;
@@ -32,13 +37,6 @@ function waitUntil(test, next, max) {
 
 
 
-
-
-'use strict';
-var CamSDK = require('../../../lib/index-browser.js');
-
-var request = require('superagent');
-var mockConfig = require('../../superagent-mock-config');
 
 describe('The input field', function() {
   var $ = jQuery;
