@@ -88,6 +88,20 @@ grunt publish:version --setversion='myNewVersion'
 
 * [standalone usage](https://github.com/camunda/camunda-bpm-examples/tree/master/sdk-js)
 
+### Contributing
+
+You are __more than welcome__ to take part on the development of this project!
+
+#### Coding
+
+Clone the repository, add, fix or improve and send us a pull request.
+But please take care about the commit messages, [our conventions can be found
+here](https://github.com/camunda/camunda-bpm-platform/blob/master/CONTRIBUTING.md).
+
+#### Coding style guide
+
+In place of a guide, just follow the formatting of existing code :-)
+
 ## License
 
 Unless otherwise specified this project is licensed under [Apache License Version 2.0](./LICENSE).
