@@ -53,4 +53,8 @@ describe('The Tenant resource usage', function() {
   it('has a `delete` method', function() {
     expect(Tenant.delete).to.be.a('function');
   });
+
+  it('has a `options` method', function() {
+    expect(Tenant.options).to.be.a('function');
+  });
 });
