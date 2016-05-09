@@ -6,6 +6,7 @@ describe('The type-util', function() {
 
   var convertToType = require('./../../lib/forms/type-util').convertToType;
   var isType = require('./../../lib/forms/type-util').isType;
+  var dateToString = require('./../../lib/forms/type-util').dateToString;
 
   it('does convert Integer', function() {
 
@@ -65,6 +66,10 @@ describe('The type-util', function() {
 
   it('does convert Date', function() {
 
+    // https://app.camunda.com/jira/browse/CAM-4746
+    var date = new Date('2016-05-09T08:56:00');
+    expect(typeof convertToType(date, 'Date')).to.eql('string');
+
     expect(convertToType('2013-01-23T13:42:42', 'Date')).to.eql('2013-01-23T13:42:42');
     expect(convertToType(' 2013-01-23T13:42:42 ', 'Date')).to.eql('2013-01-23T13:42:42');
 
@@ -117,6 +122,9 @@ describe('The type-util', function() {
   });
 
   it('detects Dates', function() {
+    var date = new Date('2016-05-09T08:56:00');
+    expect(isType(date, 'Date')).to.eql(true);
+
     expect(isType('2013-01-23T13:42:42', 'Date')).to.eql(true);
     expect(isType('2013-01-23T27:42:42', 'Date')).to.eql(false);
     expect(isType('2013-13-23T13:42:42', 'Date')).to.eql(false);
