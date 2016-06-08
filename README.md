@@ -10,7 +10,7 @@ bower install camunda-bpm-sdk-js --save
 
 ## Documentation
 
-You will find some more detailed documentation about the SDK in the `doc` directory.
+See https://docs.camunda.org/manual/7.5/reference/embedded-forms/
 
 ## Development
 
