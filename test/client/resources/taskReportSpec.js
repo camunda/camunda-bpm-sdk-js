@@ -18,6 +18,10 @@ describe('The Task Report resource usage', function() {
     expect(TaskReport.countByCandidateGroup).to.be.a('function');
   });
 
+  it('has a `countByCandidateGroupAsCsv` method', function() {
+    expect(TaskReport.countByCandidateGroup).to.be.a('function');
+  });
+
   xit('has a `resolve` method', function() {
     expect(TaskReport.resolve).to.be.a('function');
   });
