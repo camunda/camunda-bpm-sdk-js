@@ -12,7 +12,7 @@ module.exports = function(config) {
         'lib/**/*.js'
       ],
       tasks: [
-        'newer:jshint',
+        'newer:eslint',
         'browserify',
         'copy:builds'
       ]

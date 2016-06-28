@@ -24,6 +24,8 @@ module.exports = function(grunt) {
 
     copy:             require('./grunt/config/copy')(config),
 
+    eslint:           require('./grunt/config/eslint')(config),
+
     mochacli:         require('./grunt/config/mocha-cli')(config),
 
     jsdoc:            require('./grunt/config/jsdoc')(config),
@@ -48,7 +50,7 @@ module.exports = function(grunt) {
     grunt.log.writeln('Build JS SDK in "'+ mode +'" mode');
 
     var tasks = [
-      'jshint',
+      'newer:eslint',
       'clean',
       'copy:assets',
       'browserify'
