@@ -33,6 +33,10 @@ describe('The Task resource usage', function() {
     expect(Task.unclaim).to.be.a('function');
   });
 
+  it('has a `complete` method', function() {
+    expect(task.complete).to.be.a('function');
+  });
+
 
   xit('has a `resolve` method', function() {
     expect(Task.resolve).to.be.a('function');

@@ -58,6 +58,14 @@ describe('The History resource usage', function() {
     expect(History.reportAsCsv).to.be.a('function');
   });
 
+  it('has a `taskDurationReport` method', function() {
+    expect(History.taskDurationReport).to.be.a('function');
+  });
+
+  it('has a `taskReport` method', function() {
+    expect(History.taskReport).to.be.a('function');
+  });
+
   it('has a `task` method', function() {
     expect(History.task).to.be.a('function');
   });
