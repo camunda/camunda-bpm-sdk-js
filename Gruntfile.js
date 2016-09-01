@@ -28,8 +28,6 @@ module.exports = function(grunt) {
 
     mochacli:         require('./grunt/config/mocha-cli')(config),
 
-    jsdoc:            require('./grunt/config/jsdoc')(config),
-
     jshint:           require('./grunt/config/jshint')(config),
 
     karma:            require('./grunt/config/karma')(config),
@@ -58,7 +56,6 @@ module.exports = function(grunt) {
 
     if (mode === 'prod') {
       tasks = tasks.concat([
-        'jsdoc',
         'uglify'
       ]);
     }
@@ -74,11 +71,6 @@ module.exports = function(grunt) {
     'build:dev',
     'watch:sources',
     'watch:karma'
-  ]);
-
-  grunt.registerTask('auto-doc', [
-    'jsdoc',
-    'watch:doc'
   ]);
 
   grunt.registerTask('publish', function(mode) {
