@@ -38,7 +38,6 @@
     "grunt-contrib-uglify": "0.5.0",
     "grunt-contrib-watch": "0.6.1",
     "grunt-jasmine-node": "0.2.1",
-    "grunt-jsdoc": "0.5.4",
     "grunt-karma": "0.8.3",
     "grunt-newer": "0.7.0",
     "grunt-release": "0.7.0",
