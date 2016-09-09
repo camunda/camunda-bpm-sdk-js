@@ -142,11 +142,11 @@ describe('The SDK utilities', function() {
     });
 
     it('should escape /', function() {
-      expect(sdkUtils.escapeUrl('/')).to.eql('%2F');
+      expect(sdkUtils.escapeUrl('/')).to.eql('%252F');
     });
 
     it('should escape \\', function() {
-      expect(sdkUtils.escapeUrl('\\')).to.eql('%5C');
+      expect(sdkUtils.escapeUrl('\\')).to.eql('%255C');
     });
 
     it('should escape %', function() {
