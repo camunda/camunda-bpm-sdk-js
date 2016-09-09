@@ -34,7 +34,7 @@ describe('The Task resource usage', function() {
   });
 
   it('has a `complete` method', function() {
-    expect(task.complete).to.be.a('function');
+    expect(Task.complete).to.be.a('function');
   });
 
 
