@@ -129,4 +129,28 @@ describe('The SDK utilities', function() {
       });
     });
   });
+
+  describe('escapeUrl', function() {
+    it('should be a function', function() {
+      expect(typeof sdkUtils.escapeUrl).to.eql('function');
+    });
+
+    it('should not escape alphanumeric string', function() {
+      var alphanumeric = 'alphanumeric1223';
+
+      expect(sdkUtils.escapeUrl(alphanumeric)).to.eql('alphanumeric1223');
+    });
+
+    it('should escape /', function() {
+      expect(sdkUtils.escapeUrl('/')).to.eql('%2F');
+    });
+
+    it('should escape \\', function() {
+      expect(sdkUtils.escapeUrl('\\')).to.eql('%5C');
+    });
+
+    it('should escape %', function() {
+      expect(sdkUtils.escapeUrl('%')).to.eql('%25');
+    });
+  });
 });
