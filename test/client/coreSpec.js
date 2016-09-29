@@ -55,6 +55,11 @@ describe('The SDK core', function() {
     });
   });
 
+  it('has a baseUrl', function() {
+    var baseUrl = ProcessDefinition.http.config.baseUrl;
+    expect(baseUrl).to.eql('engine-rest/engine/engine/default');
+  });
+
   it('returns promises', function() {
     expect(function() {
       ProcessDefinition = camClient.resource('process-definition');
@@ -155,6 +160,59 @@ describe('The SDK core', function() {
             done();
           }
         });
+    });
+  });
+});
+
+describe('The custom configured SDK core', function() {
+
+  var baseUrl = 'engine-rest/engine';
+  var mockConfig = require('../superagent-mock-config');
+  var superagentMock;
+
+  before(function() {
+    mockConfig[0].pattern = baseUrl + '/(.*)';
+    superagentMock = require('superagent-mock')(request, mockConfig);
+  });
+
+  after(function() {
+    superagentMock.unset();
+  });
+
+  var CamSDK, camClient, ProcessDefinition;
+
+  it('does not blow when loading', function() {
+    expect(function() {
+      CamSDK = require('./../../lib/index');
+    }).not.to.throw();
+  });
+
+
+  it('initializes', function() {
+    expect(function() {
+      camClient = new CamSDK.Client({
+        engine: false,
+        apiUri: baseUrl
+      });
+    }).not.to.throw();
+  });
+
+  it('has an unmodified baseUrl', function() {
+    ProcessDefinition = camClient.resource('process-definition');
+    expect(ProcessDefinition.http.config.baseUrl).to.eql(baseUrl);
+  });
+
+  it('uses the absolut apiUri', function(done) {
+    ProcessDefinition.list({
+      nameLike: 'Bar'
+    }, function(err, results) {
+      expect(err).to.be.null;
+
+      expect(results.count).to.not.be.undefined;
+
+      expect(Array.isArray(results.items)).to.eql(true);
+
+      done();
     });
   });
 });
