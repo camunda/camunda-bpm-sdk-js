@@ -74,6 +74,10 @@ describe('The History resource usage', function() {
     expect(History.taskCount).to.be.a('function');
   });
 
+  it('has a `drdStatistics` method', function() {
+    expect(History.drdStatistics).to.be.a('function');
+  });
+
   xit('has a `resolve` method', function() {
     expect(History.resolve).to.be.a('function');
   });
