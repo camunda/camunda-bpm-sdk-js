@@ -62,7 +62,7 @@
     "underscore.string": "2.3.3",
     "uuid": "1.4.1"
   },
-  "optionalDependencies": {
-    "angular": "1.2.29"
+  "peerDependency": {
+    "angular": "^1.2.29"
   }
 }
