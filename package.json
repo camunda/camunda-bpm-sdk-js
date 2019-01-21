@@ -67,6 +67,6 @@
     "uuid": "1.4.1"
   },
   "optionalDependencies": {
-    "angular": "1.2.29"
+    "angular": "1.7.5"
   }
 }
