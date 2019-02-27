@@ -126,7 +126,6 @@ describe('DRD Resource', function() {
     });
 
     it('should tenant-id should be optional', function() {
-      http.get.reset();
       DRD.getByKey(key, done);
 
       var usedDone = http.get.getCall(0).args[1].done;
@@ -156,7 +155,6 @@ describe('DRD Resource', function() {
     });
 
     it('should tenant-id should be optional', function() {
-      http.get.reset();
       DRD.getXMLByKey(key, done);
 
       var usedDone = http.get.getCall(0).args[1].done;

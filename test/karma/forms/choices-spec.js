@@ -63,7 +63,7 @@ describe('The select field', function() {
     expect(variable).to.not.be.undefined;
     expect(variable.name).to.eql(exampleVariableName);
     expect(variable.type).to.be.undefined;
-    expect(variable.value).to.be.falsy;
+    expect(variable.value).to.be.null;
   });
 
 
