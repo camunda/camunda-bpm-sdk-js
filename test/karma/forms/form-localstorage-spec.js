@@ -2,7 +2,7 @@
 
 var CamSDK = require('../../../lib/index-browser.js');
 
-var request = require('superagent');
+var request = require('./../../vendor/superagent').default;
 var mockConfig = require('../../superagent-mock-config');
 
 describe('The local storage', function() {
