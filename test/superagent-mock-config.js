@@ -1,3 +1,20 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. Camunda licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 'use strict';
 
 
@@ -509,7 +526,7 @@ module.exports = [
      * @param params object sent by 'send' function
      * @param headers object set by 'set' function
      */
-    fixtures: function (match, params, headers) {
+    fixtures: function(match, params, headers) {
       return params;
     },
 
@@ -519,7 +536,7 @@ module.exports = [
      * @param match array Result of the resolution of the regular expression
      * @param data  mixed Data returns by `fixtures` attribute
      */
-    get: function (match, fixture) {
+    get: function(match, fixture) {
 
       var pathParts = match[1].split('/');
       pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].split('?')[0];
@@ -537,50 +554,50 @@ module.exports = [
       var results = {};
 
       switch (resourceName) {
-        case 'process-definition':
-          var action = pathParts[pathParts.length - 1];
-          if (action === 'form-variables') {
-            var definition;
-            if (pathParts[0] === 'key') {
-              definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
-            }
-            else {
-              definition = _store.processDefinition[pathParts[0]];
-            }
-            results = _store.processDefinitionFormVariables[definition.id];
+      case 'process-definition':
+        var action = pathParts[pathParts.length - 1];
+        if (action === 'form-variables') {
+          var definition;
+          if (pathParts[0] === 'key') {
+            definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
           }
           else {
-            results = genericGet(pathParts[0], _store.processDefinition, data);
+            definition = _store.processDefinition[pathParts[0]];
           }
-          break;
+          results = _store.processDefinitionFormVariables[definition.id];
+        }
+        else {
+          results = genericGet(pathParts[0], _store.processDefinition, data);
+        }
+        break;
 
-        case 'process-instance':
-          results = genericGet(pathParts[0], _store.processInstance, data);
-          break;
+      case 'process-instance':
+        results = genericGet(pathParts[0], _store.processInstance, data);
+        break;
 
-        case 'authorization':
-          results = genericGet(pathParts[0], _store.authorization, data);
-          break;
+      case 'authorization':
+        results = genericGet(pathParts[0], _store.authorization, data);
+        break;
 
-        case 'filter':
-          results = genericGet(pathParts[0], _store.filter, data);
-          break;
+      case 'filter':
+        results = genericGet(pathParts[0], _store.filter, data);
+        break;
 
         // case 'session':
         //   results = genericGet(pathParts[0], _store.session, data);
         //   break;
 
-        case 'task':
-          results = genericGet(pathParts[0], _store.task, data);
-          break;
+      case 'task':
+        results = genericGet(pathParts[0], _store.task, data);
+        break;
 
-        case 'user':
-          results = genericGet(pathParts[0], _store.user, data);
-          break;
+      case 'user':
+        results = genericGet(pathParts[0], _store.user, data);
+        break;
 
-        case 'variable-instance':
-          results = genericGet(pathParts[0], _store.variable, data);
-          break;
+      case 'variable-instance':
+        results = genericGet(pathParts[0], _store.variable, data);
+        break;
       }
 
       //return results;
@@ -597,7 +614,7 @@ module.exports = [
      * @param match array Result of the resolution of the regular expression
      * @param data  mixed Data returns by `fixtures` attribute
      */
-    post: function (match, data) {
+    post: function(match, data) {
 
       var pathParts = match[1].split('/');
       pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].split('?')[0];
@@ -615,45 +632,45 @@ module.exports = [
       var results = {};
 
       switch (resourceName) {
-        case 'process-definition':
-          var action = pathParts[pathParts.length - 1];
-          var definition;
-          if (pathParts[0] === 'key') {
-            definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
-          }
-          else {
-            definition = _store.processDefinition[pathParts[0]];
-          }
+      case 'process-definition':
+        var action = pathParts[pathParts.length - 1];
+        var definition;
+        if (pathParts[0] === 'key') {
+          definition = _.findWhere(_store.processDefinition, {key: pathParts[1]});
+        }
+        else {
+          definition = _store.processDefinition[pathParts[0]];
+        }
 
 
-          switch (action) {
-            case 'submit-form':
-              var instanceId = uuid();
-              var variables = data.variables;
+        switch (action) {
+        case 'submit-form':
+          var instanceId = uuid();
+          var variables = data.variables;
 
-              _store.processInstanceFormVariables[instanceId] = variables;
+          _store.processInstanceFormVariables[instanceId] = variables;
 
-              _store.processInstance[instanceId] = {
-                id: instanceId,
-                definitionId: definition.id,
-                businessKey: 'myBusinessKey',
-                ended: false,
-                suspended: false
-              };
+          _store.processInstance[instanceId] = {
+            id: instanceId,
+            definitionId: definition.id,
+            businessKey: 'myBusinessKey',
+            ended: false,
+            suspended: false
+          };
 
-              results = _.extend(
-              {
-                links:[
-                  {
-                    method: 'GET',
-                    href: 'http://localhost:8080/rest-test/process-instance/'+ instanceId,
-                    rel: 'self'
-                  }
-                ],
-              }, _store.processInstance[instanceId]);
-              break;
-          }
+          results = _.extend(
+            {
+              links:[
+                {
+                  method: 'GET',
+                  href: 'http://localhost:8080/rest-test/process-instance/'+ instanceId,
+                  rel: 'self'
+                }
+              ],
+            }, _store.processInstance[instanceId]);
           break;
+        }
+        break;
       }
 
       return {

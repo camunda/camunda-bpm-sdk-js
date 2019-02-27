@@ -1,3 +1,20 @@
+/*
+ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
+ * under one or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information regarding copyright
+ * ownership. Camunda licenses this file to you under the Apache License,
+ * Version 2.0; you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /* global jQuery: false */
 'use strict';
 var CamSDK = require('../../../lib/angularjs/index.js');
@@ -8,7 +25,7 @@ var mockConfig = require('../../superagent-mock-config');
 
 function waitUntil(test, next, max) {
   max = max || 1000;
-  next = typeof next === 'function' ? next : function () {};
+  next = typeof next === 'function' ? next : function() {};
 
   function timestamp() {
     return (new Date()).getTime();
@@ -107,7 +124,7 @@ describe('The input field', function() {
 
       camForm.applyVariables();
 
-      waitUntil(function () {
+      waitUntil(function() {
         return scope.modelProperty === 'secondUpdate';
       }, done);
     }
@@ -126,7 +143,7 @@ describe('The input field', function() {
       // if we retrieve the variables from the form
       camForm.retrieveVariables();
 
-      waitUntil(function () {
+      waitUntil(function() {
         // the variable updated using angular is updated in the variable manager
         return 'updated' === camForm.variableManager.variable('stringVar').value;
       }, whenRetrieved);
@@ -134,12 +151,12 @@ describe('The input field', function() {
 
 
     angular.module('testApp', ['cam.embedded.forms'])
-      .controller('AppController', ['$scope', function ($scope) {
+      .controller('AppController', ['$scope', function($scope) {
         camForm = new CamSDK.Form({
           client: camClient,
           processDefinitionId: procDef.id,
           formElement: $simpleFormDoc.find('form[cam-form]'),
-          done: function(){window.setTimeout(ready);}
+          done: function() {window.setTimeout(ready);}
         });
 
         scope = $scope;
@@ -169,7 +186,7 @@ describe('The input field', function() {
 
       waitUntil(function() {
         return scope.modelProperty === 'secondUpdate';
-      }, function (err) {
+      }, function(err) {
         if (err) { return done(err); }
 
         waitUntil(function() {
@@ -192,7 +209,7 @@ describe('The input field', function() {
       // if we retrieve the variables from the form
       camForm.retrieveVariables();
 
-      waitUntil(function () {
+      waitUntil(function() {
         // the variable updated using angular is updated in the variable manager
         return 'updated' === camForm.variableManager.variable('stringVar').value;
       }, whenUpdated);
@@ -200,15 +217,15 @@ describe('The input field', function() {
 
 
     angular.module('testApp', [])
-      .controller('AppController', ['$scope', function ($scope) {
-       camForm = new CamSDK.Form({
-         client: camClient,
-         processDefinitionId: procDef.id,
-         containerElement: appElement,
-         formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
-         done: function(){window.setTimeout(ready);}
-       });
-       scope = $scope;
+      .controller('AppController', ['$scope', function($scope) {
+        camForm = new CamSDK.Form({
+          client: camClient,
+          processDefinitionId: procDef.id,
+          containerElement: appElement,
+          formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
+          done: function() {window.setTimeout(ready);}
+        });
+        scope = $scope;
 
       }]);
 
@@ -246,13 +263,13 @@ describe('The input field', function() {
 
 
     angular.module('testApp', [])
-      .controller('AppController', ['$scope', function ($scope) {
+      .controller('AppController', ['$scope', function($scope) {
         camForm = new CamSDK.Form({
           client: camClient,
           processDefinitionId: procDef.id,
           containerElement: appElement,
           formUrl: '/base/test/karma/forms-angularjs/angular-form.html',
-          done: function(){window.setTimeout(ready);}
+          done: function() {window.setTimeout(ready);}
         });
 
         scope = $scope;
