@@ -3,7 +3,7 @@
 var CamSDK = require('../../../lib/angularjs/index.js');
 var angular = require('angular');
 
-var request = require('superagent');
+var request = require('./../../vendor/superagent').default;
 var mockConfig = require('../../superagent-mock-config');
 
 function waitUntil(test, next, max) {

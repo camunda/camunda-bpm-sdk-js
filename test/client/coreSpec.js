@@ -1,7 +1,7 @@
 'use strict';
 var expect = require('chai').expect;
 
-var request = require('superagent');
+var request = require('./../../vendor/superagent').default;
 var mockConfig = require('../superagent-mock-config');
 
 var requestListener = require('../helper/request');
