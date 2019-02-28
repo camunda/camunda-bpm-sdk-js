@@ -2,16 +2,14 @@ import babel from 'rollup-plugin-babel';
 import resolve from 'rollup-plugin-node-resolve';
 import json from 'rollup-plugin-json';
 import commonjs from 'rollup-plugin-commonjs';
-import multiEntry from "rollup-plugin-multi-entry";
 
 export default {
-  input: [/*'node_modules/superagent/lib/client'*/'node_modules/superagent/lib/node/*.js', 'node_modules/superagent/lib/node/parsers/*.js'],
+  input: 'node_modules/superagent/lib/client',
   output: {
     file: 'index.js',
     format: 'cjs'
   },
   plugins: [
-    multiEntry(),
     json(),
     resolve({
       module: true,
