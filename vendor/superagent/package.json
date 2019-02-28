@@ -18,7 +18,8 @@
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-json": "^2.3.0",
-    "rollup-plugin-node-resolve": "^3.3.0"
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-multi-entry": "2.1.0"
   },
   "dependencies": {
     "superagent": "4.1.0"
