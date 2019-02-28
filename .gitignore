@@ -7,4 +7,3 @@ dist
 .idea/
 staging/
 camunda-bpm-sdk*
-vendor/superagent/index.js

@@ -43,14 +43,11 @@ module.exports = function(grunt) {
     bowerRelease:     require('./grunt/config/release-bower')(config)
   });
 
-  require('./grunt/tasks/compileLibs')(grunt);
-
   grunt.registerTask('build', function(mode) {
     mode = mode || 'prod';
     grunt.log.writeln('Build JS SDK in "'+ mode +'" mode');
 
     var tasks = [
-      'compileLibs',
       'newer:eslint',
       'clean',
       'copy:assets',

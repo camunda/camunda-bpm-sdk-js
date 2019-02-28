@@ -32,6 +32,7 @@
     "load-grunt-tasks": "0.5.0",
     "moment": "2.24.0",
     "q": "^1.4.1",
+    "superagent": "1.4.0",
     "time-grunt": "0.3.2"
   },
   "devDependencies": {
@@ -60,7 +61,7 @@
     "license-checker": "16.0.0",
     "mocha": "2.2.4",
     "sinon": "^1.17.6",
-    "superagent-mock": "3.7.0",
+    "superagent-mock": "1.9.0",
     "underscore": "1.6.0",
     "underscore.string": "2.3.3",
     "uuid": "1.4.1"
