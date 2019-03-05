@@ -4,7 +4,7 @@ import json from 'rollup-plugin-json';
 import commonjs from 'rollup-plugin-commonjs';
 
 export default {
-  input: 'node_modules/fast-xml-parser/bin/parser',
+  input: 'node_modules/fast-xml-parser/src/parser',
   output: {
     file: 'index.js',
     format: 'cjs'

@@ -21,6 +21,6 @@
     "rollup-plugin-node-resolve": "^3.3.0"
   },
   "dependencies": {
-    "fast-xml-parser": "2.7.3"
+    "fast-xml-parser": "3.12.13"
   }
 }
