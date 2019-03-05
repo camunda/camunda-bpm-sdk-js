@@ -8,3 +8,4 @@ dist
 staging/
 camunda-bpm-sdk*
 vendor/superagent/index.js
+vendor/fast-xml-parser/index.js

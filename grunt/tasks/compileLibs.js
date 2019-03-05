@@ -1,7 +1,7 @@
 let { promisify } = require('util');
 let exec = promisify(require('child_process').exec);
 let path = require('path');
-let libs = ['vendor/superagent'];
+let libs = ['vendor/superagent', 'vendor/fast-xml-parser'];
 
 module.exports = function(grunt) {
   grunt.registerTask('compileLibs', function() {
