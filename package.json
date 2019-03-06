@@ -60,7 +60,7 @@
     "sinon": "^1.17.6",
     "superagent-mock": "3.7.0",
     "underscore": "1.6.0",
-    "underscore.string": "2.3.3",
+    "underscore.string": "3.3.5",
     "uuid": "1.4.1"
   },
   "optionalDependencies": {
