@@ -16,22 +16,22 @@ export default {
       main: true,
       browser: true
     }),
+    commonjs(),
     babel({
       babelrc: false,
       plugins: [
         'inferno',
-        'transform-object-rest-spread',
-        'transform-class-properties'
+        '@babel/plugin-proposal-object-rest-spread',
+        '@babel/plugin-proposal-class-properties'
       ],
       presets: [
-        ['env', {
+        ['@babel/preset-env', {
           modules: false,
           targets: {
             browsers: ['ie >= 9']
           }
         }]
       ]
-    }),
-    commonjs()
+    })
   ]
 };
