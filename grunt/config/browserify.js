@@ -5,7 +5,7 @@ module.exports = function(config) {
   return {
     dist: {
       options: {
-        bundleOptions: {
+        browserifyOptions: {
           standalone: 'CamSDK'
         }
       },
@@ -18,7 +18,7 @@ module.exports = function(config) {
 
     distTypeUtils: {
       options: {
-        bundleOptions: {
+        browserifyOptions: {
           standalone: 'CamSDK.utils.typeUtils'
         }
       },
@@ -31,7 +31,7 @@ module.exports = function(config) {
 
     distAngular: {
       options: {
-        bundleOptions: {
+        browserifyOptions: {
           standalone: 'CamSDK'
         },
         transform: [
