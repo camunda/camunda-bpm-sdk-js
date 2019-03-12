@@ -62,7 +62,7 @@
     "underscore.string": "3.3.5",
     "uuid": "3.3.2",
     "superagent-mock": "3.7.0",
-    "superagent": "3.8.3"
+    "superagent": "4.1.0"
   },
   "optionalDependencies": {
     "angular": "1.7.7"
