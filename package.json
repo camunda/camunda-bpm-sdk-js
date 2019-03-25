@@ -59,7 +59,7 @@
     "karma-phantomjs-launcher": "1.0.4",
     "license-checker": "25.0.1",
     "mocha": "6.0.2",
-    "sinon": "7.2.7",
+    "sinon": "7.3.0",
     "underscore": "1.9.1",
     "underscore.string": "3.3.5",
     "uuid": "3.3.2",
