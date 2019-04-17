@@ -32,7 +32,7 @@
     "eslint": "5.16.0",
     "eslint-plugin-camunda-licensed": "0.4.2",
     "exposify": "0.5.0",
-    "grunt": "1.0.3",
+    "grunt": "1.0.4",
     "grunt-browserify": "5.3.0",
     "load-grunt-tasks": "4.0.0",
     "browserify": "16.2.3",
