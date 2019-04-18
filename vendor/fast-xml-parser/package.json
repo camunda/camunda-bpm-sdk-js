@@ -11,7 +11,7 @@
     "@babel/preset-env": "7.3.4",
     "babel-plugin-inferno": "6.0.5",
     "@babel/plugin-proposal-class-properties": "7.3.4",
-    "@babel/plugin-proposal-object-rest-spread": "7.3.4",
+    "@babel/plugin-proposal-object-rest-spread": "7.4.3",
     "rollup": "1.6.0",
     "rollup-plugin-babel": "4.3.2",
     "rollup-plugin-commonjs": "9.2.1",
