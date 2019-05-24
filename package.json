@@ -26,7 +26,9 @@
   "homepage": "https://github.com/camunda/camunda-bpm-sdk-js",
   "dependencies": {
     "moment": "2.24.0",
-    "q": "1.5.1"
+    "q": "1.5.1",
+    "superagent": "4.1.0",
+    "fast-xml-parser": "3.12.14"
   },
   "devDependencies": {
     "eslint": "5.16.0",
@@ -63,8 +65,7 @@
     "underscore": "1.9.1",
     "underscore.string": "3.3.5",
     "uuid": "3.3.2",
-    "superagent-mock": "3.7.0",
-    "superagent": "4.1.0"
+    "superagent-mock": "3.7.0"
   },
   "optionalDependencies": {
     "angular": "1.7.8"
