@@ -35,6 +35,8 @@ module.exports = function(grunt) {
 
     dryRun:           dryRun,
 
+    babel:            require('./grunt/config/babel')(config),
+
     browserify:       require('./grunt/config/browserify')(config),
 
     clean:            ['documentation', 'dist', '.tmp', 'staging'],
@@ -60,18 +62,18 @@ module.exports = function(grunt) {
     bowerRelease:     require('./grunt/config/release-bower')(config)
   });
 
-  require('./grunt/tasks/compileLibs')(grunt);
+  require('./grunt/tasks/license-header')(grunt);
 
   grunt.registerTask('build', function(mode) {
     mode = mode || 'prod';
     grunt.log.writeln('Build JS SDK in "'+ mode +'" mode');
 
     var tasks = [
-      'compileLibs',
       'newer:eslint',
       'clean',
       'copy:assets',
-      'browserify'
+      'browserify',
+      'babel'
     ];
 
     if (mode === 'prod') {
@@ -83,6 +85,8 @@ module.exports = function(grunt) {
     if (mode === 'dev') {
       tasks.push('copy:builds');
     }
+
+    tasks.push('license-header');
 
     grunt.task.run(tasks);
   });
@@ -139,6 +143,7 @@ module.exports = function(grunt) {
         tasks = tasks.concat(['bowerRelease:' + mode]);
       }
     }
+
 
     grunt.task.run(tasks);
   });
