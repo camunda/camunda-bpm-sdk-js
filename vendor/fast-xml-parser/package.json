@@ -1,6 +1,6 @@
 {
   "name": "fast-xml-parser",
-  "version": "7.11.0-SNAPSHOT",
+  "version": "7.11.1-SNAPSHOT",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
