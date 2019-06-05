@@ -35,8 +35,6 @@ module.exports = function(grunt) {
 
     dryRun:           dryRun,
 
-    babel:            require('./grunt/config/babel')(config),
-
     browserify:       require('./grunt/config/browserify')(config),
 
     clean:            ['documentation', 'dist', '.tmp', 'staging'],
@@ -72,8 +70,7 @@ module.exports = function(grunt) {
       'newer:eslint',
       'clean',
       'copy:assets',
-      'browserify',
-      'babel'
+      'browserify'
     ];
 
     if (mode === 'prod') {

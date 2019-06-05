@@ -24,7 +24,24 @@ module.exports = function(config) {
       options: {
         browserifyOptions: {
           standalone: 'CamSDK'
-        }
+        },
+        transform: [
+        [ 'babelify',
+          {
+            global: true,
+            compact: false,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets:
+                    'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
+                  forceAllTransforms: true
+                }
+              ]
+            ]
+          }]
+        ]
       },
       files: {
         'dist/camunda-bpm-sdk.js': [
@@ -37,7 +54,24 @@ module.exports = function(config) {
       options: {
         browserifyOptions: {
           standalone: 'CamSDK.utils.typeUtils'
-        }
+        },
+        transform: [
+        [ 'babelify',
+          {
+            global: true,
+            compact: false,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets:
+                    'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
+                  forceAllTransforms: true
+                }
+              ]
+            ]
+          }]
+        ]
       },
       files: {
         'dist/camunda-bpm-sdk-type-utils.js': [
@@ -52,6 +86,21 @@ module.exports = function(config) {
           standalone: 'CamSDK'
         },
         transform: [
+        [ 'babelify',
+          {
+            global: true,
+            compact: false,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets:
+                    'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
+                  forceAllTransforms: true
+                }
+              ]
+            ]
+          }],
           [ 'exposify',
             {
               expose: {
