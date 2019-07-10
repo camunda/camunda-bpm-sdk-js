@@ -36,6 +36,7 @@
     "babelify": "10.0.0",
     "browserify": "16.2.3",
     "chai": "4.2.0",
+    "core-js": "3.1.4",
     "eslint": "5.16.0",
     "eslint-config-prettier": "4.3.0",
     "eslint-plugin-camunda-licensed": "0.4.2",
