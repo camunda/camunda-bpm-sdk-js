@@ -31,7 +31,7 @@ module.exports = function(config) {
       packageName: 'camunda-bpm-sdk-js',
       commitMessage: 'chore(project): release <%= pkg.version %>',
       tagMessage: 'chore(project): release <%= pkg.version %>',
-      push: !config.dryRun
+      push: !config.noPush,
     },
     release: {
       options: {
@@ -50,7 +50,7 @@ module.exports = function(config) {
       options: {
         branchName: '<%= pkg.version %>',
         createTag: false,
-        forcePush: true
+        forcePush: !config.noPush
       },
       files: [
         {

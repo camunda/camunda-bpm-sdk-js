@@ -26,7 +26,7 @@ module.exports = function(config) {
       tagName: '%VERSION%',
       tagMessage: 'chore(project): tag %VERSION%',
       pushTo: 'origin',
-      push: !config.dryRun
+      push: !config.noPush,
     },
     // just for bumping the version
     only: {

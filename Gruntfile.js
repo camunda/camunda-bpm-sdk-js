@@ -22,18 +22,18 @@ module.exports = function(grunt) {
   require('load-grunt-tasks')(grunt);
   // require('time-grunt')(grunt);
 
-  var dryRun = grunt.option('dryRun') || false;
   var pkg = require('./package.json');
   var config = {};
 
   config.grunt = grunt;
   config.pkg = pkg;
-  config.dryRun = dryRun;
+
+  if (grunt.option('dryRun')) grunt.option('no-push', true);
 
   grunt.initConfig({
     pkg:              pkg,
 
-    dryRun:           dryRun,
+    noPush:           grunt.option('no-push'), // defaults to false ==> will push!
 
     browserify:       require('./grunt/config/browserify')(config),
 
