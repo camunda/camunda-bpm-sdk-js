@@ -37,9 +37,7 @@ module.exports = function(config) {
                 {
                   targets:
                     'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
-                  forceAllTransforms: true,
-                  useBuiltIns: 'entry',
-                  corejs: 3
+                  forceAllTransforms: true
                 }
               ]
             ]
@@ -70,9 +68,7 @@ module.exports = function(config) {
                 {
                   targets:
                     'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
-                  forceAllTransforms: true,
-                  useBuiltIns: 'entry',
-                  corejs: 3
+                  forceAllTransforms: true
                 }
               ]
             ]
@@ -103,9 +99,7 @@ module.exports = function(config) {
                 {
                   targets:
                     'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
-                  forceAllTransforms: true,
-                  useBuiltIns: 'entry',
-                  corejs: 3
+                  forceAllTransforms: true
                 }
               ]
             ]
