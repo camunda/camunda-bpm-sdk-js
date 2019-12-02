@@ -36,7 +36,7 @@ module.exports = function(config) {
                 '@babel/preset-env',
                 {
                   targets:
-                    'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
+                    'last 1 chrome version, last 1 firefox version, last 1 edge version',
                   forceAllTransforms: true,
                   useBuiltIns: 'usage',
                   corejs: 3
@@ -69,7 +69,7 @@ module.exports = function(config) {
                 '@babel/preset-env',
                 {
                   targets:
-                    'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
+                    'last 1 chrome version, last 1 firefox version, last 1 edge version',
                   forceAllTransforms: true,
                   useBuiltIns: 'usage',
                   corejs: 3
@@ -102,7 +102,7 @@ module.exports = function(config) {
                 '@babel/preset-env',
                 {
                   targets:
-                    'ie 11, last 1 chrome version, last 1 firefox version, last 1 edge version',
+                    'last 1 chrome version, last 1 firefox version, last 1 edge version',
                   forceAllTransforms: true,
                   useBuiltIns: 'usage',
                   corejs: 3
