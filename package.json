@@ -27,7 +27,7 @@
   "dependencies": {
     "moment": "2.24.0",
     "q": "1.5.1",
-    "superagent": "4.1.0",
+    "superagent": "5.1.2",
     "fast-xml-parser": "3.12.14"
   },
   "devDependencies": {
