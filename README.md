@@ -1,3 +1,6 @@
+# Deprecated
+This repository moved here: https://github.com/camunda/camunda-bpm-webapp/tree/master/camunda-bpm-sdk-js
+
 # camunda-bpm-sdk-js
 
 Javascript client library for [camunda BPM](https://github.com/camunda/camunda-bpm-platform)
