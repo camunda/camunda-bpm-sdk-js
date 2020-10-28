@@ -1,5 +1,5 @@
 # Deprecated
-This repository moved here: https://github.com/camunda/camunda-bpm-webapp/tree/master/camunda-bpm-sdk-js
+This repository moved here: https://github.com/camunda/camunda-bpm-platform/tree/master/webapps/camunda-bpm-sdk-js
 
 # camunda-bpm-sdk-js
 
