@@ -3,7 +3,7 @@ This repository moved here: https://github.com/camunda/camunda-bpm-platform/tree
 
 # camunda-bpm-sdk-js
 
-Javascript client library for [camunda BPM](https://github.com/camunda/camunda-bpm-platform)
+Javascript client library for [Camunda Platform](https://github.com/camunda/camunda-bpm-platform)
 
 ## Install using bower
 
