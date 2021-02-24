@@ -1,7 +1,7 @@
 {
   "name": "camunda-bpm-sdk-js",
   "description": "Javascript client library for camunda BPM",
-  "version": "7.12.18",
+  "version": "7.12.19-SNAPSHOT",
   "main": "index.js",
   "license": "Apache-2.0",
   "homepage": "http://camunda.org",
