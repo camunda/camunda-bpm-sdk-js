@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.4.3",
-    "@babel/preset-env": "7.4.3",
+    "@babel/preset-env": "7.13.9",
     "babel-plugin-inferno": "6.0.5",
     "@babel/plugin-proposal-class-properties": "7.4.0",
     "@babel/plugin-proposal-object-rest-spread": "7.4.3",
