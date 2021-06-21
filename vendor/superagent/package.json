@@ -8,7 +8,7 @@
     "buildE2e": "node initE2e"
   },
   "devDependencies": {
-    "@babel/core": "7.4.3",
+    "@babel/core": "7.14.6",
     "@babel/preset-env": "7.4.3",
     "babel-plugin-inferno": "6.0.5",
     "@babel/plugin-proposal-class-properties": "7.4.0",
