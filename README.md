@@ -68,7 +68,7 @@ This will update the version, commit and tag it, then publish it to [bower-camun
 
 ### Snapshot
 
-To create a snapshot release which just builds current head and publishes it to [bower-camunda-bpm-sdk-js](https://github.com/camunda/bower-camunda-bpm-sdk-js) on a branch named the current version:
+To create a snapshot release which just builds current head and publishes it to [bower-camunda-bpm-sdk-js](https://github.com/camunda/bower-camunda-bpm-sdk-js) on a branch named by the current version:
 
 ```sh
 grunt publish:snapshot
@@ -93,7 +93,7 @@ grunt publish:version --setversion='myNewVersion'
 
 ### Contributing
 
-You are __more than welcome__ to take part on the development of this project!
+You are __more than welcome__ to take part in the development of this project!
 
 #### Coding
 
