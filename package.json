@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/camunda/camunda-bpm-sdk-js.git"
+    "url": "https://github.com/camunda/camunda-bpm-sdk-js.git"
   },
   "keywords": [
     "camunda-bpm",
@@ -37,9 +37,9 @@
     "load-grunt-tasks": "4.0.0",
     "browserify": "16.2.3",
     "chai": "4.2.0",
-    "fixturer": "git://github.com/camunda-third-party/fixturer",
-    "grunt-bower-release": "git://github.com/camunda-third-party/grunt-bower-release#0.0.7",
-    "grunt-bump": "git://github.com/camunda-third-party/grunt-bump",
+    "fixturer": "https://github.com/camunda-third-party/fixturer",
+    "grunt-bower-release": "https://github.com/camunda-third-party/grunt-bower-release#0.0.7",
+    "grunt-bump": "https://github.com/camunda-third-party/grunt-bump",
     "grunt-contrib-clean": "2.0.0",
     "grunt-contrib-copy": "1.0.0",
     "grunt-contrib-jshint": "2.1.0",
