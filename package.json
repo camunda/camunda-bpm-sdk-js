@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/camunda/camunda-bpm-sdk-js",
   "dependencies": {
-    "moment": "2.24.0",
+    "moment": "2.29.4",
     "q": "1.5.1",
     "superagent": "4.1.0",
     "fast-xml-parser": "3.12.14"
