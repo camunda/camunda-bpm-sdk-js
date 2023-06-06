@@ -28,7 +28,7 @@
     "moment": "2.24.0",
     "q": "1.5.1",
     "superagent": "4.1.0",
-    "fast-xml-parser": "3.12.14"
+    "fast-xml-parser": "4.2.4"
   },
   "devDependencies": {
     "@babel/core": "7.4.5",
